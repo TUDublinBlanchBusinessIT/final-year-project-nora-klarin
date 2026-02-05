@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\ChildDashboardController;
-
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -53,6 +53,10 @@ Route::get('/carer/dashboard', [CarerDashboardController::class, 'index'])
 Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('child.dashboard');
+
+Route::post('/child/diary', function (Request $request) {
+    return back()->with('success', 'Diary entry saved (demo only)');
+})->middleware(['auth', 'verified'])->name('child.diary.store');
 
 /*
 |--------------------------------------------------------------------------
