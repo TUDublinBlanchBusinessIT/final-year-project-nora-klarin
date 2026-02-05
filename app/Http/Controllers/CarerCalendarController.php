@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class CarerDashboardController extends Controller
+class CarerCalendarController extends Controller
 {
     public function index(Request $request)
     {
@@ -16,25 +16,23 @@ class CarerDashboardController extends Controller
             abort(403);
         }
 
-        // Find the foster carer record that matches this logged-in user's email
+        // Match logged-in user to fostercarer record by email
         $carer = DB::table('fostercarer')
             ->where('email', $user->email)
             ->first();
 
-        // If no match yet, show empty appointments (still loads page nicely)
         $appointments = collect();
 
         if ($carer) {
             $appointments = DB::table('carerappointment')
                 ->join('appointment', 'carerappointment.appointmentid', '=', 'appointment.id')
-                ->where('carerappointment.carerid', $carer->id) // <-- fostercarer.id
+                ->where('carerappointment.carerid', $carer->id)
                 ->where('appointment.starttime', '>=', Carbon::now())
                 ->orderBy('appointment.starttime')
-                ->limit(5)
                 ->select('appointment.starttime', 'appointment.endtime', 'appointment.notes')
                 ->get();
         }
 
-        return view('carer.dashboard', compact('user', 'appointments', 'carer'));
+        return view('carer.calendar', compact('appointments', 'carer'));
     }
 }
