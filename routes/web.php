@@ -7,12 +7,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\MoodCheckinController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\ChildGoalsController;
+use App\Http\Controllers\TrustedPeopleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,7 +30,6 @@ Route::get('/dashboard', function () {
         return redirect()->route('child.dashboard');
     }
 
-    // Fallback (default Breeze dashboard)
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -58,9 +53,8 @@ Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
 
 /*
 |--------------------------------------------------------------------------
-| Child Mood Check-in (emoji click -> SAVES TO DB)
+| Mood Check-in
 |--------------------------------------------------------------------------
-| Your buttons can keep using: route('child.mood.save', 'happy')
 */
 Route::get('/child/mood/{mood}', [MoodCheckinController::class, 'store'])
     ->middleware(['auth', 'verified'])
@@ -68,7 +62,42 @@ Route::get('/child/mood/{mood}', [MoodCheckinController::class, 'store'])
 
 /*
 |--------------------------------------------------------------------------
-| Child Diary (DEMO SAVE FOR NOW)
+| Child Goals
+|--------------------------------------------------------------------------
+*/
+Route::get('/child/goals', [ChildGoalsController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('child.goals');
+
+Route::post('/child/goals', [ChildGoalsController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('child.goals.store');
+
+/*
+|--------------------------------------------------------------------------
+| Trusted People (CONNECTED TO DB)
+|--------------------------------------------------------------------------
+*/
+Route::get('/child/trusted-people', [TrustedPeopleController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('child.trusted');
+
+Route::post('/child/trusted-people', [TrustedPeopleController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('child.trusted.store');
+
+/*
+|--------------------------------------------------------------------------
+| Child Week (still simple)
+|--------------------------------------------------------------------------
+*/
+Route::get('/child/week', function () {
+    return view('child.week');
+})->middleware(['auth', 'verified'])->name('child.week');
+
+/*
+|--------------------------------------------------------------------------
+| Child Diary (demo)
 |--------------------------------------------------------------------------
 */
 Route::post('/child/diary', function (Request $request) {
@@ -86,9 +115,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Auth Routes (Breeze)
-|--------------------------------------------------------------------------
-*/
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

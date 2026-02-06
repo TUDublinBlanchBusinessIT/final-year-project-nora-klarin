@@ -15,34 +15,40 @@
 
             {{-- TOP CARDS --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                 {{-- Check-in --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100">
                     <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>
                     <p class="text-gray-600 mt-2">How are you feeling today?</p>
 
-                   <div class="mt-4 grid grid-cols-5 gap-2 text-xl">
-                    <a href="{{ route('child.mood.save', 'happy') }}" class="text-center rounded-2xl bg-yellow-100 hover:bg-yellow-200 py-3 transition">😊</a>
-                    <a href="{{ route('child.mood.save', 'calm') }}" class="text-center rounded-2xl bg-green-100 hover:bg-green-200 py-3 transition">😌</a>
-                    <a href="{{ route('child.mood.save', 'okay') }}" class="text-center rounded-2xl bg-blue-100 hover:bg-blue-200 py-3 transition">😐</a>
-                    <a href="{{ route('child.mood.save', 'worried') }}" class="text-center rounded-2xl bg-purple-100 hover:bg-purple-200 py-3 transition">😟</a>
-                    <a href="{{ route('child.mood.save', 'sad') }}" class="text-center rounded-2xl bg-red-100 hover:bg-red-200 py-3 transition">😢</a>
-                </div>
+                    <div class="mt-4 grid grid-cols-5 gap-2 text-xl">
+                        <a href="{{ route('child.mood.save', 'happy') }}" class="text-center rounded-2xl bg-yellow-100 hover:bg-yellow-200 py-3 transition">😊</a>
+                        <a href="{{ route('child.mood.save', 'calm') }}" class="text-center rounded-2xl bg-green-100 hover:bg-green-200 py-3 transition">😌</a>
+                        <a href="{{ route('child.mood.save', 'okay') }}" class="text-center rounded-2xl bg-blue-100 hover:bg-blue-200 py-3 transition">😐</a>
+                        <a href="{{ route('child.mood.save', 'worried') }}" class="text-center rounded-2xl bg-purple-100 hover:bg-purple-200 py-3 transition">😟</a>
+                        <a href="{{ route('child.mood.save', 'sad') }}" class="text-center rounded-2xl bg-red-100 hover:bg-red-200 py-3 transition">😢</a>
+                    </div>
 
                     <p class="text-xs text-gray-500 mt-3">Pick one to start your day 🌈</p>
                 </div>
 
-                {{-- Quick Links --}}
+                {{-- Quick Links (FIXED WRAPPER) --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-pink-100">
                     <h3 class="text-lg font-extrabold text-pink-700">📌 Quick Links</h3>
 
                     <div class="mt-4 space-y-3">
-                        <a href="#" class="block rounded-2xl bg-pink-50 hover:bg-pink-100 px-4 py-3 font-semibold text-pink-700 transition">
+                        <a href="{{ route('child.goals') }}"
+                           class="block rounded-2xl bg-pink-50 hover:bg-pink-100 px-4 py-3 font-semibold text-pink-700 transition">
                             🧩 My Goals
                         </a>
-                        <a href="#" class="block rounded-2xl bg-blue-50 hover:bg-blue-100 px-4 py-3 font-semibold text-blue-700 transition">
+
+                        <a href="{{ route('child.trusted') }}"
+                           class="block rounded-2xl bg-blue-50 hover:bg-blue-100 px-4 py-3 font-semibold text-blue-700 transition">
                             👨‍👩‍👧 Trusted People
                         </a>
-                        <a href="#" class="block rounded-2xl bg-yellow-50 hover:bg-yellow-100 px-4 py-3 font-semibold text-yellow-700 transition">
+
+                        <a href="{{ route('child.week') }}"
+                           class="block rounded-2xl bg-yellow-50 hover:bg-yellow-100 px-4 py-3 font-semibold text-yellow-700 transition">
                             📅 My Week
                         </a>
                     </div>
@@ -63,11 +69,13 @@
                         This can alert a trusted adult (later feature).
                     </p>
                 </div>
+
             </div>
 
             {{-- DIARY + RECENT --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {{-- Diary Form (2 columns on large) --}}
+
+                {{-- Diary Form --}}
                 <div class="lg:col-span-2 rounded-3xl p-7 sm:p-8 shadow-xl bg-white/95 backdrop-blur border border-indigo-100">
                     <div class="flex items-start justify-between gap-4">
                         <div>
@@ -152,16 +160,16 @@
                             </div>
                         </div>
 
-                       <button type="submit"
-                         class="w-full mt-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600
-                        hover:opacity-95 text-white font-extrabold py-3 shadow-lg
-                        focus:outline-none focus:ring-4 focus:ring-pink-200 transition">
-                        Save Diary Entry ✨
+                        <button type="submit"
+                                class="w-full mt-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600
+                                       hover:opacity-95 text-white font-extrabold py-3 shadow-lg
+                                       focus:outline-none focus:ring-4 focus:ring-pink-200 transition">
+                            Save Diary Entry ✨
                         </button>
                     </form>
                 </div>
 
-                {{-- Recent Entries (placeholder for now) --}}
+                {{-- Recent Entries --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
                     <h3 class="text-lg font-extrabold text-indigo-700">🗂️ Recent Entries</h3>
                     <p class="text-sm text-gray-600 mt-1">You’ll see your saved diary entries here.</p>
@@ -182,6 +190,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
             {{-- Bottom cards --}}
