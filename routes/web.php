@@ -1,10 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\ChildDashboardController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\MoodCheckinController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -23,17 +26,16 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    if ($user && $user->role === 'carer') {
+    if ($user?->role === 'carer') {
         return redirect()->route('carer.dashboard');
     }
 
-    if ($user && $user->role === 'child') {
+    if ($user?->role === 'child') {
         return redirect()->route('child.dashboard');
     }
 
     // Fallback (default Breeze dashboard)
     return view('dashboard');
-
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 /*
@@ -54,6 +56,21 @@ Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('child.dashboard');
 
+/*
+|--------------------------------------------------------------------------
+| Child Mood Check-in (emoji click -> SAVES TO DB)
+|--------------------------------------------------------------------------
+| Your buttons can keep using: route('child.mood.save', 'happy')
+*/
+Route::get('/child/mood/{mood}', [MoodCheckinController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('child.mood.save');
+
+/*
+|--------------------------------------------------------------------------
+| Child Diary (DEMO SAVE FOR NOW)
+|--------------------------------------------------------------------------
+*/
 Route::post('/child/diary', function (Request $request) {
     return back()->with('success', 'Diary entry saved (demo only)');
 })->middleware(['auth', 'verified'])->name('child.diary.store');

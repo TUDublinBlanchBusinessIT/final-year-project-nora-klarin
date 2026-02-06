@@ -20,13 +20,13 @@
                     <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>
                     <p class="text-gray-600 mt-2">How are you feeling today?</p>
 
-                    <div class="mt-4 grid grid-cols-5 gap-2 text-xl">
-                        <button type="button" class="rounded-2xl bg-yellow-100 hover:bg-yellow-200 py-3 transition">😊</button>
-                        <button type="button" class="rounded-2xl bg-green-100 hover:bg-green-200 py-3 transition">😌</button>
-                        <button type="button" class="rounded-2xl bg-blue-100 hover:bg-blue-200 py-3 transition">😐</button>
-                        <button type="button" class="rounded-2xl bg-purple-100 hover:bg-purple-200 py-3 transition">😟</button>
-                        <button type="button" class="rounded-2xl bg-red-100 hover:bg-red-200 py-3 transition">😢</button>
-                    </div>
+                   <div class="mt-4 grid grid-cols-5 gap-2 text-xl">
+                    <a href="{{ route('child.mood.save', 'happy') }}" class="text-center rounded-2xl bg-yellow-100 hover:bg-yellow-200 py-3 transition">😊</a>
+                    <a href="{{ route('child.mood.save', 'calm') }}" class="text-center rounded-2xl bg-green-100 hover:bg-green-200 py-3 transition">😌</a>
+                    <a href="{{ route('child.mood.save', 'okay') }}" class="text-center rounded-2xl bg-blue-100 hover:bg-blue-200 py-3 transition">😐</a>
+                    <a href="{{ route('child.mood.save', 'worried') }}" class="text-center rounded-2xl bg-purple-100 hover:bg-purple-200 py-3 transition">😟</a>
+                    <a href="{{ route('child.mood.save', 'sad') }}" class="text-center rounded-2xl bg-red-100 hover:bg-red-200 py-3 transition">😢</a>
+                </div>
 
                     <p class="text-xs text-gray-500 mt-3">Pick one to start your day 🌈</p>
                 </div>
