@@ -3,6 +3,9 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SocialWorkerDashboardController;
+use App\Http\Controllers\AdminUserController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -28,5 +31,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::middleware(['auth', 'role:social_worker'])->group(function () {
+    Route::get('/social-worker/dashboard', 
+        [SocialWorkerDashboardController::class, 'index']
+    )->name('socialworker.dashboard');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/admin/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
+});
+
+
 
 require __DIR__.'/auth.php';
