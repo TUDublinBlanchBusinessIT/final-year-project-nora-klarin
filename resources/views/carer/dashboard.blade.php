@@ -53,12 +53,16 @@
                     </div>
 
                     <!-- Messages -->
+                    <!-- Messages -->
                     <div class="border rounded p-4">
-                        <h3 class="font-semibold">Messages</h3>
-                        <p class="text-sm text-gray-600 mt-2">
-                            No messages yet.
-                        </p>
+                        <h3 class="font-semibold mb-2">Messages</h3>
+
+                        <a href="{{ route('carer.messages.index') }}"
+                        class="text-sm text-blue-600 hover:underline">
+                            Open messages →
+                        </a>
                     </div>
+
 
                     <!-- Notifications -->
                     <div class="border rounded p-4">
