@@ -15,7 +15,11 @@
     <tbody>
         @foreach($cases as $case)
             <tr>
-                <td>{{ $case->id }}</td>
+                <td>
+                    <a href="{{ route('socialworker.case.show', $case->id) }}">
+                        {{ $case->id }}
+                    </a>
+                </td>
                 <td>{{ $case->risklevel }}</td>
                 <td>{{ $case->status }}</td>
                 <td>{{ \Carbon\Carbon::parse($case->openedat)->format('d M Y') }}</td>
@@ -23,6 +27,7 @@
         @endforeach
     </tbody>
 </table>
+
 
 
 </div>

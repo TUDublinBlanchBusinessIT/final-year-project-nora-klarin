@@ -69,6 +69,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
 });
 
+Route::middleware(['auth', 'role:social_worker'])->group(function () {
+    Route::get('/social-worker/case/{case}', [SocialWorkerDashboardController::class, 'show'])
+        ->name('socialworker.case.show');
+});
+
 
 require __DIR__.'/auth.php';
 

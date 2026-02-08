@@ -21,9 +21,21 @@ class CaseFile extends Model
         return $this->users()->wherePivot('role', 'social_worker');
     }
 
+    public function youngPerson()
+    {
+        return $this->belongsTo(YoungPerson::class, 'youngpersonid');
+    }
+
     public function carers()
     {
         return $this->users()->wherePivot('role', 'carer');
     }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'caseid');
+    }
 }
+
+
 

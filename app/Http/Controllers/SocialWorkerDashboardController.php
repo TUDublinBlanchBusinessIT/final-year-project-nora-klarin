@@ -17,4 +17,17 @@ class SocialWorkerDashboardController extends Controller
 
         return view('socialworker.dashboard', compact('cases'));
     }
+
+    public function show(CaseFile $case)
+{
+    $user = auth()->user();
+
+    $assigned = $case->users()->where('users.id', $user->id)->exists();
+    abort_if(!$assigned, 403);
+
+    $case->load(['youngPerson', 'carers', 'appointments']);
+
+    return view('socialworker.casefile', compact('case'));
+}
+
 }
