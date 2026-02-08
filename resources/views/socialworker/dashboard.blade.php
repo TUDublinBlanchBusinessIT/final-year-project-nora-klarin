@@ -2,29 +2,28 @@
 
 @section('content')
 <div class="container">
-    <h2 class="mb-4">Social Worker Dashboard</h2>
-
     <h4>Cases and Risk Level</h4>
     <table class="table table-striped">
-        <thead>
+    <thead>
+        <tr>
+            <th>Case ID</th>
+            <th>Risk Level</th>
+            <th>Status</th>
+            <th>Opened At</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($cases as $case)
             <tr>
-                <th>Case ID</th>
-                <th>Risk Level</th>
-                <th>Status</th>
-                <th>Created</th>
+                <td>{{ $case->id }}</td>
+                <td>{{ $case->risklevel }}</td>
+                <td>{{ $case->status }}</td>
+                <td>{{ \Carbon\Carbon::parse($case->openedat)->format('d M Y') }}</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach($cases as $case)
-                <tr>
-                    <td>{{ $case->risklevel }}</td>
-                    <td>{{ $case->status }}</td>
-                    <td>{{ \Carbon\Carbon::parse($case->openedat)->format('d M Y') }}</td>
+        @endforeach
+    </tbody>
+</table>
 
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
 
 </div>
 @endsection

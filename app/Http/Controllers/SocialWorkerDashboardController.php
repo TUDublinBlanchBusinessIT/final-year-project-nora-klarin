@@ -13,10 +13,7 @@ class SocialWorkerDashboardController extends Controller
 
         abort_if($user->role !== 'social_worker', 403);
 
-        $cases = CaseFile::whereHas('users', function ($query) use ($user) {
-            $query->where('users.id', $user->id)
-                  ->where('caseemployee.role', 'social_worker');
-        })->get();
+        $cases = $user->socialWorkerCases()->get();
 
         return view('socialworker.dashboard', compact('cases'));
     }
