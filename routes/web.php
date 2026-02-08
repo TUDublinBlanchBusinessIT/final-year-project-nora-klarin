@@ -15,13 +15,23 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    // Redirect carers to their dashboard
-    if ($user && $user->role === 'carer') {
-        return redirect()->route('carer.dashboard');
+    if (!$user) {
+        return redirect()->route('login');
     }
 
-    return view('dashboard');
+    // Redirect based on role
+    switch ($user->role) {
+        case 'carer':
+            return redirect()->route('carer.dashboard');
+        case 'social_worker':
+            return redirect()->route('socialworker.dashboard');
+        case 'admin':
+            return redirect()->route('admin.users.index');
+        default:
+            abort(403, 'Unauthorized');
+    }
 })->middleware(['auth', 'verified'])->name('dashboard');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -58,7 +68,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
     Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
 });
-
 
 
 require __DIR__.'/auth.php';

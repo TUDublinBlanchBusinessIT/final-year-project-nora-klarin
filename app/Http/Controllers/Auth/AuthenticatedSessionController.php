@@ -42,6 +42,22 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
+    protected function authenticated(Request $request, $user)
+{
+    switch ($user->role) {
+        case 'admin':
+            return redirect()->route('admin.users.index');
+        case 'social_worker':
+            return redirect()->route('socialworker.dashboard');
+        case 'carer':
+            return redirect()->route('carer.dashboard');
+        case 'young_person':
+            return redirect()->route('child.dashboard');
+        default:
+            return redirect('/login'); 
+    }
+}
+
 }

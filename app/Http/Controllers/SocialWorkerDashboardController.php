@@ -9,28 +9,15 @@ class SocialWorkerDashboardController extends Controller
 {
     public function index()
     {
-        $userId = Auth::id();
+        $user = Auth::user();
 
-        $totalCases = CaseFile::where('social_worker_id', $userId)->count();
+        abort_if($user->role !== 'social_worker', 403);
 
-        $highRiskCases = CaseFile::where('social_worker_id', $userId)
-            ->where('risk_level', 'High')
-            ->count();
+        $cases = CaseFile::whereHas('users', function ($query) use ($user) {
+            $query->where('users.id', $user->id)
+                  ->where('caseemployee.role', 'social_worker');
+        })->get();
 
-        $openCases = CaseFile::where('social_worker_id', $userId)
-            ->where('status', 'Open')
-            ->count();
-
-        $recentCases = CaseFile::where('social_worker_id', $userId)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        return view('socialworker.dashboard', compact(
-            'totalCases',
-            'highRiskCases',
-            'openCases',
-            'recentCases'
-        ));
+        return view('socialworker.dashboard', compact('cases'));
     }
 }

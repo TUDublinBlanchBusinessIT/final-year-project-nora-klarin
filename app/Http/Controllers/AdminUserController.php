@@ -23,17 +23,17 @@ public function store(Request $request)
 {
     $request->validate([
         'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
+        'username' => 'required|string|unique:users,username',
         'role' => 'required|in:admin,social_worker,carer,young_person',
-        'password' => 'nullable|string|min:6|confirmed',
+        'password' => 'nullable|string|min:6',
     ]);
 
-    // Generate readable temp password if admin didn't enter one
+    // Generate temp password if none provided
     $password = $request->password ?? substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'), 0, 8);
 
-    User::create([
+    $user = User::create([
         'name' => $request->name,
-        'email' => $request->email,
+        'username' => $request->username,
         'role' => $request->role,
         'password' => Hash::make($password),
     ]);
@@ -41,6 +41,8 @@ public function store(Request $request)
     return redirect()->route('admin.users.index')
                      ->with('success', "User created successfully. Temp password: $password");
 }
+
+
 
 }
 
