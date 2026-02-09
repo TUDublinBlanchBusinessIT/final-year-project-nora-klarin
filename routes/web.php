@@ -11,6 +11,7 @@ use App\Http\Controllers\ChildGoalsController;
 use App\Http\Controllers\TrustedPeopleController;
 use App\Http\Controllers\ChildWeekController;
 use App\Http\Controllers\SupportRequestController;
+use App\Http\Controllers\DiaryEntryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -83,10 +84,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/child/support', [SupportRequestController::class, 'store'])
         ->name('child.support.store');
 
-    // Child diary (demo)
-    Route::post('/child/diary', function (Request $request) {
-        return back()->with('success', 'Diary entry saved (demo only)');
-    })->name('child.diary.store');
+    /*
+    |----------------------------------------------------------------------
+    | ✅ Diary (NOW SAVES TO DB)
+    |----------------------------------------------------------------------
+    */
+    Route::post('/child/diary', [DiaryEntryController::class, 'store'])
+        ->name('child.diary.store');
 });
 
 /*
@@ -101,5 +105,3 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
-
-

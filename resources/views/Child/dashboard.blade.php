@@ -32,7 +32,7 @@
                     <p class="text-xs text-gray-500 mt-3">Pick one to start your day 🌈</p>
                 </div>
 
-                {{-- Quick Links (FIXED WRAPPER) --}}
+                {{-- Quick Links --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-pink-100">
                     <h3 class="text-lg font-extrabold text-pink-700">📌 Quick Links</h3>
 
@@ -62,10 +62,9 @@
                     </p>
 
                     <a href="{{ route('child.support') }}"
-                     class="mt-4 block text-center w-full rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 shadow transition">
-                    I need support now
+                       class="mt-4 block text-center w-full rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 shadow transition">
+                        I need support now
                     </a>
-
 
                     <p class="text-xs text-gray-500 mt-3">
                         This can alert a trusted adult (later feature).
@@ -171,25 +170,47 @@
                     </form>
                 </div>
 
-                {{-- Recent Entries --}}
+                {{-- Recent Entries (DB) --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
                     <h3 class="text-lg font-extrabold text-indigo-700">🗂️ Recent Entries</h3>
-                    <p class="text-sm text-gray-600 mt-1">You’ll see your saved diary entries here.</p>
+                    <p class="text-sm text-gray-600 mt-1">Your latest diary entries.</p>
+
+                    @php
+                        $moodEmoji = [
+                            'happy' => '😊',
+                            'calm' => '😌',
+                            'okay' => '😐',
+                            'worried' => '😟',
+                            'sad' => '😢',
+                        ];
+                    @endphp
 
                     <div class="mt-4 space-y-3">
-                        <div class="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                            <div class="font-semibold text-gray-800">Example: A good day</div>
-                            <div class="text-xs text-gray-500 mt-1">Mood: 😊 Happy • Today</div>
-                        </div>
+                        @if(isset($recentEntries) && $recentEntries->count())
+                            @foreach($recentEntries as $entry)
+                                <div class="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
+                                    <div class="font-semibold text-gray-800">
+                                        {{ $entry->title ?: 'Untitled entry' }}
+                                    </div>
 
-                        <div class="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                            <div class="font-semibold text-gray-800">Example: Felt worried</div>
-                            <div class="text-xs text-gray-500 mt-1">Mood: 😟 Worried • Yesterday</div>
-                        </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        Mood:
+                                        <span class="mr-1">{{ $moodEmoji[$entry->mood] ?? '✅' }}</span>
+                                        {{ ucfirst($entry->mood ?? 'unknown') }}
+                                        •
+                                        {{ \Carbon\Carbon::parse($entry->created_at)->diffForHumans() }}
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-gray-600">
+                                No entries yet — write your first one on the left ✨
+                            </div>
+                        @endif
+                    </div>
 
-                        <div class="text-xs text-gray-500 pt-1">
-                            Next step: we’ll load real entries from DB.
-                        </div>
+                    <div class="text-xs text-gray-500 pt-3">
+                        Tip: Your newest entries will show here automatically.
                     </div>
                 </div>
 
