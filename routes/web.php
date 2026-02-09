@@ -10,6 +10,7 @@ use App\Http\Controllers\MoodCheckinController;
 use App\Http\Controllers\ChildGoalsController;
 use App\Http\Controllers\TrustedPeopleController;
 use App\Http\Controllers\ChildWeekController;
+use App\Http\Controllers\SupportRequestController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -71,6 +72,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/child/week', [ChildWeekController::class, 'index'])
         ->name('child.week');
 
+    /*
+    |----------------------------------------------------------------------
+    | Need Help (Support Request)
+    |----------------------------------------------------------------------
+    */
+    Route::get('/child/support', [SupportRequestController::class, 'index'])
+        ->name('child.support');
+
+    Route::post('/child/support', [SupportRequestController::class, 'store'])
+        ->name('child.support.store');
+
     // Child diary (demo)
     Route::post('/child/diary', function (Request $request) {
         return back()->with('success', 'Diary entry saved (demo only)');
@@ -89,4 +101,5 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+
 

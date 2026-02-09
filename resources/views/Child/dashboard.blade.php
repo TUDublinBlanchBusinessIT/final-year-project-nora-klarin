@@ -61,9 +61,11 @@
                         If you feel unsafe or worried, press the button.
                     </p>
 
-                    <button type="button" class="mt-4 w-full rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 shadow transition">
-                        I need support now
-                    </button>
+                    <a href="{{ route('child.support') }}"
+                     class="mt-4 block text-center w-full rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 shadow transition">
+                    I need support now
+                    </a>
+
 
                     <p class="text-xs text-gray-500 mt-3">
                         This can alert a trusted adult (later feature).
