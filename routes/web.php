@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\CarerCalendarController;
 use App\Http\Controllers\ChildDashboardController;
+use App\Http\Controllers\CarerMessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
@@ -33,6 +34,31 @@ Route::get('/dashboard', function () {
 
 
 
+<<<<<<< HEAD
+=======
+Route::get('/carer/calendar', [CarerCalendarController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('carer.calendar');
+
+    Route::get('/carer/messages', [CarerMessageController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('carer.messages.index');
+
+Route::get('/carer/messages/create', [CarerMessageController::class, 'create'])
+    ->middleware(['auth', 'verified'])
+    ->name('carer.messages.create');
+
+Route::post('/carer/messages', [CarerMessageController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('carer.messages.store');
+
+
+/*
+|--------------------------------------------------------------------------
+| Profile Routes
+|--------------------------------------------------------------------------
+*/
+>>>>>>> main
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
