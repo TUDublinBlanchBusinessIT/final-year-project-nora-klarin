@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Message;
 
 class CarerDashboardController extends Controller
 {
@@ -21,10 +22,12 @@ class CarerDashboardController extends Controller
             ->where('email', $user->email)
             ->first();
 
-        // If no match yet, show empty appointments (still loads page nicely)
+        // Defaults so the page still loads nicely
         $appointments = collect();
+        $alerts = collect();
 
         if ($carer) {
+            // Next 5 upcoming appointments for this foster carer
             $appointments = DB::table('carerappointment')
                 ->join('appointment', 'carerappointment.appointmentid', '=', 'appointment.id')
                 ->where('carerappointment.carerid', $carer->id) // <-- fostercarer.id
@@ -33,8 +36,32 @@ class CarerDashboardController extends Controller
                 ->limit(5)
                 ->select('appointment.starttime', 'appointment.endtime', 'appointment.notes')
                 ->get();
+
+            // Latest 5 alerts for the carer's cases (if you have case links)
+            // If you don't have case relationships yet, we just show latest alerts overall.
+            $alerts = DB::table('alert')
+                ->orderByDesc('createdat')
+                ->limit(5)
+                ->get();
+        } else {
+            // still show latest alerts even if no carer record exists yet
+            $alerts = DB::table('alert')
+                ->orderByDesc('createdat')
+                ->limit(5)
+                ->get();
         }
 
-        return view('carer.dashboard', compact('user', 'appointments', 'carer'));
+        // Unread messages count for this logged-in user
+        $unreadCount = Message::where('recipient_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+
+        return view('carer.dashboard', compact(
+            'user',
+            'appointments',
+            'carer',
+            'alerts',
+            'unreadCount'
+        ));
     }
 }
