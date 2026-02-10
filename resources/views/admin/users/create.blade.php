@@ -11,9 +11,14 @@
             <input type="text" name="name" class="form-control" required>
         </div>
 
-        <div class="mb-3">
+                <div class="mb-3">
             <label>Username</label>
-            <input type="username" name="username" class="form-control" required>
+            <input type="Username" name="username" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Email</label>
+            <input type="Email" name="email" class="form-control" required>
         </div>
 
         <div class="mb-3">

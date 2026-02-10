@@ -19,38 +19,16 @@ Route::get('/dashboard', function () {
         return redirect()->route('login');
     }
 
-    // Redirect based on role
-    switch ($user->role) {
-        case 'carer':
-            return redirect()->route('carer.dashboard');
-        case 'social_worker':
-            return redirect()->route('socialworker.dashboard');
-        case 'admin':
-            return redirect()->route('admin.users.index');
-        default:
-            abort(403, 'Unauthorized');
-    }
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return match ($user->role) {
+        'carer' => redirect()->route('carer.dashboard'),
+        'social_worker' => redirect()->route('socialworker.dashboard'),
+        'admin' => redirect()->route('admin.users.index'),
+        default => abort(403),
+    };
+})->middleware('auth')->name('dashboard');
 
 
-/*
-|--------------------------------------------------------------------------
-| Carer Routes
-|--------------------------------------------------------------------------
-*/
-Route::get('/carer/dashboard', [CarerDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.dashboard');
 
-Route::get('/carer/calendar', [CarerCalendarController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.calendar');
-
-/*
-|--------------------------------------------------------------------------
-| Profile Routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -76,4 +54,7 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
 
 
 require __DIR__.'/auth.php';
+require __DIR__.'/carer.php';
+require __DIR__.'/socialworker.php';
+
 

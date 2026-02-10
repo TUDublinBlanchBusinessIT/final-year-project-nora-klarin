@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Models\CaseFile;
+use App\Models\Appointment;
 
 class SocialWorkerDashboardController extends Controller
 {

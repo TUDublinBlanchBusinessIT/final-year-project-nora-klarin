@@ -13,20 +13,15 @@ class CarerCalendarController extends Controller
         $user = $request->user();
 
         if (($user->role ?? null) !== 'carer') {
-            abort(403);
+            abort(403, 'Unauthorized');
         }
-
-        // Match logged-in user to fostercarer record by email
-        $carer = DB::table('fostercarer')
-            ->where('email', $user->email)
-            ->first();
 
         $appointments = collect();
 
         if ($carer) {
-            $appointments = DB::table('carerappointment')
-                ->join('appointment', 'carerappointment.appointmentid', '=', 'appointment.id')
-                ->where('carerappointment.carerid', $carer->id)
+            $appointments = DB::table('carer_appointment')
+                ->join('appointment', 'carer_appointment.appointmentid', '=', 'appointment.id')
+                ->where('carer_appointment.carerid', $carer->id)
                 ->where('appointment.starttime', '>=', Carbon::now())
                 ->orderBy('appointment.starttime')
                 ->select('appointment.starttime', 'appointment.endtime', 'appointment.notes')

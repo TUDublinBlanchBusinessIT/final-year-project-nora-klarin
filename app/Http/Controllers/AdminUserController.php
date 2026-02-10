@@ -24,6 +24,7 @@ public function store(Request $request)
     $request->validate([
         'name' => 'required|string|max:255',
         'username' => 'required|string|unique:users,username',
+        'email' => 'required|string|unique:users,email',
         'role' => 'required|in:admin,social_worker,carer,young_person',
         'password' => 'nullable|string|min:6',
     ]);
@@ -34,6 +35,7 @@ public function store(Request $request)
     $user = User::create([
         'name' => $request->name,
         'username' => $request->username,
+        'email' => $request->email,
         'role' => $request->role,
         'password' => Hash::make($password),
     ]);

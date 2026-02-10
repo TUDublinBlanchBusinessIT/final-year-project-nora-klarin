@@ -18,9 +18,34 @@ class User extends Authenticatable
     }
 
     public function socialWorkerCases()
+{
+    return $this->belongsToMany(
+        CaseFile::class,   
+        'case_user',       
+        'user_id',         
+        'case_id'         
+    )
+    ->withPivot('role', 'assigned_at')
+    ->wherePivot('role', 'social_worker');
+}
+
+    public function createdAppointments()
     {
-        return $this->cases()->wherePivot('role', 'social_worker');
+        return $this->hasMany(Appointment::class, 'created_by');
     }
+
+    public function appointmentsAsYoungPerson()
+    {
+        return $this->hasMany(Appointment::class, 'young_person_id');
+    }
+
+    public function appointments()
+    {
+        return $this->belongsToMany(Appointment::class);
+    }
+
+
+
 }
 
 
