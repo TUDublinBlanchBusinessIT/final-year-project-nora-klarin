@@ -1,16 +1,86 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center justify-between w-full">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 👋 Hi {{ Auth::user()->name ?? 'there' }}!
             </h2>
-            <span class="text-sm text-gray-500">
-                {{ now()->format('l, jS F') }}
-            </span>
+
+            <div class="flex items-center gap-4">
+                {{-- ✅ Bell always visible --}}
+                <div x-data="{ open: false }" class="relative">
+                    <button
+                        type="button"
+                        @click="open = !open"
+                        class="relative text-2xl rounded-full px-2 py-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        aria-label="Open reminders"
+                    >
+                        🔔
+
+                        {{-- ✅ Badge only if reminders exist --}}
+                        @if(isset($reminderCount) && $reminderCount > 0)
+                            <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                                {{ $reminderCount }}
+                            </span>
+                        @endif
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div
+                        x-show="open"
+                        @click.outside="open = false"
+                        x-transition
+                        class="absolute right-0 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden z-50"
+                    >
+                        <div class="px-4 py-3 border-b bg-gray-50">
+                            <div class="font-extrabold text-gray-800">Reminders</div>
+                            <div class="text-xs text-gray-500">Things to do today</div>
+                        </div>
+
+                        <div class="px-4 py-4 space-y-3">
+                            @if(isset($reminderCount) && $reminderCount > 0)
+                                <div class="rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3">
+                                    <div class="font-bold text-indigo-800">📖 Diary reminder</div>
+                                    <div class="text-sm text-indigo-900 mt-1">
+                                        You haven’t written a diary entry today.
+                                    </div>
+                                </div>
+
+                                <a
+                                    href="#diary"
+                                    @click="open = false"
+                                    class="block text-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 transition"
+                                >
+                                    Write diary now ✨
+                                </a>
+                            @else
+                                <div class="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
+                                    <div class="font-bold text-green-800">🎉 All done!</div>
+                                    <div class="text-sm text-green-900 mt-1">
+                                        You have no reminders right now.
+                                    </div>
+                                </div>
+                            @endif
+
+                            <button
+                                type="button"
+                                @click="open = false"
+                                class="w-full text-sm text-gray-600 hover:text-gray-900 underline"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <span class="text-sm text-gray-500">
+                    {{ now()->format('l, jS F') }}
+                </span>
+            </div>
         </div>
     </x-slot>
 
     <div class="min-h-screen py-10 bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50">
+        {{-- ✅ FIXED QUOTE HERE --}}
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
             {{-- TOP CARDS --}}
@@ -70,14 +140,13 @@
                         This can alert a trusted adult (later feature).
                     </p>
                 </div>
-
             </div>
 
             {{-- DIARY + RECENT --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {{-- Diary Form --}}
-                <div class="lg:col-span-2 rounded-3xl p-7 sm:p-8 shadow-xl bg-white/95 backdrop-blur border border-indigo-100">
+                <div id="diary" class="lg:col-span-2 rounded-3xl p-7 sm:p-8 shadow-xl bg-white/95 backdrop-blur border border-indigo-100">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h3 class="text-2xl font-extrabold text-indigo-700">📖 My Diary</h3>
@@ -88,14 +157,12 @@
                         </span>
                     </div>
 
-                    {{-- Success message --}}
                     @if (session('success'))
                         <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-green-800 font-semibold">
                             ✅ {{ session('success') }}
                         </div>
                     @endif
 
-                    {{-- Validation errors --}}
                     @if ($errors->any())
                         <div class="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
                             <div class="font-bold mb-1">Please fix:</div>
@@ -170,7 +237,7 @@
                     </form>
                 </div>
 
-                {{-- Recent Entries (DB) --}}
+                {{-- Recent Entries --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
                     <h3 class="text-lg font-extrabold text-indigo-700">🗂️ Recent Entries</h3>
                     <p class="text-sm text-gray-600 mt-1">Your latest diary entries.</p>
@@ -213,7 +280,6 @@
                         Tip: Your newest entries will show here automatically.
                     </div>
                 </div>
-
             </div>
 
             {{-- Bottom cards --}}
