@@ -3,9 +3,12 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\CarerCalendarController;
+use App\Http\Controllers\ChildDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\SocialWorkerAppointmentController;
+
 
 
 Route::get('/', function () {
@@ -23,6 +26,7 @@ Route::get('/dashboard', function () {
         'carer' => redirect()->route('carer.dashboard'),
         'social_worker' => redirect()->route('socialworker.dashboard'),
         'admin' => redirect()->route('admin.users.index'),
+        'young_person' => redirect()->route('child.dashboard'),
         default => abort(403),
     };
 })->middleware('auth')->name('dashboard');
@@ -33,6 +37,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth', 'role:young_person'])->group(function () {
+    Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
+        ->name('child.dashboard');
 });
 
 Route::middleware(['auth', 'role:social_worker'])->group(function () {
@@ -52,6 +61,22 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
         ->name('socialworker.case.show');
 });
 
+
+Route::middleware(['auth'])->group(function () {
+
+    Route::get(
+        '/social-worker/case/{case}/appointments/create',
+        [SocialWorkerAppointmentController::class, 'create']
+    )->name('social-worker.appointments.create');
+
+    Route::post(
+        '/social-worker/case/{case}/appointments',
+        [SocialWorkerAppointmentController::class, 'store']
+    )->name('social-worker.appointments.store');
+
+});
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->name('logout');
 
 require __DIR__.'/auth.php';
 require __DIR__.'/carer.php';

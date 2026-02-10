@@ -63,5 +63,18 @@
         <p class="text-muted">No upcoming appointments</p>
     @endif
 
+    @can('create', App\Models\Appointment::class)
+    <a href="{{ route('appointments.create', $case) }}" 
+       class="btn btn-primary mb-3">
+        + Create Appointment
+    </a>
+@endcan
+@if(auth()->user()->role === 'social_worker')
+    <a href="{{ route('appointments.create', $case) }}" 
+       class="btn btn-primary mb-3">
+        + Create Appointment
+    </a>
+@endif
+
 </div>
 @endsection
