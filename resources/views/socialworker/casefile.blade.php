@@ -42,7 +42,6 @@
 
     <hr>
 
-    {{-- Next appointment --}}
     <h4>Next Appointment</h4>
     @php
         $nextAppointment = $case->appointments()
@@ -64,13 +63,13 @@
     @endif
 
     @can('create', App\Models\Appointment::class)
-    <a href="{{ route('appointments.create', $case) }}" 
+    <a href="{{ route('social-worker.appointments.create', $case) }}" 
        class="btn btn-primary mb-3">
         + Create Appointment
     </a>
 @endcan
 @if(auth()->user()->role === 'social_worker')
-    <a href="{{ route('appointments.create', $case) }}" 
+    <a href="{{ route('social-worker.appointments.create', $case) }}" 
        class="btn btn-primary mb-3">
         + Create Appointment
     </a>
@@ -78,3 +77,10 @@
 
 </div>
 @endsection
+
+@if(auth()->user()->role === 'social_worker')
+    <a href="{{ route('socialworker.case.edit', $case) }}"
+       class="btn btn-warning">
+        Edit Case
+    </a>
+@endif

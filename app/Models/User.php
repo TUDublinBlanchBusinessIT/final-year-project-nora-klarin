@@ -28,6 +28,12 @@ class User extends Authenticatable
     ->withPivot('role', 'assigned_at')
     ->wherePivot('role', 'social_worker');
 }
+public function carerCases()
+{
+    return $this->belongsToMany(CaseFile::class, 'case_user', 'user_id', 'case_id')
+        ->wherePivot('role', 'carer')
+        ->withTimestamps();
+}
 
     public function createdAppointments()
     {

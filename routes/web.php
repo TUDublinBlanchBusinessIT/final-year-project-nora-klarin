@@ -70,6 +70,14 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
     Route::get('/social-worker/dashboard', 
         [SocialWorkerDashboardController::class, 'index']
     )->name('socialworker.dashboard');
+
+        Route::get('/social-worker/case/{case}/edit',
+        [SocialWorkerDashboardController::class, 'edit'])
+        ->name('socialworker.case.edit');
+
+    Route::put('/social-worker/case/{case}',
+        [SocialWorkerDashboardController::class, 'update'])
+        ->name('socialworker.case.update');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

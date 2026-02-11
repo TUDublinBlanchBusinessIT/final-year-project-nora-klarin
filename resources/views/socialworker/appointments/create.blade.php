@@ -5,10 +5,11 @@
 
     <h3>Create Appointment for Case #{{ $case->id }}</h3>
 
-    <form method="POST" action="{{ route('appointments.store') }}">
-        @csrf
+<form method="POST" action="{{ route('social-worker.appointments.store', $case) }}">
+    @csrf
 
-        <input type="hidden" name="case_file_id" value="{{ $case->id }}">
+    <input type="hidden" name="case_file_id" value="{{ $case->id }}">
+
 
         @if($youngPerson)
     <input type="hidden" name="young_person_id" value="{{ $youngPerson->id }}">

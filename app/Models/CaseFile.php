@@ -9,7 +9,17 @@ class CaseFile extends Model
 {
     protected $table = 'case_files';
 
-    protected $fillable = ['youngpersonid', 'risklevel', 'openedat', 'status'];
+    protected $fillable = [
+        'young_person_id',
+        'status',
+        'risk_level',
+        'placement_type',
+        'placement_location',
+        'opened_at',
+        'closed_at',
+        'last_reviewed_at',
+        'summary',
+];
 
  public function users()
 {
@@ -18,7 +28,8 @@ class CaseFile extends Model
         'case_user',
         'case_id',    
         'user_id'    
-    )->withPivot('role', 'assigned_at');
+    )->withPivot('role', 'assigned_at')
+    ->withTimestamps();
 }
 
 
@@ -29,7 +40,7 @@ class CaseFile extends Model
 
     public function youngPerson()
     {
-        return $this->belongsTo(YoungPerson::class, 'young_person_id');
+        return $this->belongsTo(User::class, 'young_person_id');
     }
 
     public function carers()
@@ -47,15 +58,10 @@ class CaseFile extends Model
         return $this->hasMany(Placement::class, 'case_file_id');
     }
 
-    // Wellbeing checks
-    public function wellbeingChecks()
-    {
-        return $this->hasMany(WellbeingCheck::class, 'youngpersonid', 'youngpersonid');
-    }
 
     public function alerts()
     {
-        return $this->hasMany(Alert::class, 'caseid');
+        return $this->hasMany(Alert::class, 'case_file_id');
     }
 
     public function goals()
@@ -63,7 +69,7 @@ class CaseFile extends Model
         return $this->hasManyThrough(
             Goal::class,
             CaseGoal::class,
-            'caseid',   // Foreign key on case_goal table
+            'case_file_id',   // Foreign key on case_goal table
             'id',       // Foreign key on goals table
             'id',       // Local key on case table
             'goalid'    // Local key on case_goal table
