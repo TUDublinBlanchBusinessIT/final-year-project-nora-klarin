@@ -18,8 +18,8 @@ class CarerDashboardController extends Controller
         }
 
         // Find the foster carer record that matches this logged-in user's email
-        $carer = DB::table('fostercarer')
-            ->where('email', $user->email)
+        $carer = DB::table('users')
+            ->where('username', $user->username)
             ->first();
 
         // Defaults so the page still loads nicely
