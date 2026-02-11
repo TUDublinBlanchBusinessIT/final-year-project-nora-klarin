@@ -1,16 +1,24 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\CarerCalendarController;
-use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\CarerMessageController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SocialWorkerAppointmentController;
 
 
+use App\Http\Controllers\ChildDashboardController;
+use App\Http\Controllers\MoodCheckinController;
+use App\Http\Controllers\ChildGoalsController;
+use App\Http\Controllers\TrustedPeopleController;
+use App\Http\Controllers\ChildWeekController;
+use App\Http\Controllers\SupportRequestController;
+use App\Http\Controllers\DiaryEntryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,6 +26,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     $user = auth()->user();
+
 
     if (!$user) {
         return redirect()->route('login');
@@ -32,14 +41,6 @@ Route::get('/dashboard', function () {
     };
 })->middleware('auth')->name('dashboard');
 
-
-
-<<<<<<< HEAD
-=======
-Route::get('/carer/calendar', [CarerCalendarController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.calendar');
-
     Route::get('/carer/messages', [CarerMessageController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('carer.messages.index');
@@ -53,12 +54,7 @@ Route::post('/carer/messages', [CarerMessageController::class, 'store'])
     ->name('carer.messages.store');
 
 
-/*
-|--------------------------------------------------------------------------
-| Profile Routes
-|--------------------------------------------------------------------------
-*/
->>>>>>> main
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
