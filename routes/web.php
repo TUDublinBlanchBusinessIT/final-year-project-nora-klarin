@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
+
+// Child controllers
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\MoodCheckinController;
 use App\Http\Controllers\ChildGoalsController;
@@ -12,6 +14,9 @@ use App\Http\Controllers\TrustedPeopleController;
 use App\Http\Controllers\ChildWeekController;
 use App\Http\Controllers\SupportRequestController;
 use App\Http\Controllers\DiaryEntryController;
+
+// ✅ Child messages controller (Step 4)
+use App\Http\Controllers\ChildMessageController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -74,9 +79,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('child.week');
 
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Need Help (Support Request)
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
     Route::get('/child/support', [SupportRequestController::class, 'index'])
         ->name('child.support');
@@ -85,12 +90,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('child.support.store');
 
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | ✅ Diary (NOW SAVES TO DB)
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
     Route::post('/child/diary', [DiaryEntryController::class, 'store'])
         ->name('child.diary.store');
+
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ Child Messages (Step 4)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/child/messages', [ChildMessageController::class, 'index'])
+        ->name('child.messages.index');
+
+    Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
+        ->name('child.messages.store');
 });
 
 /*
