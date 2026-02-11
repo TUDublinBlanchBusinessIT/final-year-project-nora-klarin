@@ -31,7 +31,7 @@ class SocialWorkerAppointmentController extends Controller
             'case_file_id'   => 'required|exists:case_files,id',
             'young_person_id'=> 'required|exists:users,id',
             'start_time'     => 'required|date',
-            'end_time'       => 'nullable|date|after:start_time',
+            'end_time'       => 'required|date|after:start_time',
             'location'       => 'nullable|string',
             'notes'          => 'nullable|string',
             'carers'         => 'nullable|array',
@@ -39,7 +39,7 @@ class SocialWorkerAppointmentController extends Controller
         ]);
 
         $appointment = Appointment::create([
-            'case_file_id'    => $data['case_file_id'],
+            'case_file_id'    => $request->case_file_id,
             'created_by'      => auth()->id(),
             'young_person_id' => $data['young_person_id'],
             'start_time'      => $data['start_time'],

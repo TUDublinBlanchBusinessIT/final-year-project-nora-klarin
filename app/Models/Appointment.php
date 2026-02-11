@@ -17,6 +17,7 @@ class Appointment extends Model
         'title',
         'location',
         'notes',
+        'created_by',
     ];
 
     // Link to the case
