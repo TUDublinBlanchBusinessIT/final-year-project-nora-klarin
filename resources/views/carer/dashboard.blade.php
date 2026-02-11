@@ -37,15 +37,21 @@
 
         <div class="flex gap-3">
             <a href="{{ route('carer.calendar') }}"
-               class="px-4 py-2 rounded-xl bg-white/20 text-white hover:bg-white/30 text-sm backdrop-blur">
+            class="px-4 py-2 rounded-xl bg-white/20 text-white hover:bg-white/30 text-sm backdrop-blur">
                 View Calendar
             </a>
 
             <a href="{{ route('carer.messages.index') }}"
-               class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
+            class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
                 Open Messages
             </a>
-        </div>
+
+            <a href="{{ route('carer.documents.index') }}"
+            class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
+                Documents
+    </a>
+</div>
+
 
     </div>
 </div>

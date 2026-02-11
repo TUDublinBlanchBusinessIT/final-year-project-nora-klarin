@@ -7,6 +7,7 @@ use App\Http\Controllers\CarerMessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\CarerDocumentController;
 
 
 Route::get('/', function () {
@@ -59,6 +60,12 @@ Route::post('/carer/messages', [CarerMessageController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('carer.messages.store');
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/carer/documents', [CarerDocumentController::class, 'index'])->name('carer.documents.index');
+    Route::post('/carer/documents', [CarerDocumentController::class, 'store'])->name('carer.documents.store');
+    Route::get('/carer/documents/{doc}/download', [CarerDocumentController::class, 'download'])->name('carer.documents.download');
+    Route::delete('/carer/documents/{doc}', [CarerDocumentController::class, 'destroy'])->name('carer.documents.destroy');
+});
 
 /*
 |--------------------------------------------------------------------------
