@@ -6,32 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-Schema::create('case_goals', function (Blueprint $table) {
+       Schema::create('appointment_user', function (Blueprint $table) {
     $table->id();
 
-    $table->foreignId('case_file_id')
+    $table->foreignId('appointment_id')
           ->constrained()
           ->cascadeOnDelete();
 
-    $table->foreignId('goal_id')
+    $table->foreignId('user_id')
           ->constrained()
           ->cascadeOnDelete();
-
-    $table->enum('status', ['pending', 'in_progress', 'completed'])
-          ->default('pending');
-
-    $table->date('due_date')->nullable();
 
     $table->timestamps();
-});
 
+    $table->unique(['appointment_id', 'user_id']);
+});
 
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('case_goals');
+        Schema::dropIfExists('appointment_user');
     }
 };

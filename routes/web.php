@@ -11,7 +11,6 @@ use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SocialWorkerAppointmentController;
 
-
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\MoodCheckinController;
 use App\Http\Controllers\ChildGoalsController;
@@ -40,19 +39,6 @@ Route::get('/dashboard', function () {
         default => abort(403),
     };
 })->middleware('auth')->name('dashboard');
-
-    Route::get('/carer/messages', [CarerMessageController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.messages.index');
-
-Route::get('/carer/messages/create', [CarerMessageController::class, 'create'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.messages.create');
-
-Route::post('/carer/messages', [CarerMessageController::class, 'store'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.messages.store');
-
 
 
 Route::middleware('auth')->group(function () {

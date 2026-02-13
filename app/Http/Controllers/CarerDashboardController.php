@@ -18,38 +18,34 @@ class CarerDashboardController extends Controller
         }
 
         // Find the foster carer record that matches this logged-in user's email
-        $carer = DB::table('fostercarer')
-            ->where('email', $user->email)
+        $carer = DB::table('users')
+            ->where('username', $user->username)
             ->first();
 
         // Defaults so the page still loads nicely
         $appointments = collect();
         $alerts = collect();
 
-        if ($carer) {
+        
             // Next 5 upcoming appointments for this foster carer
-            $appointments = DB::table('carerappointment')
-                ->join('appointment', 'carerappointment.appointmentid', '=', 'appointment.id')
-                ->where('carerappointment.carerid', $carer->id) // <-- fostercarer.id
-                ->where('appointment.starttime', '>=', Carbon::now())
-                ->orderBy('appointment.starttime')
-                ->limit(5)
-                ->select('appointment.starttime', 'appointment.endtime', 'appointment.notes')
-                ->get();
+$appointments = $user->appointments()  // via the pivot table
+    ->where('start_time', '>=', Carbon::now())
+    ->orderBy('start_time')
+    ->limit(5)
+    ->get();
+
+
 
             // Latest 5 alerts for the carer's cases (if you have case links)
             // If you don't have case relationships yet, we just show latest alerts overall.
-            $alerts = DB::table('alert')
-                ->orderByDesc('createdat')
-                ->limit(5)
-                ->get();
-        } else {
+            $alerts = DB::table('alerts')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
+        
             // still show latest alerts even if no carer record exists yet
-            $alerts = DB::table('alert')
-                ->orderByDesc('createdat')
-                ->limit(5)
-                ->get();
-        }
+
 
         // Unread messages count for this logged-in user
         $unreadCount = Message::where('recipient_id', $user->id)

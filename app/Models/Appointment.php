@@ -27,10 +27,16 @@ class Appointment extends Model
     }
 
     // Carers assigned to this appointment
-    public function carers()
-    {
-        return $this->belongsToMany(User::class);
-    }
+public function carers()
+{
+    return $this->belongsToMany(
+        \App\Models\User::class,
+        'appointment_user',
+        'appointment_id',
+        'user_id'
+    );
+}
+
 
     public function youngPerson()
     {
