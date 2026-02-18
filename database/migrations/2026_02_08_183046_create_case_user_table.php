@@ -14,12 +14,21 @@ return new class extends Migration
 Schema::create('case_user', function (Blueprint $table) {
     $table->id();
 
-    $table->foreignId('case_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('case_id')
+          ->constrained('case_files')
+          ->cascadeOnDelete();
 
-    $table->string('role'); // social_worker, carer
+    $table->foreignId('user_id')
+          ->constrained()
+          ->cascadeOnDelete();
+
+    $table->enum('role', ['social_worker', 'carer']);
+
+    $table->timestamp('assigned_at')->nullable();
 
     $table->timestamps();
+
+    $table->unique(['case_id', 'user_id']);
 });
 
     }
