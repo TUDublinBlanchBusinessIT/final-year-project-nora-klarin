@@ -2,25 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Placement extends Model
 {
-    use HasFactory;
-
-    protected $table = 'placements';
-
     protected $fillable = [
-        'case_file_id',
-        'type',
-        'location',
-        'start_date',
-        'end_date',
+        'type', 'address', 'capacity', 'current_occupancy',
+        'status', 'carer_id', 'latitude', 'longitude', 'notes'
     ];
 
-    public function caseFile()
+    public function carer()
     {
-        return $this->belongsTo(CaseFile::class, 'case_file_id');
+        return $this->belongsTo(User::class, 'carer_id');
+    }
+
+    public function carers()
+    {
+        return $this->belongsToMany(User::class, 'placement_carer', 'placement_id', 'user_id');
+    }
+
+    public function casePlacements()
+    {
+        return $this->hasMany(CasePlacement::class);
+    }
+
+    public function cases()
+    {
+        return $this->belongsToMany(CaseFile::class, 'case_placements')
+                    ->withPivot('start_date','end_date','assigned_by','notes')
+                    ->withTimestamps();
     }
 }

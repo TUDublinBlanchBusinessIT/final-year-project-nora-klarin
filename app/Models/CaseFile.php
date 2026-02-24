@@ -53,12 +53,6 @@ class CaseFile extends Model
         return $this->hasMany(Appointment::class, 'case_file_id');
     }
 
-    public function placements()
-    {
-        return $this->hasMany(Placement::class, 'case_file_id');
-    }
-
-
     public function alerts()
     {
         return $this->hasMany(Alert::class, 'case_file_id');
@@ -93,7 +87,25 @@ class CaseFile extends Model
         public function educationInfos() { return $this->hasMany(EducationInfo::class); }
 
         public function documents() { return $this->hasMany(CaseDocument::class); }
+
+        public function placementsHistory()
+{
+    return $this->hasMany(CasePlacement::class);
 }
+
+public function placements()
+{
+    return $this->belongsToMany(
+        Placement::class,
+        'case_placements',
+        'case_file_id',    
+        'placement_id'    
+    )
+    ->withPivot(['start_date', 'end_date', 'notes'])
+    ->withTimestamps();
+}
+}
+
 
 
 

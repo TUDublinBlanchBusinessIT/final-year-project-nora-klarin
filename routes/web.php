@@ -74,6 +74,11 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
         Route::post('/social-worker/case/{case}/education', [CaseFileController::class, 'storeEducation'])->name('cases.education.store');
     
         Route::post('/social-worker/case/{case}/documents', [CaseFileController::class, 'storeDocument'])->name('cases.documents.store');
+
+        Route::post('/social-worker/case/{case}/placements', [CaseFileController::class, 'store'])
+        ->name('case.addPlacement');
+
+        
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

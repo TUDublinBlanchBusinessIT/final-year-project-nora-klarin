@@ -1,22 +1,63 @@
-{{-- Add Placement --}}
+{{-- Placement History & Add Placement --}}
+@if(auth()->user()->role === 'social_worker')
 <div class="modal fade" id="addPlacementModal" tabindex="-1">
-    <div class="modal-dialog">
-        <form action="{{ route('placements.store', $case) }}" method="POST">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header"><h5>Add Placement</h5></div>
-                <div class="modal-body">
-                    <input type="text" name="type" placeholder="Type" class="form-control mb-2" required>
-                    <input type="text" name="location" placeholder="Location" class="form-control mb-2" required>
-                    <input type="date" name="start_date" class="form-control mb-2" required>
-                    <input type="date" name="end_date" class="form-control mb-2">
-                    <textarea name="notes" class="form-control" placeholder="Notes"></textarea>
-                </div>
-                <div class="modal-footer"><button class="btn btn-primary">Save</button></div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Placement History & Add Placement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-        </form>
+            <div class="modal-body">
+                {{-- Placement History --}}
+                <h6>Placement History</h6>
+                @if($case->placementsHistory->isEmpty())
+                    <p class="text-muted">No placements recorded yet.</p>
+                @else
+                    @foreach($case->placementsHistory->sortByDesc('start_date') as $placementRecord)
+                        <div class="card mb-2 p-2">
+                            <strong>{{ $placementRecord->placement->type }}</strong>
+                            <p>Location: {{ $placementRecord->placement->address }}</p>
+                            <p>{{ $placementRecord->start_date }} - {{ $placementRecord->end_date ?? 'Current' }}</p>
+                            @if($placementRecord->placement->carer)
+                                <p>Carer: {{ $placementRecord->placement->carer->name }}</p>
+                            @endif
+                            @if($placementRecord->notes)
+                                <p>Notes: {{ $placementRecord->notes }}</p>
+                            @endif
+                        </div>
+                    @endforeach
+                @endif
+
+                <hr>
+
+                {{-- Add Placement Form --}}
+                <h6>Add New Placement</h6>
+                <form action="{{ route('case.addPlacement', $case) }}" method="POST">
+                    @csrf
+                    <div class="mb-2">
+                        <input type="text" name="type" placeholder="Type" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" name="location" placeholder="Location" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <input type="date" name="start_date" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <input type="date" name="end_date" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="notes" class="form-control" placeholder="Notes"></textarea>
+                    </div>
+                    <div class="text-end">
+                        <button class="btn btn-primary">Save Placement</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
+@endif
 
 {{-- Add Medical --}}
 <div class="modal fade" id="addMedicalModal" tabindex="-1">

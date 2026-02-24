@@ -44,17 +44,36 @@
             <p><strong>Last Reviewed:</strong> {{ $case->last_reviewed_at ?? '-' }}</p>
         </div>
 
-        {{-- Placements --}}
-        <div class="tab-pane fade" id="placements" role="tabpanel">
-            <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#addPlacementModal">Add Placement</button>
-            @foreach($case->placements->sortByDesc('start_date') as $placement)
-                <div class="border p-2 mb-2">
-                    <strong>{{ $placement->type }}</strong> ({{ $placement->start_date }} - {{ $placement->end_date ?? 'Current' }})
-                    <p><strong>Location:</strong> {{ $placement->location }}</p>
-                    <p>{{ $placement->notes ?? '' }}</p>
-                </div>
-            @endforeach
+{{-- Placements Tab --}}
+<div class="tab-pane fade" id="placements" role="tabpanel">
+    @php
+        $currentPlacement = $case->placementsHistory
+            ->whereNull('end_date')
+            ->first();
+    @endphp
+
+    @if($currentPlacement)
+        <div class="card mb-3">
+            <strong>Current Placement:</strong>
+            <p>Type: {{ $currentPlacement->placement->type }}</p>
+            <p>Location: {{ $currentPlacement->placement->address }}</p>
+            @if($currentPlacement->placement->carer)
+                <p>Carer: {{ $currentPlacement->placement->carer->name }}</p>
+            @endif
+            @if($currentPlacement->notes)
+                <p>Notes: {{ $currentPlacement->notes }}</p>
+            @endif
         </div>
+    @else
+        <p class="text-muted">No current placement assigned.</p>
+    @endif
+
+    @if(auth()->user()->role === 'social_worker')
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPlacementModal">
+            Manage Placements
+        </button>
+    @endif
+</div>
 
         {{-- Medical --}}
         <div class="tab-pane fade" id="medical" role="tabpanel">
