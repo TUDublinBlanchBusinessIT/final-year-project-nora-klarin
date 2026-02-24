@@ -29,7 +29,12 @@ class SocialWorkerDashboardController extends Controller
     $assigned = $case->users()->where('users.id', $user->id)->exists();
     abort_if(!$assigned, 403);
 
-    $case->load(['youngPerson', 'carers', 'appointments']);
+    $case->load([
+        'youngPerson',
+        'carers',
+        'appointments',
+        'placements'
+    ]);
 
     return view('socialworker.casefile', compact('case'));
 }

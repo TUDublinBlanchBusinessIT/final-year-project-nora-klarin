@@ -9,16 +9,18 @@ class Placement extends Model
 {
     use HasFactory;
 
-    protected $table = 'placement';
-    protected $fillable = ['caseid', 'carerid', 'placementtype', 'startdate', 'enddate'];
+    protected $table = 'placements';
+
+    protected $fillable = [
+        'case_file_id',
+        'type',
+        'location',
+        'start_date',
+        'end_date',
+    ];
 
     public function caseFile()
     {
-        return $this->belongsTo(CaseFile::class, 'caseid');
-    }
-
-    public function carer()
-    {
-        return $this->belongsTo(User::class, 'carerid');
+        return $this->belongsTo(CaseFile::class, 'case_file_id');
     }
 }

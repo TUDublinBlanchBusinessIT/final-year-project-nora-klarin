@@ -26,7 +26,7 @@ class CaseFile extends Model
     return $this->belongsToMany(
         User::class,
         'case_user',
-        'case_id',    
+        'case_file_id',    
         'user_id'    
     )->withPivot('role', 'assigned_at')
     ->withTimestamps();
@@ -87,6 +87,12 @@ class CaseFile extends Model
             'taskid'   // local key on taskgoal table
         );
         }
+
+        public function medicalInfos() { return $this->hasMany(MedicalInfo::class); }
+        
+        public function educationInfos() { return $this->hasMany(EducationInfo::class); }
+
+        public function documents() { return $this->hasMany(CaseDocument::class); }
 }
 
 

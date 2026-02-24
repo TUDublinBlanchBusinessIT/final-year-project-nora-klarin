@@ -14,7 +14,7 @@ return new class extends Migration
 Schema::create('case_user', function (Blueprint $table) {
     $table->id();
 
-    $table->foreignId('case_id')
+    $table->foreignId('case_file_id')
           ->constrained('case_files')
           ->cascadeOnDelete();
 
@@ -28,7 +28,7 @@ Schema::create('case_user', function (Blueprint $table) {
 
     $table->timestamps();
 
-    $table->unique(['case_id', 'user_id']);
+    $table->unique(['case_file_id', 'user_id']);
 });
 
     }

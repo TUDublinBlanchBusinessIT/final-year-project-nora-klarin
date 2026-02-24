@@ -10,7 +10,7 @@ use App\Http\Controllers\CarerMessageController;
 use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SocialWorkerAppointmentController;
-
+use App\Http\Controllers\CaseFileController;
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\MoodCheckinController;
 use App\Http\Controllers\ChildGoalsController;
@@ -57,13 +57,23 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
         [SocialWorkerDashboardController::class, 'index']
     )->name('socialworker.dashboard');
 
-        Route::get('/social-worker/case/{case}/edit',
-        [SocialWorkerDashboardController::class, 'edit'])
-        ->name('socialworker.case.edit');
+        Route::get('/social-worker/case/{case}/show', [CaseFileController::class, 'show'])
+            ->name('socialworker.case.show');
 
-    Route::put('/social-worker/case/{case}',
-        [SocialWorkerDashboardController::class, 'update'])
-        ->name('socialworker.case.update');
+        Route::get('/social-worker/case/{case}/edit', [CaseFileController::class, 'edit'])
+            ->name('socialworker.case.edit');
+
+        Route::put('/social-worker/case/{case}/update', [CaseFileController::class, 'update'])
+            ->name('socialworker.case.update');
+
+        Route::post('/social-worker/case/{case}/placements', [PlacementController::class, 'store'])
+    ->name('placements.store');
+
+        Route::post('/social-worker/case/{case}/medical', [CaseFileController::class, 'storeMedical'])->name('cases.medical.store');
+        
+        Route::post('/social-worker/case/{case}/education', [CaseFileController::class, 'storeEducation'])->name('cases.education.store');
+    
+        Route::post('/social-worker/case/{case}/documents', [CaseFileController::class, 'storeDocument'])->name('cases.documents.store');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -72,10 +82,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
 });
 
-Route::middleware(['auth', 'role:social_worker'])->group(function () {
-    Route::get('/social-worker/case/{case}', [SocialWorkerDashboardController::class, 'show'])
-        ->name('socialworker.case.show');
-});
 
 
 Route::middleware(['auth'])->group(function () {
