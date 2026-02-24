@@ -21,12 +21,16 @@
 
         <div class="mb-3">
             <label class="form-label">Date & Time</label>
-            <input type="datetime-local" name="start_time" class="form-control" required>
+            <input type="datetime-local" name="start_time" class="form-control" 
+            value="{{ $availableSlot ? $availableSlot->format('Y-m-d\TH:i') : '' }}" required>
+
         </div>
 
         <div class="mb-3">
             <label class="form-label">End Time</label>
-            <input type="datetime-local" name="end_time" class="form-control">
+            <input type="datetime-local" name="end_time" class="form-control"
+            value="{{ $availableSlot ? $availableSlot->copy()->addMinutes(30)->format('Y-m-d\TH:i') : '' }}">
+
         </div>
 
         <div class="mb-3">

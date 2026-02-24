@@ -104,6 +104,21 @@ public function placements()
     ->withPivot(['start_date', 'end_date', 'notes'])
     ->withTimestamps();
 }
+
+public function suggestedFollowUp()
+{
+    $riskIntervals = [
+        'High' => 7,   
+        'Medium' => 14, 
+        'Low' => 56     
+    ];
+
+    $lastAppointment = $this->appointments()->orderByDesc('start_time')->first();
+    $startDate = $lastAppointment ? $lastAppointment->start_time : $this->created_at;
+    $intervalDays = $riskIntervals[$this->risk_level] ?? 28;
+
+    return now()->parse($startDate)->addDays($intervalDays);
+}
 }
 
 

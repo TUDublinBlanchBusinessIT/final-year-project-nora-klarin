@@ -5,6 +5,8 @@ use App\Models\Appointment;
 use App\Models\CaseFile;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+
 
 class SocialWorkerAppointmentController extends Controller
 {
@@ -16,11 +18,15 @@ class SocialWorkerAppointmentController extends Controller
 
         $carers = $case->carers;
 
-        return view('socialworker.appointments.create', compact(
-            'case',
-            'youngPerson',
-            'carers'
-        ));
+    $suggestedDate = $case->suggestedFollowUp();
+    $availableSlot = Appointment::nextAvailableSlot(auth()->id(), Carbon::parse($suggestedDate));
+
+    return view('socialworker.appointments.create', compact(
+        'case',
+        'youngPerson',
+        'carers',
+        'availableSlot'
+    ));
     }
 
 public function store(Request $request)

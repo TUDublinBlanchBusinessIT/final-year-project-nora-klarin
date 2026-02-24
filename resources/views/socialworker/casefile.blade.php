@@ -116,21 +116,54 @@
                 </ul>
             @endif
         </div>
+{{-- Appointments --}}
+<div class="tab-pane fade" id="appointments" role="tabpanel">
 
-        {{-- Appointments --}}
-        <div class="tab-pane fade" id="appointments" role="tabpanel">
-            @php $nextAppointment = $case->appointments()->orderBy('start_time')->first(); @endphp
-            @if($nextAppointment)
-                <p><strong>Date:</strong> {{ \Carbon\Carbon::parse($nextAppointment->start_time)->format('d M Y H:i') }}</p>
-                <p><strong>Location:</strong> {{ $nextAppointment->location ?? 'TBC' }}</p>
-            @else
-                <p class="text-muted">No upcoming appointments</p>
-            @endif
-            <a href="{{ route('social-worker.appointments.create', $case) }}" class="btn btn-primary mt-3">
-                <i class="bi bi-plus-circle"></i> Create Appointment
-            </a>
+    @php
+        $nextAppointment = $case->appointments
+            ->where('start_time', '>=', now())
+            ->sortBy('start_time')
+            ->first();
+    @endphp
+
+    @if($nextAppointment)
+        <div class="alert alert-info">
+            <strong>Next Appointment:</strong> {{ \Carbon\Carbon::parse($nextAppointment->start_time)->format('d M Y H:i') }}
+            <br>
+            <strong>Location:</strong> {{ $nextAppointment->location ?? 'TBC' }}
         </div>
-    </div>
+    @endif
+
+    <h5>All Appointments</h5>
+    @if($case->appointments->isEmpty())
+        <p class="text-muted">No appointments scheduled.</p>
+    @else
+        <ul class="list-group">
+            @foreach($case->appointments->sortByDesc('start_time') as $appointment)
+                <li class="list-group-item">
+<strong>
+    {{ \Carbon\Carbon::parse($appointment->start_time)->format('d M Y H:i') }} -
+    {{ $appointment->end_time ? \Carbon\Carbon::parse($appointment->end_time)->format('H:i') : 'TBC' }}
+</strong>                    <br>Location: {{ $appointment->location ?? '-' }}
+                    @if($appointment->notes)
+                        <br>Notes: {{ $appointment->notes }}
+                    @endif
+                    <br>Created by: {{ $appointment->creator->name ?? 'System' }}
+                    @if($appointment->carers->count())
+                        <br>Carers:
+                        @foreach($appointment->carers as $carer)
+                            {{ $carer->name }}{{ !$loop->last ? ',' : '' }}
+                        @endforeach
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+    @endif
+
+    <a href="{{ route('social-worker.appointments.create', $case) }}" class="btn btn-primary mt-3">
+        <i class="bi bi-plus-circle"></i> Create Appointment
+    </a>
+</div>
 </div>
 
 {{-- Modals --}}

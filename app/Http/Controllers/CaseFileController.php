@@ -21,8 +21,10 @@ class CaseFileController extends Controller
         $case->load([
             'youngPerson',
             'carers',
-            'appointments',
-            'placements.carer',  // eager load the carer for each placement
+            'appointments' => function ($query) {
+        $query->orderBy('start_time', 'desc'); // latest first
+    },
+            'placements.carer',  
             'medicalInfos',
             'educationInfos',
             'documents'
