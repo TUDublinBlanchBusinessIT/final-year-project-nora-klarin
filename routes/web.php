@@ -14,6 +14,11 @@ use App\Http\Controllers\TrustedPeopleController;
 use App\Http\Controllers\ChildWeekController;
 use App\Http\Controllers\SupportRequestController;
 use App\Http\Controllers\DiaryEntryController;
+use App\Http\Controllers\SocialWorkerDashboardController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\SocialWorkerAppointmentController;
+
+
 
 // ✅ Child messages controller (Step 4)
 use App\Http\Controllers\ChildMessageController;
@@ -22,24 +27,22 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Dashboard Redirect (ROLE BASED)
-|--------------------------------------------------------------------------
-*/
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    if ($user?->role === 'carer') {
-        return redirect()->route('carer.dashboard');
+
+    if (!$user) {
+        return redirect()->route('login');
     }
 
-    if ($user?->role === 'child') {
-        return redirect()->route('child.dashboard');
-    }
-
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return match ($user->role) {
+        'carer' => redirect()->route('carer.dashboard'),
+        'social_worker' => redirect()->route('socialworker.dashboard'),
+        'admin' => redirect()->route('admin.users.index'),
+        'young_person' => redirect()->route('child.dashboard'),
+        default => abort(403),
+    };
+})->middleware('auth')->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -121,3 +124,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+require __DIR__.'/socialworker.php';
