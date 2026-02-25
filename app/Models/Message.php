@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 
 class Message extends Model
 {
-    protected $fillable = ['sender_id', 'recipient_id', 'body', 'read_at'];
+    protected $fillable = ['thread_id','sender_id', 'recipient_id', 'body', 'read_at'];
 
     public function sender()
     {
@@ -18,4 +19,14 @@ class Message extends Model
     {
         return $this->belongsTo(User::class, 'recipient_id');
     }
+
+    protected $casts = [
+        'read_at' => 'datetime',
+    ];
+
+    public function thread(): BelongsTo
+    {
+        return $this->belongsTo(Thread::class);
+    }
+
 }

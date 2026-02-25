@@ -80,11 +80,10 @@
     </x-slot>
 
     <div class="min-h-screen py-10 bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50">
-        {{-- ✅ FIXED QUOTE HERE --}}
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
             {{-- TOP CARDS --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
                 {{-- Check-in --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100">
@@ -122,6 +121,23 @@
                             📅 My Week
                         </a>
                     </div>
+                </div>
+
+                {{-- ✅ Messages (NEW) --}}
+                <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
+                    <h3 class="text-lg font-extrabold text-indigo-700">💬 Messages</h3>
+                    <p class="text-gray-600 mt-2">
+                        Chat with your carer securely inside the app.
+                    </p>
+
+                    <a href="{{ route('child.messages.index') }}"
+                       class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition">
+                        Open messages
+                    </a>
+
+                    <p class="text-xs text-gray-500 mt-3">
+                        Safe chat ✨
+                    </p>
                 </div>
 
                 {{-- Help --}}

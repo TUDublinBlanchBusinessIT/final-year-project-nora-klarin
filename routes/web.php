@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\CarerCalendarController;
@@ -10,8 +10,6 @@ use App\Http\Controllers\CarerMessageController;
 use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SocialWorkerAppointmentController;
-
-
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\MoodCheckinController;
 use App\Http\Controllers\ChildGoalsController;
@@ -19,6 +17,11 @@ use App\Http\Controllers\TrustedPeopleController;
 use App\Http\Controllers\ChildWeekController;
 use App\Http\Controllers\SupportRequestController;
 use App\Http\Controllers\DiaryEntryController;
+
+
+
+// ✅ Child messages controller (Step 4)
+use App\Http\Controllers\ChildMessageController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -41,7 +44,8 @@ Route::get('/dashboard', function () {
     };
 })->middleware('auth')->name('dashboard');
 
-    Route::get('/carer/messages', [CarerMessageController::class, 'index'])
+
+Route::get('/carer/dashboard', [CarerDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('carer.messages.index');
 
@@ -151,6 +155,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
         ->name('child.messages.store');
 });
+
+
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
