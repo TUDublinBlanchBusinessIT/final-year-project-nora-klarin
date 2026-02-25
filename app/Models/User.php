@@ -13,7 +13,7 @@ class User extends Authenticatable
 
     public function cases()
     {
-        return $this->belongsToMany(CaseFile::class, 'case_user', 'user_id', 'case_id')
+        return $this->belongsToMany(CaseFile::class, 'case_user', 'user_id', 'case_file_id')
                     ->withPivot('role', 'assigned_at');
     }
 
@@ -23,7 +23,7 @@ class User extends Authenticatable
         CaseFile::class,   
         'case_user',       
         'user_id',         
-        'case_id'         
+        'case_file_id'         
     )
     ->withPivot('role', 'assigned_at')
     ->wherePivot('role', 'social_worker');
