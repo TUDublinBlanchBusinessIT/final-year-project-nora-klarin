@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -11,20 +14,13 @@ class User extends Authenticatable
 
     protected $fillable = ['name', 'email', 'password', 'role', 'username'];
 
-public const ROLE_SOCIAL_WORKER = 'social_worker';
-public const ROLE_CARER = 'carer';
-public const ROLE_YOUNG_PERSON = 'young_person';
+    public function cases()
+    {
+        return $this->belongsToMany(CaseFile::class, 'case_user', 'user_id', 'case_file_id')
+                    ->withPivot('role', 'assigned_at')
+                    ->withTimestamps();
+    }
 
-public function cases()
-{
-    return $this->belongsToMany(
-        CaseFile::class,
-        'case_user',
-        'user_id',
-        'case_file_id'
-    )->withPivot('role', 'assigned_at')
-     ->withTimestamps();
-}
 
 
 public function socialWorkerCases()
