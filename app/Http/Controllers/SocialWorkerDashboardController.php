@@ -57,7 +57,6 @@ public function update(Request $request, CaseFile $case)
 
     ]);
 
-    // Update case fields
     $case->update([
         'young_person_id' => $request->young_person_id,
         'status' => $request->status,
@@ -66,9 +65,9 @@ public function update(Request $request, CaseFile $case)
 
 if ($request->has('carers')) {
     $case->users()->syncWithPivotValues(
-        $request->carers,  // array of user IDs
+        $request->carers,  
         ['role' => 'carer', 'assigned_at' => now()],
-        false // don't detach other roles
+        false 
     );
 }
 

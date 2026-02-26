@@ -46,18 +46,14 @@
 
                 <div class="rounded-3xl p-6 shadow-lg bg-white border border-red-100">
                     <h3 class="text-lg font-bold text-red-700">High Risk</h3>
-                    <p class="text-2xl mt-2">{{ $cases->where('risk_level', 'High')->count() }}</p>
-                </div>
-
+<p class="text-2xl mt-2">{{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'high')->count() }}</p>                </div>
                 <div class="rounded-3xl p-6 shadow-lg bg-white border border-yellow-100">
                     <h3 class="text-lg font-bold text-yellow-700">Medium Risk</h3>
-                    <p class="text-2xl mt-2">{{ $cases->where('risk_level', 'Medium')->count() }}</p>
-                </div>
+<p class="text-2xl mt-2">{{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'medium')->count() }}</p>                </div>
 
                 <div class="rounded-3xl p-6 shadow-lg bg-white border border-green-100">
                     <h3 class="text-lg font-bold text-green-700">Low Risk</h3>
-                    <p class="text-2xl mt-2">{{ $cases->where('risk_level', 'Low')->count() }}</p>
-                </div>
+<p class="text-2xl mt-2">{{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'low')->count() }}</p>                </div>
             </div>
 
             {{-- CHART --}}
@@ -77,9 +73,9 @@
                     class="border rounded-lg px-3 py-2 text-sm shadow-sm"
                 >
                     <option value="All">All Risks</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
                 </select>
             </div>
 
@@ -93,8 +89,8 @@
                         <a 
                             href="{{ route('socialworker.case.show', $case->id) }}"
                             class="block p-6 bg-white rounded-2xl shadow hover:shadow-xl transition border-l-4
-                            @if($case->risk_level === 'High') border-red-500
-                            @elseif($case->risk_level === 'Medium') border-yellow-500
+                            @if($case->risk_level === 'high') border-red-500
+                            @elseif($case->risk_level === 'medium') border-yellow-500
                             @else border-green-500
                             @endif"
                         >
@@ -132,11 +128,12 @@
                 labels: ['High', 'Medium', 'Low'],
                 datasets: [{
                     label: 'Cases by Risk',
+                    
                     data: [
-                        {{ $cases->where('risk_level','High')->count() }},
-                        {{ $cases->where('risk_level','Medium')->count() }},
-                        {{ $cases->where('risk_level','Low')->count() }}
-                    ],
+                    {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'high')->count() }},
+                    {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'medium')->count() }},
+                    {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'low')->count() }}
+                ],
                     backgroundColor: ['#f87171','#facc15','#34d399']
                 }]
             },
