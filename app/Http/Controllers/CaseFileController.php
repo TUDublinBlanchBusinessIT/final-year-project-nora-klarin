@@ -1,66 +1,69 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CaseFile;
-use App\Models\Placement;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CaseFileController extends Controller
 {
-    // Show a case file
+  
     public function show(CaseFile $case)
     {
         $user = auth()->user();
 
         // Ensure the user is assigned to this case
-        $assigned = $case->users()->where('users.id', $user->id)->exists();
-        abort_if(!$assigned, 403);
+        abort_if(!$case->users()->where('users.id', $user->id)->exists(), 403);
 
         $case->load([
             'youngPerson',
             'carers',
-            'appointments' => function ($query) {
-        $query->orderBy('start_time', 'desc'); // latest first
-    },
-            'placements.carer',  
+            'appointments' => fn($q) => $q->orderBy('start_time', 'desc'),
+            'placements.carer',
             'medicalInfos',
             'educationInfos',
-            'documents'
+            'documents',
         ]);
 
         return view('socialworker.casefile', compact('case'));
     }
 
-    // Edit a case file
+    /**
+     * Show form to edit a case file.
+     */
     public function edit(CaseFile $case)
     {
         $children = User::where('role', 'young_person')->get();
-        $carers = User::where('role', 'carer')->get();
+        $carers   = User::where('role', 'carer')->get();
 
         return view('socialworker.case_edit', compact('case', 'children', 'carers'));
     }
 
-    // Update basic case info and carers
+    /**
+     * Update case basic info and assigned carers.
+     */
     public function update(Request $request, CaseFile $case)
     {
-        $request->validate([
+        $validated = $request->validate([
             'young_person_id' => 'nullable|exists:users,id',
-            'status' => 'required|string',
-            'risk_level' => 'required|string',
+            'status'          => 'required|string',
+            'risk_level'      => 'required|string',
+            'carers'          => 'nullable|array',
+            'carers.*'        => 'exists:users,id',
         ]);
 
         $case->update([
-            'young_person_id' => $request->young_person_id,
-            'status' => $request->status,
-            'risk_level' => $request->risk_level,
+            'young_person_id' => $validated['young_person_id'] ?? null,
+            'status'          => $validated['status'],
+            'risk_level'      => $validated['risk_level'],
         ]);
 
-        // Sync carers
-        if ($request->has('carers')) {
+        if (!empty($validated['carers'])) {
             $case->users()->syncWithPivotValues(
-                $request->carers,
+                $validated['carers'],
                 ['role' => 'carer', 'assigned_at' => now()],
                 false
             );
@@ -71,65 +74,85 @@ class CaseFileController extends Controller
             ->with('success', 'Case updated successfully.');
     }
 
-    // Store a new placement
+  
+public function assignCarer(Request $request, CaseFile $case)
+{
+    abort_if(auth()->user()->role !== 'social_worker', 403);
+
+    $validated = $request->validate([
+        'carer_id' => 'required|exists:users,id',
+    ]);
+
+    $carerId = $validated['carer_id'];
+
+    // Safely assign carer without violating unique constraint
+    $case->users()->syncWithoutDetaching([
+        $carerId => [
+            'role'        => 'carer',
+            'assigned_at' => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]
+    ]);
+
+    // Reload carers relation so Blade sees it
+    $case->load('carers');
+
+    return redirect()->back()->with('success', 'Carer assigned successfully.');
+}
+
     public function storePlacement(Request $request, CaseFile $case)
     {
-        $request->validate([
-            'type' => 'required|string',
-            'location' => 'required|string',
+        $validated = $request->validate([
+            'type'       => 'required|string',
+            'location'   => 'required|string',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'carer_id' => 'nullable|exists:users,id',
-            'capacity' => 'nullable|integer|min:1',
-            'notes' => 'nullable|string',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'carer_id'   => 'nullable|exists:users,id',
+            'capacity'   => 'nullable|integer|min:1',
+            'notes'      => 'nullable|string',
         ]);
 
-        $case->placements()->create([
-            'type' => $request->type,
-            'location' => $request->location,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'carer_id' => $request->carer_id,
-            'capacity' => $request->capacity ?? 1,
-            'current_occupancy' => 0,
-            'status' => 'active',
-            'notes' => $request->notes,
-        ]);
+        $case->placements()->create(array_merge($validated, [
+            'capacity'         => $validated['capacity'] ?? 1,
+            'current_occupancy'=> 0,
+            'status'           => 'active',
+        ]));
 
         return back()->with('success', 'Placement added successfully.');
     }
 
-    // Store medical information
+
     public function storeMedical(Request $request, CaseFile $case)
     {
-        $request->validate([
+        $validated = $request->validate([
             'condition' => 'required|string',
-            'notes' => 'nullable|string',
+            'notes'     => 'nullable|string',
         ]);
 
-        $case->medicalInfos()->create($request->all());
+        $case->medicalInfos()->create($validated);
 
         return back()->with('success', 'Medical info added.');
     }
 
-    // Store education information
+   
     public function storeEducation(Request $request, CaseFile $case)
     {
-        $request->validate([
+        $validated = $request->validate([
             'school_name' => 'required|string',
-            'grade' => 'nullable|string',
-            'notes' => 'nullable|string',
+            'grade'       => 'nullable|string',
+            'notes'       => 'nullable|string',
         ]);
 
-        $case->educationInfos()->create($request->all());
+        $case->educationInfos()->create($validated);
 
         return back()->with('success', 'Education info added.');
     }
 
-    // Store documents
+
     public function storeDocument(Request $request, CaseFile $case)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string',
             'file' => 'required|file|mimes:pdf,jpg,png,docx|max:10240',
         ]);
@@ -137,8 +160,8 @@ class CaseFileController extends Controller
         $path = $request->file('file')->store('documents', 'public');
 
         $case->documents()->create([
-            'name' => $request->name,
-            'file_path' => $path,
+            'name'        => $validated['name'],
+            'file_path'   => $path,
             'uploaded_by' => auth()->id(),
         ]);
 

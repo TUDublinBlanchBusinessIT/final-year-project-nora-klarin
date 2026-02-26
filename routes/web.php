@@ -123,6 +123,14 @@ Route::middleware(['auth'])->group(function () {
         [SocialWorkerAppointmentController::class, 'store']
     )->name('social-worker.appointments.store');
 
+    Route::get('/social-worker/cases', [SocialWorkerDashboardController::class, 'list'])
+    ->middleware(['auth','role:social_worker'])
+    ->name('socialworker.case.list');
+
+    Route::post('/cases/{case}/assign-carer', [CaseFileController::class, 'assignCarer'])
+    ->name('case.assignCarer')
+    ->middleware('auth');
+
         Route::get('/child/support', [SupportRequestController::class, 'index'])
         ->name('child.support');
 

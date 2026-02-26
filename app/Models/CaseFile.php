@@ -21,18 +21,27 @@ class CaseFile extends Model
         'summary',
 ];
 
- public function users()
-{
-    return $this->belongsToMany(
-        User::class,
-        'case_user',
-        'case_file_id',    
-        'user_id'    
-    )->withPivot('role', 'assigned_at')
-    ->withTimestamps();
-}
+    public function users()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'case_user',
+            'case_file_id',
+            'user_id'
+        )->withPivot('role', 'assigned_at')
+         ->withTimestamps();
+    }
 
+    // Carers only
+    public function carers()
+    {
+        return $this->belongsToMany(User::class, 'case_user', 'case_file_id', 'user_id')
+                    ->withPivot('role', 'assigned_at', 'created_at', 'updated_at')
+                    ->wherePivot('role', 'carer')
+                    ->withTimestamps();
+    }
 
+    // Social workers only
     public function socialWorkers()
     {
         return $this->users()->wherePivot('role', 'social_worker');
@@ -43,20 +52,12 @@ class CaseFile extends Model
         return $this->belongsTo(User::class, 'young_person_id');
     }
 
-    public function carers()
-    {
-        return $this->users()->wherePivot('role', 'carer');
-    }
-
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'case_file_id');
     }
 
-    public function alerts()
-    {
-        return $this->hasMany(Alert::class, 'case_file_id');
-    }
+
 
     public function goals()
     {
