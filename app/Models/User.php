@@ -20,7 +20,10 @@ class User extends Authenticatable
                     ->withPivot('role', 'assigned_at')
                     ->withTimestamps();
     }
-
+public function caseFile()
+{
+    return $this->hasOne(CaseFile::class, 'young_person_id');
+}
 
 
 public function socialWorkerCases()
