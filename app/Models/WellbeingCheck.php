@@ -7,24 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class WellbeingCheck extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'child_id',
+        'completed_by_type',
+        'completed_by_user_id',
+        'week_start',
+        'overall_score',
+        'overall_risk_score',
+        'risk_level'
+    ];
 
-    protected $table = 'wellbeingcheck';
-    protected $fillable = ['youngpersonid', 'overallscore', 'notes'];
-
-    public function caseFile()
+    public function responses()
     {
-        return $this->belongsTo(CaseFile::class, 'caseid');
+        return $this->hasMany(WellbeingResponse::class);
     }
 
-    public function youngPerson()
+    public function domainScores()
     {
-        return $this->belongsTo(YoungPerson::class, 'youngpersonid');
-    }
-
-    
-    public function answers()
-    {
-        return $this->hasMany(WellbeingAnswer::class, 'checkid');
+    return $this->hasMany(WellbeingDomainScore::class);
     }
 }
