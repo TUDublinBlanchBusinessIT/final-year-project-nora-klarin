@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: carehub-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: carehub
+      MYSQL_USER: carehub_user
+      MYSQL_PASSWORD: carehub_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - carehub_db:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  carehub_db:
