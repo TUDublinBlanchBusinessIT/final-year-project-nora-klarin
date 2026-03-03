@@ -18,11 +18,9 @@ use App\Http\Controllers\TrustedPeopleController;
 use App\Http\Controllers\ChildWeekController;
 use App\Http\Controllers\SupportRequestController;
 use App\Http\Controllers\DiaryEntryController;
-
-
-
-// ✅ Child messages controller (Step 4)
 use App\Http\Controllers\ChildMessageController;
+use App\Http\Controllers\WellbeingCheckController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -50,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
 });
 
 Route::middleware(['auth', 'role:young_person'])->group(function () {
@@ -83,6 +82,8 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
         Route::post('/social-worker/case/{case}/placements', [CaseFileController::class, 'store'])
         ->name('case.addPlacement');
 
+        Route::get('/social-worker/wellbeing-alerts', [WellbeingCheckController::class, 'alerts'])
+        ->name('social-worker.wellbeing.alerts');
         
 });
 
@@ -142,24 +143,24 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/child/support', [SupportRequestController::class, 'store'])
         ->name('child.support.store');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ✅ Diary (NOW SAVES TO DB)
-    |--------------------------------------------------------------------------
-    */
     Route::post('/child/diary', [DiaryEntryController::class, 'store'])
         ->name('child.diary.store');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ✅ Child Messages (Step 4)
-    |--------------------------------------------------------------------------
-    */
+    
     Route::get('/child/messages', [ChildMessageController::class, 'index'])
         ->name('child.messages.index');
 
     Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
         ->name('child.messages.store');
+
+        Route::get('/child/wellbeing', [WellbeingCheckController::class, 'create'])
+        ->name('child.wellbeing.form');
+
+    Route::post('/child/wellbeing', [WellbeingCheckController::class, 'submit'])
+        ->name('child.wellbeing.submit');
+
+    Route::get('/child/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
+        ->name('child.wellbeing.result');
 
 });
 
@@ -186,30 +187,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/child/week', [ChildWeekController::class, 'index'])
         ->name('child.week');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Need Help (Support Request)
-    |--------------------------------------------------------------------------
-    */
     Route::get('/child/support', [SupportRequestController::class, 'index'])
         ->name('child.support');
 
     Route::post('/child/support', [SupportRequestController::class, 'store'])
         ->name('child.support.store');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ✅ Diary (NOW SAVES TO DB)
-    |--------------------------------------------------------------------------
-    */
+    
     Route::post('/child/diary', [DiaryEntryController::class, 'store'])
         ->name('child.diary.store');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ✅ Child Messages (Step 4)
-    |--------------------------------------------------------------------------
-    */
+  
     Route::get('/child/messages', [ChildMessageController::class, 'index'])
         ->name('child.messages.index');
 

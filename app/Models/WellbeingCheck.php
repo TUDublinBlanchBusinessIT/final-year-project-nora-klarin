@@ -2,29 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WellbeingCheck extends Model
 {
-    use HasFactory;
-
-    protected $table = 'wellbeingcheck';
-    protected $fillable = ['youngpersonid', 'overallscore', 'notes'];
+    protected $table = 'wellbeing_checks'; // <- REQUIRED if Laravel guesses wrong
+    protected $fillable = [
+        'case_file_id',
+        'overall_score',
+        'emotional_score',
+        'behavioural_score',
+        'physical_score',
+        'safety_score',
+        'school_score',
+        'relationship_score',
+        'journal_notes',
+        'tag_summary',
+        'safeguarding_flag'
+    ];
 
     public function caseFile()
     {
-        return $this->belongsTo(CaseFile::class, 'caseid');
+        return $this->belongsTo(CaseFile::class);
     }
 
-    public function youngPerson()
+    public function domainScores()
     {
-        return $this->belongsTo(YoungPerson::class, 'youngpersonid');
+        return $this->hasMany(DomainScore::class);
     }
 
-    
-    public function answers()
-    {
-        return $this->hasMany(WellbeingAnswer::class, 'checkid');
-    }
 }

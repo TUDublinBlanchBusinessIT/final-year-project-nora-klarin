@@ -19,7 +19,6 @@ return new class extends Migration
             });
         }
 
-<<<<<<< HEAD
     $table->foreignId('case_file_id')
           ->constrained('case_files')
           ->cascadeOnDelete();
@@ -35,23 +34,7 @@ return new class extends Migration
     $table->timestamps();
 
     $table->unique(['case_file_id', 'user_id']);
-});
-=======
-        // Attempt to add foreign key to cases (plural then singular). Use try/catch to avoid environment-specific errors.
-        try {
-            if (Schema::hasTable('cases')) {
-                Schema::table('case_user', function (Blueprint $table) {
-                    $table->foreign('case_id')->references('id')->on('cases')->cascadeOnDelete();
-                });
-            } elseif (Schema::hasTable('case')) {
-                Schema::table('case_user', function (Blueprint $table) {
-                    $table->foreign('case_id')->references('id')->on('case')->cascadeOnDelete();
-                });
-            }
-        } catch (\Throwable $e) {
-            // ignore: FK couldn't be created (missing table, already exists, permissions, etc.)
-        }
->>>>>>> main
+
 
         // Attempt to add foreign key to users
         try {
@@ -68,7 +51,6 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('case_user')) {
-            // try to drop foreign keys (silently ignore errors), then drop the table
             try {
                 Schema::table('case_user', function (Blueprint $table) {
                     $table->dropForeign(['case_id']);

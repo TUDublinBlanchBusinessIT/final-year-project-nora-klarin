@@ -83,43 +83,57 @@ class CaseFile extends Model
         );
         }
 
-        public function medicalInfos() { return $this->hasMany(MedicalInfo::class); }
+    public function medicalInfos()
+    {
+        return $this->hasMany(MedicalInfo::class);
+    }
         
-        public function educationInfos() { return $this->hasMany(EducationInfo::class); }
+    public function educationInfos()
+    {
+        return $this->hasMany(EducationInfo::class);
+    }
 
-        public function documents() { return $this->hasMany(CaseDocument::class); }
+    public function documents()
+    {
+        return $this->hasMany(CaseDocument::class);
+    }
 
-        public function placementsHistory()
-{
-    return $this->hasMany(CasePlacement::class);
-}
+    public function placementsHistory()
+    {
+        return $this->hasMany(CasePlacement::class);
+    }
 
-public function placements()
-{
-    return $this->belongsToMany(
-        Placement::class,
-        'case_placements',
-        'case_file_id',    
-        'placement_id'    
-    )
-    ->withPivot(['start_date', 'end_date', 'notes'])
-    ->withTimestamps();
-}
+    public function placements()
+    {
+        return $this->belongsToMany(
+            Placement::class,
+            'case_placements',
+            'case_file_id',    
+            'placement_id'    
+        )
+        ->withPivot(['start_date', 'end_date', 'notes'])
+        ->withTimestamps();
+    }
 
-public function suggestedFollowUp()
-{
-    $riskIntervals = [
-        'High' => 7,   
-        'Medium' => 14, 
-        'Low' => 56     
-    ];
+    public function suggestedFollowUp()
+    {
+        $riskIntervals = [
+            'High' => 7,   
+            'Medium' => 14, 
+            'Low' => 56     
+        ];
 
-    $lastAppointment = $this->appointments()->orderByDesc('start_time')->first();
-    $startDate = $lastAppointment ? $lastAppointment->start_time : $this->created_at;
-    $intervalDays = $riskIntervals[$this->risk_level] ?? 28;
+        $lastAppointment = $this->appointments()->orderByDesc('start_time')->first();
+        $startDate = $lastAppointment ? $lastAppointment->start_time : $this->created_at;
+        $intervalDays = $riskIntervals[$this->risk_level] ?? 28;
 
-    return now()->parse($startDate)->addDays($intervalDays);
-}
+        return now()->parse($startDate)->addDays($intervalDays);
+    }
+
+    public function wellbeingChecks()
+    {
+        return $this->hasMany(WellbeingCheck::class); 
+    }
 }
 
 
