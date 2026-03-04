@@ -144,14 +144,15 @@
                             </div>
 
                             <button
-                                type="submit"
-                                class="rounded-2xl px-5 py-3 font-extrabold text-white shadow-lg
-                                       bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600
-                                       hover:opacity-95 active:scale-[0.98] transition"
-                            >
-                                Send ➤
-                            </button>
-                        </form>
+                             type="submit"
+                             class="rounded-2xl px-6 py-3 font-semibold text-slate-700
+                                bg-white border border-slate-200 shadow-sm
+                                hover:bg-slate-50 hover:border-slate-300
+           active:scale-[0.98] transition
+           focus:outline-none focus:ring-2 focus:ring-indigo-200"
+>
+    Send ➤
+</button>
 
                         @if ($errors->any())
                             <div class="mt-3 text-sm text-red-600 font-semibold">

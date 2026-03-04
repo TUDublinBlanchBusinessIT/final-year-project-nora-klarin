@@ -14,24 +14,31 @@ class ChildMessageController extends Controller
     {
         $child = Auth::user();
 
-        // ✅ Use the child’s assigned carer_id (NOT "first carer in DB")
-        $carerId = $child->carer_id;
+        // child must have an assigned carer
+        if (empty($child->carer_id)) {
+            abort(404, 'No carer assigned to this child.');
+        }
 
-        abort_unless($carerId, 404, 'No carer assigned to this child.');
+        $carer = User::find($child->carer_id);
+        if (!$carer) {
+            abort(404, 'Assigned carer not found.');
+        }
 
+        // Create or fetch the thread for this child+carer
         $thread = Thread::firstOrCreate([
             'child_id' => $child->id,
-            'carer_id' => $carerId,
+            'carer_id' => $carer->id,
         ]);
 
         $messages = $thread->messages()
-            ->with('sender')
-            ->orderBy('created_at')
+            ->orderBy('created_at', 'asc')
             ->get();
 
-        $carer = User::find($carerId);
-
-        return view('child.messages', compact('thread', 'messages', 'carer'));
+        return view('child.messages', [
+            'thread' => $thread,
+            'messages' => $messages,
+            'carer' => $carer,
+        ]);
     }
 
     public function store(Request $request, Thread $thread)
@@ -40,16 +47,18 @@ class ChildMessageController extends Controller
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
-        // ✅ Security: child must own this thread
-        abort_unless($thread->child_id === Auth::id(), 403);
+        $userId = Auth::id();
+
+        // ✅ Authorization: only the child or the carer on this thread can post
+        $allowed = ($thread->child_id === $userId) || ($thread->carer_id === $userId);
+        abort_unless($allowed, 403);
 
         Message::create([
             'thread_id' => $thread->id,
-            'sender_id' => Auth::id(),
+            'sender_id' => $userId,
             'body' => $request->body,
         ]);
 
-        // ✅ IMPORTANT: redirect back to SAME thread chat screen
-        return redirect()->route('child.messages.index')->with('success', 'Message sent!');
+        return redirect()->route('child.messages.index');
     }
 }
