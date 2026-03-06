@@ -1,5 +1,4 @@
-<x-layouts.full>
-    
+<x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
@@ -13,7 +12,7 @@
                     Back
                 </a>
 
-                <a href="{{ route('carer.messages.index') }}"
+                <a href="{{ route('carer.messages.create') }}"
                    class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm hover:bg-indigo-700 shadow-sm">
                     New Message
                 </a>
@@ -21,11 +20,9 @@
         </div>
     </x-slot>
 
-    <div class="h-[calc(100vh-5rem)]">
-
-    <div class="h-full bg-white overflow-hidden">
-
-
+    <div class="py-10">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
                 <div class="grid grid-cols-1 md:grid-cols-12 min-h-[680px]">
 
                     <!-- LEFT: Conversations -->
@@ -57,7 +54,7 @@
                                         Start a chat with a social worker.
                                     </div>
                                     <div class="mt-4">
-                                        <a href="{{ route('carer.messages.index') }}"
+                                        <a href="{{ route('carer.messages.create') }}"
                                            class="inline-block px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm hover:bg-indigo-700 shadow-sm">
                                             Start chat
                                         </a>
@@ -287,4 +284,4 @@
             </div>
         </div>
     </div>
-</x-layouts.full>
+</x-app-layout>

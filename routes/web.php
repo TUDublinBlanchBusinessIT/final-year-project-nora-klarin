@@ -3,11 +3,9 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\CarerCalendarController;
-use App\Http\Controllers\CarerMessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\CarerDocumentController;
 
 
 Route::get('/', function () {
@@ -21,56 +19,16 @@ Route::get('/dashboard', function () {
         return redirect()->route('login');
     }
 
-    // Redirect based on role
-    switch ($user->role) {
-        case 'carer':
-            return redirect()->route('carer.dashboard');
-        case 'social_worker':
-            return redirect()->route('socialworker.dashboard');
-        case 'admin':
-            return redirect()->route('admin.users.index');
-        default:
-            abort(403, 'Unauthorized');
-    }
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
-/*
-|--------------------------------------------------------------------------
-| Carer Routes
-|--------------------------------------------------------------------------
-*/
-Route::get('/carer/dashboard', [CarerDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.dashboard');
-
-Route::get('/carer/calendar', [CarerCalendarController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.calendar');
-
-    Route::get('/carer/messages', [CarerMessageController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.messages.index');
-
-
-Route::post('/carer/messages', [CarerMessageController::class, 'store'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.messages.store');
+    return match ($user->role) {
+        'carer' => redirect()->route('carer.dashboard'),
+        'social_worker' => redirect()->route('socialworker.dashboard'),
+        'admin' => redirect()->route('admin.users.index'),
+        default => abort(403),
+    };
+})->middleware('auth')->name('dashboard');
 
 
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/carer/documents', [CarerDocumentController::class, 'index'])->name('carer.documents.index');
-    Route::post('/carer/documents', [CarerDocumentController::class, 'store'])->name('carer.documents.store');
-    Route::get('/carer/documents/{doc}/download', [CarerDocumentController::class, 'download'])->name('carer.documents.download');
-    Route::delete('/carer/documents/{doc}', [CarerDocumentController::class, 'destroy'])->name('carer.documents.destroy');
-});
-
-/*
-|--------------------------------------------------------------------------
-| Profile Routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -96,4 +54,7 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
 
 
 require __DIR__.'/auth.php';
+require __DIR__.'/carer.php';
+require __DIR__.'/socialworker.php';
+
 
