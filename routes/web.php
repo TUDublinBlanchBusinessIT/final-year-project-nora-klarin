@@ -52,13 +52,12 @@ Route::get('/carer/calendar', [CarerCalendarController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('carer.messages.index');
 
-Route::get('/carer/messages/create', [CarerMessageController::class, 'create'])
-    ->middleware(['auth', 'verified'])
-    ->name('carer.messages.create');
 
 Route::post('/carer/messages', [CarerMessageController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('carer.messages.store');
+
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/carer/documents', [CarerDocumentController::class, 'index'])->name('carer.documents.index');
