@@ -162,7 +162,7 @@ class CarerCalendarController extends Controller
 
             'created_by' => $user->id,
 
-            'young_person_id' => null,
+            'young_person_id' => 4,
 
             'title' => $data['title'],
 

@@ -3,8 +3,11 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarerDashboardController;
 use App\Http\Controllers\CarerCalendarController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialWorkerDashboardController;
+use App\Http\Controllers\ChildDashboardController;
+use Illuminate\Support\Facades\Route;
+
+
 use App\Http\Controllers\AdminUserController;
 
 
