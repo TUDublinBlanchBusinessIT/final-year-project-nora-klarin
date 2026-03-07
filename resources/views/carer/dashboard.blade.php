@@ -14,8 +14,6 @@
 
             <div class="flex items-center gap-4">
 
-                {{-- Bell dropdown (keeps dropdown UI but neutral content) --}}
-
                 <div x-data="{ open: false }" class="relative">
 
                     <button
@@ -69,8 +67,6 @@
 
 
                         <div class="px-4 py-4 space-y-3">
-
-                            {{-- Neutral fallback content --}}
 
                             <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
 
@@ -144,7 +140,7 @@
 
 
 
-                        <div class="flex gap-3">
+                        <div class="flex gap-3 flex-wrap">
 
                             <a href="{{ route('carer.calendar') }}"
 
@@ -171,6 +167,16 @@
                                class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
 
                                 Documents
+
+                            </a>
+
+
+
+                            <a href="{{ route('carer.case-file.show') }}"
+
+                               class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
+
+                                View Case File
 
                             </a>
 
@@ -242,9 +248,35 @@
 
                     <div class="mt-4 space-y-2">
 
-                        <a href="{{ route('carer.calendar') }}" class="block rounded-2xl bg-pink-50 hover:bg-pink-100 px-4 py-3 font-semibold text-pink-700 transition">📅 View calendar</a>
+                        <a href="{{ route('carer.calendar') }}" class="block rounded-2xl bg-pink-50 hover:bg-pink-100 px-4 py-3 font-semibold text-pink-700 transition">
 
-                        <a href="{{ route('carer.messages.index') }}" class="block rounded-2xl bg-blue-50 hover:bg-blue-100 px-4 py-3 font-semibold text-blue-700 transition">💬 Messages</a>
+                            📅 View calendar
+
+                        </a>
+
+
+
+                        <a href="{{ route('carer.messages.index') }}" class="block rounded-2xl bg-blue-50 hover:bg-blue-100 px-4 py-3 font-semibold text-blue-700 transition">
+
+                            💬 Messages
+
+                        </a>
+
+
+
+                        <a href="{{ route('carer.documents.index') }}" class="block rounded-2xl bg-yellow-50 hover:bg-yellow-100 px-4 py-3 font-semibold text-yellow-700 transition">
+
+                            📄 Documents
+
+                        </a>
+
+
+
+                        <a href="{{ route('carer.case-file.show') }}" class="block rounded-2xl bg-indigo-50 hover:bg-indigo-100 px-4 py-3 font-semibold text-indigo-700 transition">
+
+                            📁 Case File
+
+                        </a>
 
                     </div>
 
@@ -257,6 +289,8 @@
             {{-- MAIN AREA: appointments (left) + alerts (right) --}}
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+
 
                 {{-- Appointments (big left panel) --}}
 

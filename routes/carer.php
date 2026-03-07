@@ -10,6 +10,8 @@ use App\Http\Controllers\CarerMessageController;
 
 use App\Http\Controllers\CarerDocumentController;
 
+use App\Http\Controllers\CarerCaseFileController;
+
 use Illuminate\Support\Facades\Route;
 
 
@@ -33,7 +35,7 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
     Route::get('/carer/messages', [CarerMessageController::class, 'index'])
 
         ->name('carer.messages.index');
-        
+
 
     Route::get('/carer/messages/create', [CarerMessageController::class, 'create'])
 
@@ -67,6 +69,11 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
     Route::delete('/carer/documents/{doc}', [CarerDocumentController::class, 'destroy'])
 
         ->name('carer.documents.destroy');
+        
+
+    Route::get('/carer/case-file', [CarerCaseFileController::class, 'show'])
+
+    ->name('carer.case-file.show');
 
 });
 
