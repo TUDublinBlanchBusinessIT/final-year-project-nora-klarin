@@ -83,6 +83,24 @@ User::updateOrCreate(
 );
 
 
+User::updateOrCreate(
+
+    ['email' => 'youngperson@test.com'],
+
+    [
+
+        'name' => 'Test Young Person',
+
+        'username' => 'youngperson',
+
+        'password' => Hash::make('password'),
+
+        'role' => 'young_person',
+
+    ]
+
+);
+
     }
 
 }

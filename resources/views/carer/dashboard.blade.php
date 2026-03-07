@@ -426,29 +426,94 @@
 
 
 
-            {{-- Bottom cards --}}
+{{-- Bottom cards --}}
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <div class="rounded-3xl p-6 shadow-lg bg-gradient-to-br from-green-50 to-blue-50 border border-green-100">
 
-                    <h3 class="text-lg font-extrabold text-green-700">🎯 My Goal This Week</h3>
 
-                    <p class="text-gray-700 mt-2">Pick one small thing to work on.</p>
+    <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100">
+
+        <div class="flex items-center justify-between">
+
+            <h3 class="text-lg font-extrabold text-blue-700">📅 Calendar</h3>
+
+            <a href="{{ route('carer.calendar') }}" class="text-sm text-blue-600 hover:underline">
+
+                Open →
+
+            </a>
+
+        </div>
+
+
+
+        <p class="text-gray-600 mt-2">Your next upcoming events</p>
+
+
+
+        <div class="mt-4 space-y-3">
+
+            @forelse($appointments->take(3) as $appt)
+
+                <div class="rounded-2xl bg-blue-50 border border-blue-100 px-4 py-3">
+
+                    <div class="font-semibold text-gray-900">
+
+                        {{ $appt->title ?? 'Appointment' }}
+
+                    </div>
+
+
+
+                    <div class="text-sm text-gray-600 mt-1">
+
+                        {{ \Carbon\Carbon::parse($appt->start_time)->format('D d M, H:i') }}
+
+                    </div>
+
+
+
+                    @if(!empty($appt->location))
+
+                        <div class="text-xs text-gray-500 mt-1">
+
+                            📍 {{ $appt->location }}
+
+                        </div>
+
+                    @endif
 
                 </div>
 
+            @empty
 
+                <div class="rounded-xl border border-dashed p-6 text-center text-gray-600">
 
-                <div class="rounded-3xl p-6 shadow-lg bg-gradient-to-br from-yellow-50 to-pink-50 border border-yellow-100">
-
-                    <h3 class="text-lg font-extrabold text-pink-700">🌈 Something Positive</h3>
-
-                    <p class="text-gray-700 mt-2">“You don’t have to do everything. Just one small step.”</p>
+                    No upcoming events
 
                 </div>
 
-            </div>
+            @endforelse
+
+        </div>
+
+    </div>
+
+
+
+    <div class="rounded-3xl p-6 shadow-lg bg-gradient-to-br from-yellow-50 to-pink-50 border border-yellow-100">
+
+        <h3 class="text-lg font-extrabold text-pink-700">🌈 Something Positive</h3>
+
+        <p class="text-gray-700 mt-2">“You don’t have to do everything. Just one small step.”</p>
+
+    </div>
+
+
+
+</div>
+
 
 
 

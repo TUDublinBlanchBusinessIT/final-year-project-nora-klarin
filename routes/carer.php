@@ -30,6 +30,10 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
 
         ->name('carer.calendar');
 
+    Route::post('/carer/calendar', [CarerCalendarController::class, 'store'])
+
+        ->name('carer.calendar.store');
+
 
 
     Route::get('/carer/messages', [CarerMessageController::class, 'index'])
@@ -69,7 +73,7 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
     Route::delete('/carer/documents/{doc}', [CarerDocumentController::class, 'destroy'])
 
         ->name('carer.documents.destroy');
-        
+
 
     Route::get('/carer/case-file', [CarerCaseFileController::class, 'show'])
 

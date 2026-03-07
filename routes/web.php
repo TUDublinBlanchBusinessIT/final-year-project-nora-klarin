@@ -20,11 +20,18 @@ Route::get('/dashboard', function () {
     }
 
     return match ($user->role) {
-        'carer' => redirect()->route('carer.dashboard'),
-        'social_worker' => redirect()->route('socialworker.dashboard'),
-        'admin' => redirect()->route('admin.users.index'),
-        default => abort(403),
-    };
+
+    'carer' => redirect()->route('carer.dashboard'),
+
+    'social_worker' => redirect()->route('socialworker.dashboard'),
+
+    'admin' => redirect()->route('admin.users.index'),
+
+    'young_person' => redirect()->route('child.dashboard'),
+
+    default => abort(403),
+
+};
 })->middleware('auth')->name('dashboard');
 
 
@@ -40,6 +47,21 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
         [SocialWorkerDashboardController::class, 'index']
     )->name('socialworker.dashboard');
 });
+
+
+Route::middleware(['auth','verified'])->group(function () {
+
+
+
+    Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
+
+        ->name('child.dashboard');
+
+
+
+});
+
+
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
