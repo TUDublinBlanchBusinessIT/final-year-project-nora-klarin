@@ -1,67 +1,187 @@
 <?php
 
+
+
 namespace App\Http\Controllers;
 
+
+
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\DB;
+
 use Carbon\Carbon;
+
 use App\Models\Message;
 
+
+
 class CarerDashboardController extends Controller
+
 {
+
     public function index(Request $request)
+
     {
+
         $user = $request->user();
 
+
+
         if (($user->role ?? null) !== 'carer') {
+
             abort(403);
+
         }
 
-        // Find the foster carer record that matches this logged-in user's email
-        $carer = DB::table('fostercarer')
-            ->where('email', $user->email)
+
+
+        // Try to find the "carer" row in users by username OR email (safer)
+
+        $carer = DB::table('users')
+
+            ->where(function ($q) use ($user) {
+
+                if (! empty($user->username)) {
+
+                    $q->where('username', $user->username);
+
+                }
+
+                $q->orWhere('email', $user->email);
+
+            })
+
             ->first();
 
-        // Defaults so the page still loads nicely
+
+
         $appointments = collect();
+
         $alerts = collect();
 
-        if ($carer) {
-            // Next 5 upcoming appointments for this foster carer
-            $appointments = DB::table('carerappointment')
-                ->join('appointment', 'carerappointment.appointmentid', '=', 'appointment.id')
-                ->where('carerappointment.carerid', $carer->id) // <-- fostercarer.id
-                ->where('appointment.starttime', '>=', Carbon::now())
-                ->orderBy('appointment.starttime')
-                ->limit(5)
-                ->select('appointment.starttime', 'appointment.endtime', 'appointment.notes')
-                ->get();
 
-            // Latest 5 alerts for the carer's cases (if you have case links)
-            // If you don't have case relationships yet, we just show latest alerts overall.
-            $alerts = DB::table('alert')
-                ->orderByDesc('createdat')
-                ->limit(5)
-                ->get();
+
+        $schema = DB::getSchemaBuilder();
+
+
+
+        if ($carer) {
+
+            // Use appointment_user pivot and appointment table
+
+            $pivot = 'appointment_user';
+
+            $appointmentTable = $schema->hasTable('appointment') ? 'appointment' : ($schema->hasTable('appointments') ? 'appointments' : null);
+
+
+
+            if ($schema->hasTable($pivot) && $appointmentTable) {
+
+                // Detect column name variants defensively
+
+                $appointmentCol = $schema->hasColumn($pivot, 'appointment_id') ? 'appointment_id' : ( $schema->hasColumn($pivot, 'appointmentid') ? 'appointmentid' : null );
+
+                $userCol = $schema->hasColumn($pivot, 'user_id') ? 'user_id' : ( $schema->hasColumn($pivot, 'carerid') ? 'carerid' : ( $schema->hasColumn($pivot, 'carer_id') ? 'carer_id' : null ) );
+
+
+
+                if ($appointmentCol && $userCol) {
+
+                    try {
+
+                        $appointments = DB::table($pivot)
+
+                            ->join($appointmentTable, "{$pivot}.{$appointmentCol}", '=', "{$appointmentTable}.id")
+
+                            ->where("{$pivot}.{$userCol}", $carer->id)
+
+                            ->where("{$appointmentTable}.starttime", '>=', Carbon::now())
+
+                            ->orderBy("{$appointmentTable}.starttime")
+
+                            ->limit(5)
+
+                            ->select("{$appointmentTable}.starttime", "{$appointmentTable}.endtime", "{$appointmentTable}.notes")
+
+                            ->get();
+
+                    } catch (\Exception $e) {
+
+                        // keep $appointments empty if something goes wrong
+
+                        $appointments = collect();
+
+                    }
+
+                }
+
+            } else {
+
+                // If pivot/table not present, leave $appointments empty (no crash)
+
+                $appointments = collect();
+
+            }
+
+
+
+            // Alerts (defensive)
+
+            if ($schema->hasTable('alert')) {
+
+                try {
+
+                    $alerts = DB::table('alert')->orderByDesc('createdat')->limit(5)->get();
+
+                } catch (\Exception $e) {
+
+                    $alerts = collect();
+
+                }
+
+            }
+
         } else {
-            // still show latest alerts even if no carer record exists yet
-            $alerts = DB::table('alert')
-                ->orderByDesc('createdat')
-                ->limit(5)
-                ->get();
+
+            // no carer row; still show alerts if present
+
+            if ($schema->hasTable('alert')) {
+
+                try {
+
+                    $alerts = DB::table('alert')->orderByDesc('createdat')->limit(5)->get();
+
+                } catch (\Exception $e) {
+
+                    $alerts = collect();
+
+                }
+
+            }
+
         }
 
-        // Unread messages count for this logged-in user
-        $unreadCount = Message::where('recipient_id', $user->id)
-            ->whereNull('read_at')
-            ->count();
 
-        return view('carer.dashboard', compact(
-            'user',
-            'appointments',
-            'carer',
-            'alerts',
-            'unreadCount'
-        ));
+
+        // unread messages (defensive)
+
+        try {
+
+            $unreadCount = Message::where('recipient_id', $user->id)->whereNull('read_at')->count();
+
+        } catch (\Exception $e) {
+
+            $unreadCount = 0;
+
+        }
+
+
+
+        return view('carer.dashboard', compact('user', 'appointments', 'carer', 'alerts', 'unreadCount'));
+
     }
+
 }
+
+

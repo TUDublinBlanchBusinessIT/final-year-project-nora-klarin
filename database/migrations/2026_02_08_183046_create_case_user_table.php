@@ -19,6 +19,7 @@ return new class extends Migration
             });
         }
 
+<<<<<<< HEAD
         // Attempt to add foreign key to cases (plural then singular). Use try/catch to avoid environment-specific errors.
         try {
             if (Schema::hasTable('cases')) {
@@ -33,6 +34,24 @@ return new class extends Migration
         } catch (\Throwable $e) {
             // ignore: FK couldn't be created (missing table, already exists, permissions, etc.)
         }
+=======
+    $table->foreignId('case_id')
+          ->constrained('case_files')
+          ->cascadeOnDelete();
+
+    $table->foreignId('user_id')
+          ->constrained()
+          ->cascadeOnDelete();
+
+    $table->enum('role', ['social_worker', 'carer']);
+
+    $table->timestamp('assigned_at')->nullable();
+
+    $table->timestamps();
+
+    $table->unique(['case_id', 'user_id']);
+});
+>>>>>>> feature-carer-dashboard
 
         // Attempt to add foreign key to users
         try {
