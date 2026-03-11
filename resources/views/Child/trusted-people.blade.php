@@ -189,16 +189,15 @@
 
                                 <div class="mt-2 flex flex-col sm:flex-row gap-3">
                                     <button
-                                        type="submit"
-                                        class="inline-flex w-full sm:w-auto items-center justify-center rounded-2xl px-6 py-3.5
-                                               font-extrabold text-white shadow-lg transition
-                                               bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600
-                                               hover:opacity-95 active:scale-[0.99]
-                                               focus:outline-none focus:ring-4 focus:ring-indigo-200"
-                                    >
-                                        Save Trusted Person 💙
-                                    </button>
-
+    type="submit"
+    class="inline-flex w-full sm:w-auto items-center justify-center rounded-2xl px-6 py-3
+           font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm
+           hover:bg-slate-50 hover:border-slate-300
+           active:scale-[0.98] transition
+           focus:outline-none focus:ring-2 focus:ring-indigo-200"
+>
+    Save Trusted Person 💙
+</button>
                                     <a
                                         href="{{ route('child.dashboard') }}"
                                         class="inline-flex w-full sm:w-auto items-center justify-center rounded-2xl px-6 py-3.5
