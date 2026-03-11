@@ -244,12 +244,16 @@
                             </div>
                         </div>
 
-                        <button type="submit"
-                                class="w-full mt-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600
-                                       hover:opacity-95 text-white font-extrabold py-3 shadow-lg
-                                       focus:outline-none focus:ring-4 focus:ring-pink-200 transition">
-                            Save Diary Entry ✨
-                        </button>
+                      <button
+    type="submit"
+    class="w-full rounded-2xl px-6 py-3
+           font-semibold text-slate-700
+           bg-white border border-slate-200 shadow-sm
+           hover:bg-slate-50 hover:border-slate-300
+           active:scale-[0.98] transition
+           focus:outline-none focus:ring-2 focus:ring-indigo-200">
+    Save Diary Entry ✨
+</button>
                     </form>
                 </div>
 
