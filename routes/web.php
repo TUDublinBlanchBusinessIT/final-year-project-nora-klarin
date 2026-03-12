@@ -166,6 +166,10 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
+    Route::middleware(['auth', 'role:child'])->group(function() {
+    Route::post('/child/wellbeing', [\App\Http\Controllers\ChildWellbeingController::class, 'store'])->name('child.wellbeing.store');
+});
+
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
         ->name('child.dashboard');
 

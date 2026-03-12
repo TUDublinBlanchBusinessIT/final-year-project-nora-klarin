@@ -143,25 +143,37 @@
 
     {{-- CHART JS --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const ctx = document.getElementById('riskChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['High', 'Medium', 'Low'],
-                    datasets: [{
-                        label: 'Cases by Risk',
-                        data: [
-                            {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'high')->count() }},
-                            {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'medium')->count() }},
-                            {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'low')->count() }}
-                        ],
-                        backgroundColor: ['#f87171','#facc15','#34d399']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } } }
-            });
-        });
-    </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['High', 'Medium', 'Low'],
+            datasets: [{
+                label: 'Cases by Risk',
+                data: [
+                    {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'high')->count() }},
+                    {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'medium')->count() }},
+                    {{ $cases->filter(fn($c) => strtolower($c->risk_level) === 'low')->count() }}
+                ],
+                backgroundColor: ['#f87171','#facc15','#34d399']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 </x-app-layout>
