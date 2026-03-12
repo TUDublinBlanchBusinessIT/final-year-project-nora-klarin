@@ -20,7 +20,7 @@ class WellbeingCheckController extends Controller
             $q->where('is_active', true);
         }])->get();
 
-        return view('child.wellbeing.check', compact('domains'));
+        return view('child.wellbeing.check', compact('domain'));
     }
 
     public function submit(Request $request)
@@ -106,5 +106,33 @@ class WellbeingCheckController extends Controller
             ->groupBy('child_id');
 
         return view('socialworker.wellbeing.alerts', compact('checks'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'case_file_id' => 'required|exists:case_files,id',
+            'emotional_score' => 'required|integer|min:1|max:5',
+            'behavioural_score' => 'required|integer|min:1|max:5',
+            'physical_score' => 'required|integer|min:1|max:5',
+            'safety_score' => 'required|integer|min:1|max:5',
+            'school_score' => 'required|integer|min:1|max:5',
+            'relationship_score' => 'required|integer|min:1|max:5',
+            'journal_notes' => 'nullable|string'
+        ]);
+
+        $data['overall_score'] = (
+            $data['emotional_score'] +
+            $data['behavioural_score'] +
+            $data['physical_score'] +
+            $data['safety_score'] +
+            $data['school_score'] +
+            $data['relationship_score']
+        ) / 6;
+
+        WellbeingCheck::create($data);
+
+        return redirect()->route('casefiles.show', $data['case_file_id'])
+            ->with('success','Wellbeing check saved');
     }
 }

@@ -134,6 +134,24 @@ class CaseFile extends Model
     {
         return $this->hasMany(WellbeingCheck::class); 
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($case) {
+
+            $year = now()->year;
+
+            $lastCase = self::whereYear('created_at', $year)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            $number = $lastCase ? intval(substr($lastCase->case_reference, -4)) + 1 : 1;
+
+            $case->case_reference = 'CF-' . $year . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        });
+    }
 }
 
 

@@ -25,20 +25,31 @@
                                 {{ $question->text }}
                             </label>
 
-                            <div class="flex gap-4">
-                                @for($i = $question->min_value; $i <= $question->max_value; $i++)
-                                    <label class="flex items-center gap-1">
-                                        <input type="radio"
-                                               name="question_{{ $question->id }}"
-                                               value="{{ $i }}"
-                                               required
-                                               class="text-indigo-600 focus:ring-indigo-500">
-                                        <span class="text-sm text-gray-600">
-                                            {{ $i }}
-                                        </span>
-                                    </label>
-                                @endfor
-                            </div>
+                            <div class="flex items-center gap-6">
+
+    <span class="text-xs text-gray-400">Never</span>
+
+    @for($i = $question->min_value; $i <= $question->max_value; $i++)
+
+        <label class="flex flex-col items-center gap-1">
+
+                    <input type="radio"
+                        name="question_{{ $question->id }}"
+                        value="{{ $i }}"
+                        required
+                        class="text-indigo-600 focus:ring-indigo-500">
+
+                    <span class="text-xs text-gray-500">
+                        {{ $i }}
+                    </span>
+
+                </label>
+
+            @endfor
+
+            <span class="text-xs text-gray-400">Always</span>
+
+        </div>
                         </div>
 
                     @endforeach

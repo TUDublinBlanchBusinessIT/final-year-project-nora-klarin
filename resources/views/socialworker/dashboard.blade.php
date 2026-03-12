@@ -119,7 +119,14 @@
                                 @elseif($case->risk_level === 'medium') border-yellow-500
                                 @else border-green-500
                                 @endif">
-                                <div class="font-bold text-lg text-gray-800">Case #{{ $case->id }}</div>
+                                <div class="font-bold text-lg text-gray-800">
+                                    {{ $case->case_reference }}
+                                </div>
+                            
+
+                                <div class="text-xs text-gray-400">
+                                    Opened {{ $case->created_at->format('d M Y') }}
+                                </div>                               
                                 <div class="text-gray-600 mt-1">{{ $case->summary }}</div>
                                 <div class="mt-3 text-sm text-gray-500 space-y-1">
                                     <div>Status: {{ $case->status }}</div>

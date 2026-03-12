@@ -31,4 +31,9 @@ class WellbeingCheck extends Model
         return $this->hasMany(DomainScore::class);
     }
 
+    public function responses()
+    {
+        return $this->hasMany(WellbeingAnswer::class, 'checkid');
+    }
+
 }
