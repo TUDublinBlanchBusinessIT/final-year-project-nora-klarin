@@ -36,4 +36,19 @@ class WellbeingCheck extends Model
         return $this->hasMany(WellbeingAnswer::class, 'checkid');
     }
 
+    public function getRiskLevelAttribute()
+    {
+        $score = $this->overall_score;
+
+        if ($score >= 70) {
+            return 'low';
+        } elseif ($score >= 50) {
+            return 'medium';
+        } elseif ($score >= 30) {
+            return 'high';
+        } else {
+            return 'critical';
+        }
+    }
+
 }
