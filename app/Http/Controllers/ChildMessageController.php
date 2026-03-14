@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CaseFile;
 use App\Models\Message;
 use App\Models\Thread;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ChildMessageController extends Controller
 {
@@ -14,17 +16,27 @@ class ChildMessageController extends Controller
     {
         $child = Auth::user();
 
-        // child must have an assigned carer
-        if (empty($child->carer_id)) {
-            abort(404, 'No carer assigned to this child.');
+        $caseFile = CaseFile::where('young_person_id', $child->id)->first();
+
+        if (!$caseFile) {
+            abort(404, 'No case file found for this child.');
         }
 
-        $carer = User::find($child->carer_id);
+        $carerLink = DB::table('case_user')
+            ->where('case_id', $caseFile->id)
+            ->where('role', 'carer')
+            ->first();
+
+        if (!$carerLink) {
+            abort(404, 'No carer linked to this case.');
+        }
+
+        $carer = User::find($carerLink->user_id);
+
         if (!$carer) {
-            abort(404, 'Assigned carer not found.');
+            abort(404, 'Linked carer not found.');
         }
 
-        // Create or fetch the thread for this child+carer
         $thread = Thread::firstOrCreate([
             'child_id' => $child->id,
             'carer_id' => $carer->id,
@@ -38,6 +50,7 @@ class ChildMessageController extends Controller
             'thread' => $thread,
             'messages' => $messages,
             'carer' => $carer,
+            'caseFile' => $caseFile,
         ]);
     }
 
@@ -49,7 +62,6 @@ class ChildMessageController extends Controller
 
         $userId = Auth::id();
 
-        // ✅ Authorization: only the child or the carer on this thread can post
         $allowed = ($thread->child_id === $userId) || ($thread->carer_id === $userId);
         abort_unless($allowed, 403);
 
