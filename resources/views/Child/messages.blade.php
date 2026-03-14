@@ -12,10 +12,7 @@
                         Chat with {{ $carer->name ?? 'Your Carer' }}
                     </div>
                     <div class="text-xs text-gray-500 flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1">
-                            <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                            Online
-                        </span>
+                        <span class="opacity-80">Secure chat</span>
                         <span class="opacity-50">•</span>
                         <span class="opacity-80">Messages stay saved here</span>
                     </div>
@@ -28,25 +25,20 @@
         </div>
     </x-slot>
 
-    {{-- FULL SCREEN CHAT AREA --}}
     <div class="min-h-[85vh] bg-gradient-to-br from-indigo-50 via-white to-pink-50">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
             <div class="relative overflow-hidden rounded-[28px] border border-white/60 shadow-2xl bg-white/75 backdrop-blur">
 
-                {{-- Top strip --}}
                 <div class="h-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"></div>
 
-                {{-- Subtle background pattern --}}
                 <div class="absolute inset-0 opacity-[0.08] pointer-events-none"
                      style="background-image: radial-gradient(circle at 1px 1px, #6366f1 1px, transparent 0);
                             background-size: 18px 18px;">
                 </div>
 
-                {{-- MAIN CHAT WRAPPER --}}
                 <div class="relative flex flex-col h-[70vh]">
 
-                    {{-- Messages area --}}
                     <div id="chatBox" class="flex-1 overflow-y-auto px-5 sm:px-8 py-6 space-y-4">
                         @if($messages->isEmpty())
                             <div class="text-center py-14">
@@ -73,7 +65,6 @@
                                     : ($msg->created_at->isYesterday() ? 'Yesterday' : $msg->created_at->format('D, j M'));
                             @endphp
 
-                            {{-- Date separator --}}
                             @if($lastDate !== $date)
                                 <div class="flex items-center justify-center py-2">
                                     <span class="text-xs font-bold text-gray-500 bg-white/80 px-4 py-2 rounded-full border border-gray-100 shadow-sm">
@@ -85,7 +76,6 @@
 
                             <div class="flex {{ $mine ? 'justify-end' : 'justify-start' }}">
                                 <div class="max-w-[80%] sm:max-w-[60%]">
-                                    {{-- Bubble (smaller) --}}
                                     <div class="relative px-3.5 py-2.5 rounded-[18px] shadow
                                         {{ $mine
                                             ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white'
@@ -105,7 +95,6 @@
                                             @endif
                                         </div>
 
-                                        {{-- Bubble tail (smaller) --}}
                                         <span class="absolute bottom-2 h-3 w-3 rotate-45
                                             {{ $mine ? '-right-1.5 bg-purple-600' : '-left-1.5 bg-white border border-gray-100' }}">
                                         </span>
@@ -115,17 +104,12 @@
                         @endforeach
                     </div>
 
-                    {{-- Typing bar (fake visual only) --}}
                     <div class="px-6 sm:px-8 pb-2">
-                        <div class="text-xs text-gray-500 flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1">
-                                <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                {{ $carer->name ?? 'Carer' }} is available
-                            </span>
+                        <div class="text-xs text-gray-500">
+                            Replies may not be instant
                         </div>
                     </div>
 
-                    {{-- Input pinned bottom --}}
                     <div class="border-t bg-white/85 backdrop-blur px-4 sm:px-8 py-4">
                         <form method="POST" action="{{ route('child.messages.store', $thread) }}" class="flex items-center gap-3">
                             @csrf
@@ -144,15 +128,16 @@
                             </div>
 
                             <button
-                             type="submit"
-                             class="rounded-2xl px-6 py-3 font-semibold text-slate-700
-                                bg-white border border-slate-200 shadow-sm
-                                hover:bg-slate-50 hover:border-slate-300
-           active:scale-[0.98] transition
-           focus:outline-none focus:ring-2 focus:ring-indigo-200"
->
-    Send ➤
-</button>
+                                type="submit"
+                                class="rounded-2xl px-6 py-3 font-semibold text-slate-700
+                                       bg-white border border-slate-200 shadow-sm
+                                       hover:bg-slate-50 hover:border-slate-300
+                                       active:scale-[0.98] transition
+                                       focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                            >
+                                Send ➤
+                            </button>
+                        </form>
 
                         @if ($errors->any())
                             <div class="mt-3 text-sm text-red-600 font-semibold">
