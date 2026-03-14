@@ -146,29 +146,15 @@
 
                 {{-- Messages --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
-                    <div class="flex items-start justify-between gap-3">
-                        <h3 class="text-lg font-extrabold text-indigo-700">💬 Messages</h3>
-
-                        @if(($unreadMessageCount ?? 0) > 0)
-                            <span class="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-red-600 text-white text-xs font-bold shadow">
-                                {{ $unreadMessageCount }}
-                            </span>
-                        @endif
-                    </div>
+                    <h3 class="text-lg font-extrabold text-indigo-700">💬 Messages</h3>
 
                     <p class="text-gray-600 mt-2">
                         Chat with your carer securely inside the app.
                     </p>
 
                     <a href="{{ route('child.messages.index') }}"
-                       class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition relative">
+                       class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition">
                         Open messages
-
-                        @if(($unreadMessageCount ?? 0) > 0)
-                            <span class="absolute -top-2 -right-2 inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-red-600 text-white text-xs font-bold shadow">
-                                {{ $unreadMessageCount }}
-                            </span>
-                        @endif
                     </a>
 
                     <p class="text-xs text-gray-500 mt-3">
