@@ -28,9 +28,18 @@ class ChildDashboardController extends Controller
         // Reminder count (future-ready)
         $reminderCount = $hasEntryToday ? 0 : 1;
 
+        // 🔔 Unread messages count (for bell notification)
+        $unreadMessageCount = DB::table('messages')
+            ->join('threads', 'messages.thread_id', '=', 'threads.id')
+            ->where('threads.child_id', $userId)
+            ->where('messages.sender_id', '!=', $userId)
+            ->whereNull('messages.read_at')
+            ->count();
+
         return view('child.dashboard', [
             'recentEntries' => $recentEntries,
             'reminderCount' => $reminderCount,
+            'unreadMessageCount' => $unreadMessageCount,
         ]);
     }
 }

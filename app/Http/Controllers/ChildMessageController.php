@@ -46,6 +46,12 @@ class ChildMessageController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
+        // Mark incoming messages from carer as read
+        $thread->messages()
+            ->where('sender_id', '!=', $child->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         return view('child.messages', [
             'thread' => $thread,
             'messages' => $messages,

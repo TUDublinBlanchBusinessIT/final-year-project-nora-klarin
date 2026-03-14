@@ -6,7 +6,11 @@
             </h2>
 
             <div class="flex items-center gap-4">
-                {{-- ✅ Bell always visible --}}
+                @php
+                    $totalNotificationCount = ($reminderCount ?? 0) + ($unreadMessageCount ?? 0);
+                @endphp
+
+                {{-- Bell --}}
                 <div x-data="{ open: false }" class="relative">
                     <button
                         type="button"
@@ -16,15 +20,13 @@
                     >
                         🔔
 
-                        {{-- ✅ Badge only if reminders exist --}}
-                        @if(isset($reminderCount) && $reminderCount > 0)
+                        @if($totalNotificationCount > 0)
                             <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5">
-                                {{ $reminderCount }}
+                                {{ $totalNotificationCount }}
                             </span>
                         @endif
                     </button>
 
-                    <!-- Dropdown -->
                     <div
                         x-show="open"
                         @click.outside="open = false"
@@ -32,15 +34,32 @@
                         class="absolute right-0 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden z-50"
                     >
                         <div class="px-4 py-3 border-b bg-gray-50">
-                            <div class="font-extrabold text-gray-800">Reminders</div>
-                            <div class="text-xs text-gray-500">Things to do today</div>
+                            <div class="font-extrabold text-gray-800">Notifications</div>
+                            <div class="text-xs text-gray-500">Things to check today</div>
                         </div>
 
                         <div class="px-4 py-4 space-y-3">
-                            @if(isset($reminderCount) && $reminderCount > 0)
+                            @if(($unreadMessageCount ?? 0) > 0)
                                 <div class="rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3">
-                                    <div class="font-bold text-indigo-800">📖 Diary reminder</div>
+                                    <div class="font-bold text-indigo-800">💬 New messages</div>
                                     <div class="text-sm text-indigo-900 mt-1">
+                                        You have {{ $unreadMessageCount }} unread {{ $unreadMessageCount === 1 ? 'message' : 'messages' }}.
+                                    </div>
+                                </div>
+
+                                <a
+                                    href="{{ route('child.messages.index') }}"
+                                    @click="open = false"
+                                    class="block text-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 transition"
+                                >
+                                    Open messages
+                                </a>
+                            @endif
+
+                            @if(isset($reminderCount) && $reminderCount > 0)
+                                <div class="rounded-xl border border-yellow-100 bg-yellow-50 px-4 py-3">
+                                    <div class="font-bold text-yellow-800">📖 Diary reminder</div>
+                                    <div class="text-sm text-yellow-900 mt-1">
                                         You haven’t written a diary entry today.
                                     </div>
                                 </div>
@@ -48,15 +67,17 @@
                                 <a
                                     href="#diary"
                                     @click="open = false"
-                                    class="block text-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 transition"
+                                    class="block text-center rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 transition"
                                 >
                                     Write diary now ✨
                                 </a>
-                            @else
+                            @endif
+
+                            @if(($unreadMessageCount ?? 0) === 0 && ($reminderCount ?? 0) === 0)
                                 <div class="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
                                     <div class="font-bold text-green-800">🎉 All done!</div>
                                     <div class="text-sm text-green-900 mt-1">
-                                        You have no reminders right now.
+                                        You have no notifications right now.
                                     </div>
                                 </div>
                             @endif
@@ -123,16 +144,31 @@
                     </div>
                 </div>
 
-                {{-- ✅ Messages (NEW) --}}
+                {{-- Messages --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
-                    <h3 class="text-lg font-extrabold text-indigo-700">💬 Messages</h3>
+                    <div class="flex items-start justify-between gap-3">
+                        <h3 class="text-lg font-extrabold text-indigo-700">💬 Messages</h3>
+
+                        @if(($unreadMessageCount ?? 0) > 0)
+                            <span class="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-red-600 text-white text-xs font-bold shadow">
+                                {{ $unreadMessageCount }}
+                            </span>
+                        @endif
+                    </div>
+
                     <p class="text-gray-600 mt-2">
                         Chat with your carer securely inside the app.
                     </p>
 
                     <a href="{{ route('child.messages.index') }}"
-                       class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition">
+                       class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition relative">
                         Open messages
+
+                        @if(($unreadMessageCount ?? 0) > 0)
+                            <span class="absolute -top-2 -right-2 inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-red-600 text-white text-xs font-bold shadow">
+                                {{ $unreadMessageCount }}
+                            </span>
+                        @endif
                     </a>
 
                     <p class="text-xs text-gray-500 mt-3">
@@ -244,16 +280,16 @@
                             </div>
                         </div>
 
-                      <button
-    type="submit"
-    class="w-full rounded-2xl px-6 py-3
-           font-semibold text-slate-700
-           bg-white border border-slate-200 shadow-sm
-           hover:bg-slate-50 hover:border-slate-300
-           active:scale-[0.98] transition
-           focus:outline-none focus:ring-2 focus:ring-indigo-200">
-    Save Diary Entry ✨
-</button>
+                        <button
+                            type="submit"
+                            class="w-full rounded-2xl px-6 py-3
+                                   font-semibold text-slate-700
+                                   bg-white border border-slate-200 shadow-sm
+                                   hover:bg-slate-50 hover:border-slate-300
+                                   active:scale-[0.98] transition
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                            Save Diary Entry ✨
+                        </button>
                     </form>
                 </div>
 
