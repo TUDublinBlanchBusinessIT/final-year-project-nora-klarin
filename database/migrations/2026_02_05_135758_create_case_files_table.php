@@ -9,13 +9,28 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('case_files', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+public function up(): void
+
+{
+
+    Schema::create('case_files', function (Blueprint $table) {
+
+        $table->id();
+
+        $table->unsignedBigInteger('youngpersonid')->nullable();
+
+        $table->string('risklevel')->nullable();
+
+        $table->timestamp('openedat')->nullable();
+
+        $table->string('status')->nullable();
+
+        $table->timestamps();
+
+    });
+
+}
+
 
     /**
      * Reverse the migrations.

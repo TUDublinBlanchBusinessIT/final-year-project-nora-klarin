@@ -114,7 +114,9 @@
 
 
 
-    <div class="min-h-screen py-10 bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50">
+    <div class="py-10 bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50">
+
+
 
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
@@ -172,13 +174,16 @@
 
 
 
-                            <a href="{{ route('carer.case-file.show') }}"
+                            @if($case)
+                                <a href="{{ route('carer.case-file.show', $case->id) }}"
+                                   class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
+                                    View Case File
+                                </a>
 
-                               class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
+                            @endif
 
-                                View Case File
 
-                            </a>
+
 
                         </div>
 
@@ -271,8 +276,7 @@
                         </a>
 
 
-
-                        <a href="{{ route('carer.case-file.show') }}" class="block rounded-2xl bg-indigo-50 hover:bg-indigo-100 px-4 py-3 font-semibold text-indigo-700 transition">
+                        <a href="{{ route('carer.case-file.show', 1) }}" class="block rounded-2xl bg-indigo-50 hover:bg-indigo-100 px-4 py-3 font-semibold text-indigo-700 transition">
 
                             📁 Case File
 

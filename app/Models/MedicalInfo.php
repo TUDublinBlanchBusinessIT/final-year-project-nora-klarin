@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 
 
-class Document extends Model
+class MedicalInfo extends Model
 
 {
 
@@ -18,9 +18,9 @@ class Document extends Model
 
         'case_file_id',
 
-        'name',
+        'condition',
 
-        'file_path'
+        'notes',
 
     ];
 
@@ -30,7 +30,7 @@ class Document extends Model
 
     {
 
-        return $this->belongsTo(CaseFile::class);
+        return $this->belongsTo(CaseFile::class, 'case_file_id');
 
     }
 

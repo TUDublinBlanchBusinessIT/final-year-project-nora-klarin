@@ -30,6 +30,8 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
 
         ->name('carer.calendar');
 
+
+
     Route::post('/carer/calendar', [CarerCalendarController::class, 'store'])
 
         ->name('carer.calendar.store');
@@ -41,9 +43,11 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
         ->name('carer.messages.index');
 
 
+
     Route::get('/carer/messages/create', [CarerMessageController::class, 'create'])
 
-    ->name('carer.messages.create');
+        ->name('carer.messages.create');
+
 
 
     Route::post('/carer/messages', [CarerMessageController::class, 'store'])
@@ -75,9 +79,12 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
         ->name('carer.documents.destroy');
 
 
-    Route::get('/carer/case-file', [CarerCaseFileController::class, 'show'])
 
-    ->name('carer.case-file.show');
+    Route::get('/carer/case-file/{id}', [CarerCaseFileController::class, 'show'])
+
+        ->name('carer.case-file.show');
+
+
 
 });
 

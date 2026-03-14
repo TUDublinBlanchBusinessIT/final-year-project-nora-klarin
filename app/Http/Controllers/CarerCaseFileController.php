@@ -8,7 +8,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\CaseFile;
 
 
 
@@ -16,7 +16,7 @@ class CarerCaseFileController extends Controller
 
 {
 
-    public function show(Request $request)
+    public function show(Request $request, $id)
 
     {
 
@@ -32,22 +32,41 @@ class CarerCaseFileController extends Controller
 
 
 
-        $cases = DB::table('case_user')
+        $case = CaseFile::with([
 
-            ->join('case_files', 'case_user.case_id', '=', 'case_files.id')
+            'youngPerson',
 
-            ->where('case_user.user_id', $user->id)
+            'carers',
 
-            ->select('case_files.*')
+            'placements.carer',
 
-            ->orderByDesc('case_files.id')
+            'medicalInfos',
 
-            ->get();
+            'educationInfos',
+
+            'documents',
+
+            'appointments.creator',
+
+            'appointments.carers',
+
+            'wellbeingChecks',
+
+        ])
+
+        ->where('id', $id)
+
+        ->firstOrFail();
 
 
 
-        return view('carer.case-file.show', compact('cases', 'user'));
+        return view('carer.case-file.show', [
+
+            'case' => $case,
+
+        ]);
 
     }
 
 }
+
