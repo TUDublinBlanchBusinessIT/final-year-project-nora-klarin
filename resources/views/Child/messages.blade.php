@@ -90,9 +90,13 @@
                                         >
                                             <span>{{ $msg->created_at->format('H:i') }}</span>
 
-                                            @if($mine)
-                                                <span class="text-white/70">✓✓</span>
-                                            @endif
+@if($mine)
+    @if(is_null($msg->read_at))
+        <span class="text-white/70">✓</span>
+    @else
+        <span class="text-white/90">✓✓</span>
+    @endif
+@endif
                                         </div>
 
                                         <span class="absolute bottom-2 h-3 w-3 rotate-45
