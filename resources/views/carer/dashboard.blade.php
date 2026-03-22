@@ -524,5 +524,247 @@
         </div>
 
     </div>
+    
+    {{-- Support Services Map --}}
+
+<div class="mt-10 rounded-3xl p-6 shadow-lg bg-white/95 backdrop-blur border border-green-100">
+
+    <div class="flex items-center justify-between mb-4">
+
+        <div>
+
+            <h3 class="text-lg font-extrabold text-green-700">🗺️ Nearby Support Services</h3>
+
+            <p class="text-sm text-gray-600 mt-1">Find counselling, Tusla, and child support agencies near you</p>
+
+        </div>
+
+    </div>
+
+
+
+    <div id="map" style="height: 420px; width: 100%; border-radius: 16px;"></div>
+
+</div>
+
+
+
+<script>
+
+    function initMap() {
+
+        const location = { lat: 53.3498, lng: -6.2603 }; // Dublin fallback
+
+
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+
+            zoom: 13,
+
+            center: location,
+
+        });
+
+
+
+        const infoWindow = new google.maps.InfoWindow();
+
+
+
+        if (navigator.geolocation) {
+
+            navigator.geolocation.getCurrentPosition(
+
+                (position) => {
+
+                    const userLocation = {
+
+                        lat: position.coords.latitude,
+
+                        lng: position.coords.longitude
+
+                    };
+
+
+
+                    map.setCenter(userLocation);
+
+
+
+                    new google.maps.Marker({
+
+                        position: userLocation,
+
+                        map: map,
+
+                        title: "Your Location",
+
+                    });
+
+
+
+                    infoWindow.setPosition(userLocation);
+
+                    infoWindow.setContent("You are here");
+
+                    infoWindow.open(map);
+
+
+
+                    const request = {
+
+                        location: userLocation,
+
+                        radius: 5000,
+
+                        keyword: "Tusla counselling child support services"
+
+                    };
+
+
+
+                    const service = new google.maps.places.PlacesService(map);
+
+
+
+                    service.nearbySearch(request, function(results, status) {
+
+                        if (status === google.maps.places.PlacesServiceStatus.OK) {
+
+                            for (let i = 0; i < results.length; i++) {
+
+                                if (!results[i].geometry || !results[i].geometry.location) continue;
+
+
+
+                                const marker = new google.maps.Marker({
+
+                                    position: results[i].geometry.location,
+
+                                    map: map,
+
+                                    title: results[i].name
+
+                                });
+
+
+
+                                marker.addListener("click", () => {
+
+                                    infoWindow.setContent(`
+
+                                        <div style="min-width:180px">
+
+                                            <strong>${results[i].name}</strong><br>
+
+                                            ${results[i].vicinity ?? ''}
+
+                                        </div>
+
+                                    `);
+
+                                    infoWindow.open(map, marker);
+
+                                });
+
+                            }
+
+                        }
+
+                    });
+
+                },
+
+                () => {
+
+                    loadNearbyServices(map, location, infoWindow);
+
+                }
+
+            );
+
+        } else {
+
+            loadNearbyServices(map, location, infoWindow);
+
+        }
+
+    }
+
+
+
+    function loadNearbyServices(map, location, infoWindow) {
+
+        const request = {
+
+            location: location,
+
+            radius: 5000,
+
+            keyword: "Tusla counselling child support services"
+
+        };
+
+
+
+        const service = new google.maps.places.PlacesService(map);
+
+
+
+        service.nearbySearch(request, function(results, status) {
+
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+
+                for (let i = 0; i < results.length; i++) {
+
+                    if (!results[i].geometry || !results[i].geometry.location) continue;
+
+
+
+                    const marker = new google.maps.Marker({
+
+                        position: results[i].geometry.location,
+
+                        map: map,
+
+                        title: results[i].name
+
+                    });
+
+
+
+                    marker.addListener("click", () => {
+
+                        infoWindow.setContent(`
+
+                            <div style="min-width:180px">
+
+                                <strong>${results[i].name}</strong><br>
+
+                                ${results[i].vicinity ?? ''}
+
+                            </div>
+
+                        `);
+
+                        infoWindow.open(map, marker);
+
+                    });
+
+                }
+
+            }
+
+        });
+
+    }
+
+</script>
+
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" async defer></script>
+
+
 
 </x-app-layout>
