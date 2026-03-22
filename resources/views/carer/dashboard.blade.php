@@ -525,7 +525,7 @@
 
     </div>
     
-    {{-- Support Services Map --}}
+{{-- Support Services Map --}}
 
 <div class="mt-10 rounded-3xl p-6 shadow-lg bg-white/95 backdrop-blur border border-green-100">
 
@@ -543,7 +543,73 @@
 
 
 
-    <div id="map" style="height: 420px; width: 100%; border-radius: 16px;"></div>
+    <div class="flex flex-wrap gap-2 mb-4">
+
+        <button type="button" onclick="searchServices('Tusla')"
+
+            class="px-4 py-2 rounded-xl bg-blue-100 text-blue-700 text-sm font-semibold hover:bg-blue-200">
+
+            Tusla
+
+        </button>
+
+
+
+        <button type="button" onclick="searchServices('counselling')"
+
+            class="px-4 py-2 rounded-xl bg-pink-100 text-pink-700 text-sm font-semibold hover:bg-pink-200">
+
+            Counselling
+
+        </button>
+
+
+
+        <button type="button" onclick="searchServices('child support agency')"
+
+            class="px-4 py-2 rounded-xl bg-yellow-100 text-yellow-700 text-sm font-semibold hover:bg-yellow-200">
+
+            Child Agencies
+
+        </button>
+
+
+
+        <button type="button" onclick="searchServices('family support service')"
+
+            class="px-4 py-2 rounded-xl bg-green-100 text-green-700 text-sm font-semibold hover:bg-green-200">
+
+            Family Support
+
+        </button>
+
+    </div>
+
+
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        <div class="lg:col-span-2">
+
+            <div id="map" style="height: 420px; width: 100%; border-radius: 16px;"></div>
+
+        </div>
+
+
+
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+
+            <h4 class="font-bold text-gray-800">Service Details</h4>
+
+            <div id="serviceDetails" class="mt-3 text-sm text-gray-600">
+
+                Click a marker or search button to view service details.
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
@@ -551,23 +617,33 @@
 
 <script>
 
+    let map;
+
+    let infoWindow;
+
+    let placesService;
+
+    let currentLocation = { lat: 53.3498, lng: -6.2603 }; // Dublin fallback
+
+    let markers = [];
+
+
+
     function initMap() {
 
-        const location = { lat: 53.3498, lng: -6.2603 }; // Dublin fallback
-
-
-
-        const map = new google.maps.Map(document.getElementById("map"), {
+        map = new google.maps.Map(document.getElementById("map"), {
 
             zoom: 13,
 
-            center: location,
+            center: currentLocation,
 
         });
 
 
 
-        const infoWindow = new google.maps.InfoWindow();
+        infoWindow = new google.maps.InfoWindow();
+
+        placesService = new google.maps.places.PlacesService(map);
 
 
 
@@ -577,7 +653,7 @@
 
                 (position) => {
 
-                    const userLocation = {
+                    currentLocation = {
 
                         lat: position.coords.latitude,
 
@@ -587,13 +663,13 @@
 
 
 
-                    map.setCenter(userLocation);
+                    map.setCenter(currentLocation);
 
 
 
-                    new google.maps.Marker({
+                    const userMarker = new google.maps.Marker({
 
-                        position: userLocation,
+                        position: currentLocation,
 
                         map: map,
 
@@ -603,7 +679,7 @@
 
 
 
-                    infoWindow.setPosition(userLocation);
+                    infoWindow.setPosition(currentLocation);
 
                     infoWindow.setContent("You are here");
 
@@ -611,73 +687,27 @@
 
 
 
-                    const request = {
+                    userMarker.addListener("click", () => {
 
-                        location: userLocation,
+                        infoWindow.setContent("You are here");
 
-                        radius: 5000,
-
-                        keyword: "Tusla counselling child support services"
-
-                    };
-
-
-
-                    const service = new google.maps.places.PlacesService(map);
-
-
-
-                    service.nearbySearch(request, function(results, status) {
-
-                        if (status === google.maps.places.PlacesServiceStatus.OK) {
-
-                            for (let i = 0; i < results.length; i++) {
-
-                                if (!results[i].geometry || !results[i].geometry.location) continue;
-
-
-
-                                const marker = new google.maps.Marker({
-
-                                    position: results[i].geometry.location,
-
-                                    map: map,
-
-                                    title: results[i].name
-
-                                });
-
-
-
-                                marker.addListener("click", () => {
-
-                                    infoWindow.setContent(`
-
-                                        <div style="min-width:180px">
-
-                                            <strong>${results[i].name}</strong><br>
-
-                                            ${results[i].vicinity ?? ''}
-
-                                        </div>
-
-                                    `);
-
-                                    infoWindow.open(map, marker);
-
-                                });
-
-                            }
-
-                        }
+                        infoWindow.open(map, userMarker);
 
                     });
+
+
+
+                    searchServices('Tusla');
 
                 },
 
                 () => {
 
-                    loadNearbyServices(map, location, infoWindow);
+                    document.getElementById('serviceDetails').innerHTML =
+
+                        '<p class="text-red-600">Location access denied. Showing services near Dublin city centre.</p>';
+
+                    searchServices('Tusla');
 
                 }
 
@@ -685,7 +715,7 @@
 
         } else {
 
-            loadNearbyServices(map, location, infoWindow);
+            searchServices('Tusla');
 
         }
 
@@ -693,69 +723,151 @@
 
 
 
-    function loadNearbyServices(map, location, infoWindow) {
+    function clearMarkers() {
+
+        markers.forEach(marker => marker.setMap(null));
+
+        markers = [];
+
+    }
+
+
+
+    function searchServices(keyword) {
+
+        clearMarkers();
+
+
+
+        document.getElementById('serviceDetails').innerHTML =
+
+            `<p class="text-gray-500">Searching for <strong>${keyword}</strong> services...</p>`;
+
+
 
         const request = {
 
-            location: location,
+            location: currentLocation,
 
             radius: 5000,
 
-            keyword: "Tusla counselling child support services"
+            keyword: keyword
 
         };
 
 
 
-        const service = new google.maps.places.PlacesService(map);
+        placesService.nearbySearch(request, (results, status) => {
 
+            if (status !== google.maps.places.PlacesServiceStatus.OK || !results.length) {
 
+                document.getElementById('serviceDetails').innerHTML =
 
-        service.nearbySearch(request, function(results, status) {
+                    `<p class="text-red-600">No ${keyword} services found nearby.</p>`;
 
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-
-                for (let i = 0; i < results.length; i++) {
-
-                    if (!results[i].geometry || !results[i].geometry.location) continue;
-
-
-
-                    const marker = new google.maps.Marker({
-
-                        position: results[i].geometry.location,
-
-                        map: map,
-
-                        title: results[i].name
-
-                    });
-
-
-
-                    marker.addListener("click", () => {
-
-                        infoWindow.setContent(`
-
-                            <div style="min-width:180px">
-
-                                <strong>${results[i].name}</strong><br>
-
-                                ${results[i].vicinity ?? ''}
-
-                            </div>
-
-                        `);
-
-                        infoWindow.open(map, marker);
-
-                    });
-
-                }
+                return;
 
             }
 
+
+
+            results.forEach((place, index) => {
+
+                if (!place.geometry || !place.geometry.location) return;
+
+
+
+                const marker = new google.maps.Marker({
+
+                    position: place.geometry.location,
+
+                    map: map,
+
+                    title: place.name
+
+                });
+
+
+
+                markers.push(marker);
+
+
+
+                marker.addListener("click", () => {
+
+                    showServiceDetails(place);
+
+                    infoWindow.setContent(`
+
+                        <div style="min-width:180px">
+
+                            <strong>${place.name}</strong><br>
+
+                            ${place.vicinity ?? 'Address not available'}
+
+                        </div>
+
+                    `);
+
+                    infoWindow.open(map, marker);
+
+                });
+
+
+
+                if (index === 0) {
+
+                    showServiceDetails(place);
+
+                }
+
+            });
+
         });
+
+    }
+
+
+
+    function showServiceDetails(place) {
+
+        const detailsDiv = document.getElementById('serviceDetails');
+
+
+
+        const mapsUrl = place.geometry && place.geometry.location
+
+            ? `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}`
+
+            : '#';
+
+
+
+        detailsDiv.innerHTML = `
+
+            <div class="space-y-2">
+
+                <div class="font-semibold text-gray-900">${place.name ?? 'Unknown service'}</div>
+
+                <div><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</div>
+
+                <div><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not available'}</div>
+
+                <div><span class="font-medium text-gray-700">Type:</span> ${(place.types && place.types.length) ? place.types[0] : 'Not available'}</div>
+
+
+
+                <a href="${mapsUrl}" target="_blank"
+
+                   class="inline-block mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
+
+                    Open in Google Maps
+
+                </a>
+
+            </div>
+
+        `;
 
     }
 
@@ -764,7 +876,6 @@
 
 
 <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" async defer></script>
-
 
 
 </x-app-layout>
