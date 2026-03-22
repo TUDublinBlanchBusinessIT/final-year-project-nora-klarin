@@ -679,14 +679,6 @@
 
 
 
-                    infoWindow.setPosition(currentLocation);
-
-                    infoWindow.setContent("You are here");
-
-                    infoWindow.open(map);
-
-
-
                     userMarker.addListener("click", () => {
 
                         infoWindow.setContent("You are here");
@@ -701,11 +693,9 @@
 
                 },
 
-                () => {
+                (error) => {
 
-                    document.getElementById('serviceDetails').innerHTML =
-
-                        '<p class="text-red-600">Location access denied. Showing services near Dublin city centre.</p>';
+                    handleLocationError(error);
 
                     searchServices('Tusla');
 
@@ -715,9 +705,57 @@
 
         } else {
 
+            showLocationMessage("Geolocation is not supported by this browser. Showing services near Dublin city centre.");
+
             searchServices('Tusla');
 
         }
+
+    }
+
+
+
+    function handleLocationError(error) {
+
+        let message = "Location access was denied. Showing services near Dublin city centre.";
+
+
+
+        if (error.code === error.PERMISSION_DENIED) {
+
+            message = "Location access was denied. Showing services near Dublin city centre.";
+
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+
+            message = "Your location could not be determined. Showing services near Dublin city centre.";
+
+        } else if (error.code === error.TIMEOUT) {
+
+            message = "Location request timed out. Showing services near Dublin city centre.";
+
+        }
+
+
+
+        showLocationMessage(message);
+
+    }
+
+
+
+    function showLocationMessage(message) {
+
+        const detailsDiv = document.getElementById('serviceDetails');
+
+        detailsDiv.innerHTML = `
+
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+
+                ${message}
+
+            </div>
+
+        `;
 
     }
 
@@ -739,12 +777,6 @@
 
 
 
-        document.getElementById('serviceDetails').innerHTML =
-
-            `<p class="text-gray-500">Searching for <strong>${keyword}</strong> services...</p>`;
-
-
-
         const request = {
 
             location: currentLocation,
@@ -761,9 +793,15 @@
 
             if (status !== google.maps.places.PlacesServiceStatus.OK || !results.length) {
 
-                document.getElementById('serviceDetails').innerHTML =
+                document.getElementById('serviceDetails').innerHTML = `
 
-                    `<p class="text-red-600">No ${keyword} services found nearby.</p>`;
+                    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+
+                        No ${keyword} services found nearby.
+
+                    </div>
+
+                `;
 
                 return;
 
@@ -828,83 +866,80 @@
     }
 
 
-function getNiceType(types) {
 
-    if (!types || !types.length) return 'Support service';
+    function getNiceType(types) {
 
-
-
-    if (types.includes('local_government_office')) return 'Government office';
-
-    if (types.includes('hospital')) return 'Hospital';
-
-    if (types.includes('doctor')) return 'Healthcare service';
-
-    if (types.includes('school')) return 'School';
-
-    if (types.includes('health')) return 'Health service';
-
-    if (types.includes('social_service')) return 'Social service';
-
-    if (types.includes('establishment')) return 'Support service';
-
-    if (types.includes('point_of_interest')) return 'Support service';
+        if (!types || !types.length) return 'Support service';
 
 
 
-    return types[0].replaceAll('_', ' ');
+        if (types.includes('local_government_office')) return 'Government office';
 
-}
+        if (types.includes('hospital')) return 'Hospital';
 
+        if (types.includes('doctor')) return 'Healthcare service';
 
+        if (types.includes('school')) return 'School';
 
-function showServiceDetails(place) {
+        if (types.includes('health')) return 'Health service';
 
+        if (types.includes('social_service')) return 'Social service';
 
+        if (types.includes('establishment')) return 'Support service';
 
-    const detailsDiv = document.getElementById('serviceDetails');
-
-
-
-    const niceType = getNiceType(place.types); // <-- PUT IT HERE
-
-
-
-    const mapsUrl = place.geometry && place.geometry.location
-
-        ? `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}`
-
-        : '#';
+        if (types.includes('point_of_interest')) return 'Support service';
 
 
 
-    detailsDiv.innerHTML = `
+        return types[0].replaceAll('_', ' ');
 
-        <div class="space-y-2">
-
-            <div class="font-semibold text-gray-900">${place.name ?? 'Unknown service'}</div>
-
-            <div><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</div>
-
-            <div><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not available'}</div>
-
-            <div><span class="font-medium text-gray-700">Type:</span> ${niceType}</div>
+    }
 
 
 
-            <a href="${mapsUrl}" target="_blank"
+    function showServiceDetails(place) {
 
-               class="inline-block mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
+        const detailsDiv = document.getElementById('serviceDetails');
 
-                Open in Google Maps
+        const niceType = getNiceType(place.types);
 
-            </a>
 
-        </div>
 
-    `;
+        const mapsUrl = place.geometry && place.geometry.location
 
-}
+            ? `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}`
+
+            : '#';
+
+
+
+        detailsDiv.innerHTML = `
+
+            <div class="space-y-2">
+
+                <div class="font-semibold text-gray-900">${place.name ?? 'Unknown service'}</div>
+
+                <div><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</div>
+
+                <div><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not available'}</div>
+
+                <div><span class="font-medium text-gray-700">Type:</span> ${niceType}</div>
+
+
+
+                <a href="${mapsUrl}" target="_blank"
+
+                   class="inline-block mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
+
+                    Open in Google Maps
+
+                </a>
+
+            </div>
+
+        `;
+
+    }
 
 </script>
 
