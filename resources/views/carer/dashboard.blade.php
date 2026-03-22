@@ -828,48 +828,83 @@
     }
 
 
+function getNiceType(types) {
 
-    function showServiceDetails(place) {
-
-        const detailsDiv = document.getElementById('serviceDetails');
-
-
-
-        const mapsUrl = place.geometry && place.geometry.location
-
-            ? `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}`
-
-            : '#';
+    if (!types || !types.length) return 'Support service';
 
 
 
-        detailsDiv.innerHTML = `
+    if (types.includes('local_government_office')) return 'Government office';
 
-            <div class="space-y-2">
+    if (types.includes('hospital')) return 'Hospital';
 
-                <div class="font-semibold text-gray-900">${place.name ?? 'Unknown service'}</div>
+    if (types.includes('doctor')) return 'Healthcare service';
 
-                <div><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</div>
+    if (types.includes('school')) return 'School';
 
-                <div><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not available'}</div>
+    if (types.includes('health')) return 'Health service';
 
-                <div><span class="font-medium text-gray-700">Type:</span> ${(place.types && place.types.length) ? place.types[0] : 'Not available'}</div>
+    if (types.includes('social_service')) return 'Social service';
+
+    if (types.includes('establishment')) return 'Support service';
+
+    if (types.includes('point_of_interest')) return 'Support service';
 
 
 
-                <a href="${mapsUrl}" target="_blank"
+    return types[0].replaceAll('_', ' ');
 
-                   class="inline-block mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
+}
 
-                    Open in Google Maps
 
-                </a>
 
-            </div>
+function showServiceDetails(place) {
 
-        `;
 
-    }
+
+    const detailsDiv = document.getElementById('serviceDetails');
+
+
+
+    const niceType = getNiceType(place.types); // <-- PUT IT HERE
+
+
+
+    const mapsUrl = place.geometry && place.geometry.location
+
+        ? `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}`
+
+        : '#';
+
+
+
+    detailsDiv.innerHTML = `
+
+        <div class="space-y-2">
+
+            <div class="font-semibold text-gray-900">${place.name ?? 'Unknown service'}</div>
+
+            <div><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</div>
+
+            <div><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not available'}</div>
+
+            <div><span class="font-medium text-gray-700">Type:</span> ${niceType}</div>
+
+
+
+            <a href="${mapsUrl}" target="_blank"
+
+               class="inline-block mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
+
+                Open in Google Maps
+
+            </a>
+
+        </div>
+
+    `;
+
+}
 
 </script>
 
