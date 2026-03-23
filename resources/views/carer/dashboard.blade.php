@@ -166,9 +166,9 @@
 
                             <a href="{{ route('carer.documents.index') }}"
 
-                               class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
+                            class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow">
 
-                                Documents
+                                Wellbeing, Documents & Forms
 
                             </a>
 

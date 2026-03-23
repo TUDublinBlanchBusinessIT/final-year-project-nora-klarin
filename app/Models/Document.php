@@ -18,9 +18,13 @@ class Document extends Model
 
         'case_file_id',
 
-        'name',
+        'uploaded_by',
 
-        'file_path'
+        'title',
+
+        'file_path',
+
+        'file_type',
 
     ];
 
@@ -30,8 +34,19 @@ class Document extends Model
 
     {
 
-        return $this->belongsTo(CaseFile::class);
+        return $this->belongsTo(CaseFile::class, 'case_file_id');
+
+    }
+
+
+
+    public function uploader()
+
+    {
+
+        return $this->belongsTo(User::class, 'uploaded_by');
 
     }
 
 }
+
