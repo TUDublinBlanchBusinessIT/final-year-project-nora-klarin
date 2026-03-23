@@ -26,11 +26,25 @@ class WellbeingCheck extends Model
 
     protected $fillable = [
 
-        'youngpersonid',
+        'case_file_id',
 
-        'overallscore',
+        'overall_score',
 
-        'notes',
+        'emotional_score',
+
+        'behavioural_score',
+
+        'physical_score',
+
+        'safety_score',
+
+        'school_score',
+
+        'relationship_score',
+
+        'journal_notes',
+
+        'submitted_by',
 
     ];
 
@@ -40,29 +54,18 @@ class WellbeingCheck extends Model
 
     {
 
-        return $this->belongsTo(CaseFile::class, 'caseid');
+        return $this->belongsTo(CaseFile::class, 'case_file_id');
 
     }
 
 
 
-    public function youngPerson()
+    public function submittedBy()
 
     {
 
-        return $this->belongsTo(User::class, 'youngpersonid', 'id');
-
-    }
-
-
-
-    public function answers()
-
-    {
-
-        return $this->hasMany(WellbeingAnswer::class, 'checkid');
+        return $this->belongsTo(User::class, 'submitted_by');
 
     }
 
 }
-

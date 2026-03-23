@@ -12,6 +12,8 @@ use App\Http\Controllers\CarerDocumentController;
 
 use App\Http\Controllers\CarerCaseFileController;
 
+use App\Http\Controllers\WellbeingController;
+
 use Illuminate\Support\Facades\Route;
 
 
@@ -83,6 +85,13 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
     Route::get('/carer/case-file/{id}', [CarerCaseFileController::class, 'show'])
 
         ->name('carer.case-file.show');
+        
+
+    Route::post('/wellbeing', [WellbeingController::class, 'store'])
+
+    ->name('carer.wellbeing.store');
+
+
 
 
 

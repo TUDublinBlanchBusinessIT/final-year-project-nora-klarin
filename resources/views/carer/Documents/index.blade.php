@@ -471,5 +471,150 @@
         </div>
 
     </div>
+    <div class="rounded-3xl p-6 shadow-lg bg-white border border-green-100 mt-8">
+
+    <div class="mb-5">
+
+        <h3 class="text-xl font-extrabold text-green-700">Carer Wellbeing Update</h3>
+
+        <p class="text-sm text-gray-600 mt-1">
+
+            Record how the young person has been doing. This update will be available to the social worker.
+
+        </p>
+
+    </div>
+
+
+
+    <form method="POST" action="{{ route('carer.wellbeing.store') }}">
+
+        @csrf
+
+
+
+        <input type="hidden" name="case_file_id" value="{{ $case->id ?? 1 }}">
+
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Overall wellbeing (1–10)</label>
+
+                <input type="number" name="overall_score" min="1" max="10"
+
+                       class="w-full border rounded-lg p-2" required>
+
+                <p class="text-xs text-gray-500 mt-1">1 = very poor, 10 = very positive</p>
+
+            </div>
+
+
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Emotional wellbeing (1–10)</label>
+
+                <input type="number" name="emotional_score" min="1" max="10"
+
+                       class="w-full border rounded-lg p-2" required>
+
+            </div>
+
+
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Behaviour at home (1–10)</label>
+
+                <input type="number" name="behavioural_score" min="1" max="10"
+
+                       class="w-full border rounded-lg p-2" required>
+
+            </div>
+
+
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Physical health (1–10)</label>
+
+                <input type="number" name="physical_score" min="1" max="10"
+
+                       class="w-full border rounded-lg p-2" required>
+
+            </div>
+
+
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Feeling safe (1–10)</label>
+
+                <input type="number" name="safety_score" min="1" max="10"
+
+                       class="w-full border rounded-lg p-2" required>
+
+            </div>
+
+
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">School / daily routine (1–10)</label>
+
+                <input type="number" name="school_score" min="1" max="10"
+
+                       class="w-full border rounded-lg p-2" required>
+
+            </div>
+
+
+
+            <div class="md:col-span-2">
+
+                <label class="block text-sm font-medium text-gray-700">Relationships / social interaction (1–10)</label>
+
+                <input type="number" name="relationship_score" min="1" max="10"
+
+                       class="w-full border rounded-lg p-2" required>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="mt-4">
+
+            <label class="block text-sm font-medium text-gray-700">Carer notes / observations</label>
+
+            <textarea name="journal_notes" rows="4"
+
+                      class="w-full border rounded-lg p-2"
+
+                      placeholder="Example: Settled well this week, attended school regularly, seemed anxious on Tuesday, responded well to reassurance."></textarea>
+
+        </div>
+
+
+
+        <div class="mt-4">
+
+            <button type="submit"
+
+                    class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+
+                Send Update to Social Worker
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
 
 </x-app-layout>
