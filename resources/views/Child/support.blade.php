@@ -9,7 +9,6 @@
     <div class="min-h-screen py-10 bg-gradient-to-br from-yellow-50 via-pink-50 to-orange-50">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            {{-- Success message --}}
             @if (session('success'))
                 <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-green-800 font-semibold">
                     ✅ {{ session('success') }}
@@ -23,7 +22,7 @@
                 </div>
 
                 <p class="text-gray-700 mt-3 text-lg">
-                    If you feel unsafe or worried, press the button.
+                    If you feel unsafe or worried, choose one of these options.
                 </p>
 
                 {{-- SUPPORT REQUEST FORM --}}
@@ -38,8 +37,51 @@
                     </button>
                 </form>
 
+                {{-- Quick contact options --}}
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @if($carer && !empty($carer->phone))
+                        <a
+                            href="tel:{{ $carer->phone }}"
+                            class="block text-center rounded-2xl px-4 py-3
+                                   font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm
+                                   hover:bg-slate-50 hover:border-slate-300
+                                   active:scale-[0.98] transition
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        >
+                            📞 Call carer
+                        </a>
+                    @else
+                        <div
+                            class="block text-center rounded-2xl px-4 py-3
+                                   font-semibold text-slate-400 bg-slate-50 border border-slate-200"
+                        >
+                            📞 No phone available
+                        </div>
+                    @endif
+
+                    @if($carer && !empty($carer->email))
+                        <a
+                            href="mailto:{{ $carer->email }}"
+                            class="block text-center rounded-2xl px-4 py-3
+                                   font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm
+                                   hover:bg-slate-50 hover:border-slate-300
+                                   active:scale-[0.98] transition
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        >
+                            ✉️ Email carer
+                        </a>
+                    @else
+                        <div
+                            class="block text-center rounded-2xl px-4 py-3
+                                   font-semibold text-slate-400 bg-slate-50 border border-slate-200"
+                        >
+                            ✉️ No email available
+                        </div>
+                    @endif
+                </div>
+
                 <p class="text-sm text-gray-500 mt-4">
-                    This will notify a trusted adult in future versions.
+                    This sends a support alert. You can also call or email your carer directly.
                 </p>
 
                 <div class="mt-8 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4">
