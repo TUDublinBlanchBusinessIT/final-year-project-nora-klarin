@@ -182,7 +182,7 @@
 
                             class="tab-btn px-4 py-2 rounded-xl bg-white border text-sm font-semibold text-gray-700">
 
-                        Wellbeing Update
+                        Wellbeing Update Form
 
                     </button>
 
