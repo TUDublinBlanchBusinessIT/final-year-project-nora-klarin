@@ -13,7 +13,6 @@ class SupportRequestController extends Controller
     {
         $child = Auth::user();
 
-        // Get linked carer
         $carer = null;
         if (!empty($child->carer_id)) {
             $carer = User::find($child->carer_id);
@@ -28,19 +27,19 @@ class SupportRequestController extends Controller
     {
         $child = Auth::user();
 
-        // Create support request linked to BOTH child + carer
         DB::table('support_requests')->insert([
+            'user_id' => $child->id,      // REQUIRED (fixes your error)
             'child_id' => $child->id,
             'carer_id' => $child->carer_id,
             'status' => 'open',
-            'message' => null,
+            'message' => null,            // no message box anymore
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         return back()->with(
             'success',
-            '✅ Support request sent. Your carer has been notified.'
+            '✅ Support alert sent. Your carer has been notified.'
         );
     }
 }
