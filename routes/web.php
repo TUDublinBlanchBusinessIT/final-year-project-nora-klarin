@@ -18,9 +18,7 @@ use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SocialWorkerAppointmentController;
 
-
-
-// ✅ Child messages controller (Step 4)
+// ✅ Child messages controller
 use App\Http\Controllers\ChildMessageController;
 
 Route::get('/', function () {
@@ -29,7 +27,6 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     $user = auth()->user();
-
 
     if (!$user) {
         return redirect()->route('login');
@@ -94,7 +91,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ✅ Diary (NOW SAVES TO DB)
+    | 🆕 Support Map (NEW)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/child/support-map', function () {
+        return view('child.support-map');
+    })->name('child.support.map');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Diary
     |--------------------------------------------------------------------------
     */
     Route::post('/child/diary', [DiaryEntryController::class, 'store'])
@@ -102,7 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ✅ Child Messages (Step 4)
+    | Child Messages
     |--------------------------------------------------------------------------
     */
     Route::get('/child/messages', [ChildMessageController::class, 'index'])

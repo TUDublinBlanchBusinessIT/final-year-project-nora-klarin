@@ -141,6 +141,11 @@
                            class="block rounded-2xl bg-yellow-50 hover:bg-yellow-100 px-4 py-3 font-semibold text-yellow-700 transition">
                             📅 My Week
                         </a>
+
+                        <a href="{{ route('child.support.map') }}"
+                           class="block rounded-2xl bg-green-50 hover:bg-green-100 px-4 py-3 font-semibold text-green-700 transition">
+                            🗺️ Find Help Nearby
+                        </a>
                     </div>
                 </div>
 
