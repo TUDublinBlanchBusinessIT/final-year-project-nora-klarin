@@ -10,13 +10,14 @@ class CaseFile extends Model
     protected $table = 'case_files';
 
     protected $fillable = [
-        'case_code',
+        'case_reference',
         'youngpersonid',
         'risklevel',
         'openedat',
         'status',
     ];
 
+    // Users linked to case (carers + social workers)
     public function users()
     {
         return $this->belongsToMany(
@@ -32,16 +33,18 @@ class CaseFile extends Model
         return $this->users()->wherePivot('role', 'social_worker');
     }
 
-    public function youngPerson()
-    {
-        return $this->belongsTo(User::class, 'youngpersonid', 'id');
-    }
-
     public function carers()
     {
         return $this->users()->wherePivot('role', 'carer');
     }
 
+    // Young person linked to case
+    public function youngPerson()
+    {
+        return $this->belongsTo(User::class, 'youngpersonid', 'id');
+    }
+
+    // Related case data
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'case_file_id');
@@ -77,28 +80,22 @@ class CaseFile extends Model
         return $this->hasMany(Alert::class, 'caseid');
     }
 
+    // Goals linked through case_goals table
     public function goals()
     {
-        return $this->hasManyThrough(
-            Goal::class,
-            CaseGoal::class,
-            'case_code',
-            'caseid',
-            'id',
-            'id',
-            'goalid'
-        );
+        return $this->hasMany(CaseGoal::class, 'caseid');
     }
 
+    // Tasks through goals
     public function tasks()
     {
         return $this->hasManyThrough(
             Task::class,
-            TaskGoal::class,
-            'goalid',
-            'id',
-            'id',
-            'taskid'
+            CaseGoal::class,
+            'caseid',   // Foreign key on CaseGoal table
+            'goalid',   // Foreign key on Task table
+            'id',       // Local key on CaseFile
+            'goalid'    // Local key on CaseGoal
         );
     }
 }

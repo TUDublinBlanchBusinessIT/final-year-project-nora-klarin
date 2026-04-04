@@ -28,7 +28,7 @@ class CarerCaseFileController extends Controller
         ])
         ->where(function ($query) use ($case) {
             $query->where('id', $case)
-                  ->orWhere('case_code', $case);
+                  ->orWhere('case_reference', $case);
         })
         ->whereHas('carers', function ($query) use ($user) {
             $query->where('users.id', $user->id);
