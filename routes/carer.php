@@ -82,9 +82,9 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
 
 
 
-    Route::get('/carer/case-file/{id}', [CarerCaseFileController::class, 'show'])
+    Route::get('/carer/case-file/{case}', [CarerCaseFileController::class, 'show'])
 
-        ->name('carer.case-file.show');
+         ->name('carer.case-file.show');
         
 
     Route::post('/wellbeing', [WellbeingController::class, 'store'])
