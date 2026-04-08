@@ -19,6 +19,8 @@ class User extends Authenticatable
     'password',
     'role',
     'carer_id',
+    'login_code',
+    'login_code_expires_at',
 ];
     protected $hidden = [
         'password',
