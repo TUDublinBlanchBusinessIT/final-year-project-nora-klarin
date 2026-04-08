@@ -24,7 +24,7 @@ class CarerCaseFileController extends Controller
             'documents',
             'appointments.creator',
             'appointments.carers',
-            'wellbeingChecks',
+            'wellbeingChecks.submittedBy',
         ])
         ->where(function ($query) use ($case) {
             $query->where('id', $case)

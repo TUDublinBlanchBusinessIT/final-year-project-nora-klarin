@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use Carbon\Carbon;
 
 class CaseFile extends Model
 {
@@ -17,7 +18,6 @@ class CaseFile extends Model
         'status',
     ];
 
-    // Users linked to case (carers + social workers)
     public function users()
     {
         return $this->belongsToMany(
@@ -38,13 +38,11 @@ class CaseFile extends Model
         return $this->users()->wherePivot('role', 'carer');
     }
 
-    // Young person linked to case
     public function youngPerson()
     {
         return $this->belongsTo(User::class, 'youngpersonid', 'id');
     }
 
-    // Related case data
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'case_file_id');
@@ -80,22 +78,78 @@ class CaseFile extends Model
         return $this->hasMany(Alert::class, 'caseid');
     }
 
-    // Goals linked through case_goals table
     public function goals()
     {
         return $this->hasMany(CaseGoal::class, 'caseid');
     }
 
-    // Tasks through goals
     public function tasks()
     {
         return $this->hasManyThrough(
             Task::class,
             CaseGoal::class,
-            'caseid',   // Foreign key on CaseGoal table
-            'goalid',   // Foreign key on Task table
-            'id',       // Local key on CaseFile
-            'goalid'    // Local key on CaseGoal
+            'caseid',
+            'goalid',
+            'id',
+            'goalid'
         );
+    }
+
+    public function timeline()
+    {
+        $events = collect();
+
+        foreach ($this->documents as $doc) {
+            $events->push([
+                'date' => $doc->created_at,
+                'title' => 'Document uploaded',
+                'description' => $doc->name ?? $doc->title ?? 'A document was uploaded',
+                'icon' => 'document',
+                'user' => $doc->uploadedBy->name ?? 'User',
+            ]);
+        }
+
+        foreach ($this->wellbeingChecks as $check) {
+            $events->push([
+                'date' => $check->created_at,
+                'title' => 'Wellbeing check submitted',
+                'description' => 'Overall score: ' . round($check->overall_score ?? 0, 1),
+                'icon' => 'wellbeing',
+                'user' => $check->submittedBy->name ?? 'Carer',
+            ]);
+        }
+
+        foreach ($this->appointments as $appointment) {
+            $events->push([
+                'date' => $appointment->created_at,
+                'title' => 'Appointment scheduled',
+                'description' => ($appointment->location ?? 'No location set') . ' | ' .
+                    Carbon::parse($appointment->start_time)->format('d M Y H:i'),
+                'icon' => 'appointment',
+                'user' => $appointment->creator->name ?? 'User',
+            ]);
+        }
+
+        foreach ($this->placements as $placement) {
+            $events->push([
+                'date' => $placement->created_at,
+                'title' => 'Placement updated',
+                'description' => $placement->notes ?? 'Placement information was updated',
+                'icon' => 'placement',
+                'user' => $placement->placement->carer->name ?? 'Social Worker',
+            ]);
+        }
+
+        // foreach ($this->alerts as $alert) {
+        //     $events->push([
+        //         'date' => $alert->created_at,
+        //         'title' => 'Alert created',
+        //         'description' => $alert->message ?? 'A case alert was created',
+        //         'icon' => 'alert',
+        //         'user' => 'System',
+        //     ]);
+        // }
+
+        return $events->sortByDesc('date')->values();
     }
 }

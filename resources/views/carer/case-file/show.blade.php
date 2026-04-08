@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ $case->case_code ?? 'Case File' }} - {{ $case->youngPerson->name ?? 'Child' }}
+            {{ $case->case_reference ?? 'Case File' }} - {{ $case->youngPerson->name ?? 'Child' }}
         </h2>
     </x-slot>
 
@@ -29,7 +29,7 @@
                 {{-- Tabs --}}
                 <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-2">
                     <nav class="flex flex-wrap gap-2">
-                        <template x-for="t in ['child','caseDetails','placements','medical','education','documents','appointments','wellbeing']" :key="t">
+                        <template x-for="t in ['child','caseDetails','placements','medical','education','documents','appointments','wellbeing','timeline']" :key="t">
                             <button
                                 @click="tab = t"
                                 :class="tab === t
@@ -81,7 +81,7 @@
 
                         <div class="rounded-xl bg-indigo-50 p-4">
                             <p class="text-sm text-gray-500">Case Reference</p>
-                            <p class="font-semibold text-gray-900">{{ $case->case_code ?? '-' }}</p>
+                            <p class="font-semibold text-gray-900">{{ $case->case_reference ?? '-' }}</p>
                         </div>
 
                         <div class="rounded-xl bg-indigo-50 p-4">
@@ -334,6 +334,50 @@
 
                         <div class="mt-6">
                             <canvas id="wellbeingTrend" height="100"></canvas>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Timeline --}}
+                <div x-show="tab === 'timeline'" x-transition class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                    <h3 class="text-lg font-bold text-gray-700">Case Timeline</h3>
+
+                    @php
+                        $events = $case->timeline();
+                    @endphp
+
+                    @if($events->isEmpty())
+                        <p class="text-gray-500">No case activity recorded yet.</p>
+                    @else
+                        <div class="space-y-4">
+                            @foreach($events as $event)
+                                <div class="flex gap-4 items-start">
+                                    <div class="mt-1 w-3 h-3 rounded-full
+                                        @if($event['icon'] === 'document') bg-sky-500
+                                        @elseif($event['icon'] === 'wellbeing') bg-emerald-500
+                                        @elseif($event['icon'] === 'appointment') bg-indigo-500
+                                        @elseif($event['icon'] === 'placement') bg-pink-500
+                                        @elseif($event['icon'] === 'alert') bg-red-500
+                                        @else bg-gray-400
+                                        @endif">
+                                    </div>
+
+                                    <div class="flex-1 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                            <p class="font-semibold text-gray-900">{{ $event['title'] }}</p>
+                                            <p class="text-sm text-gray-500">
+                                                {{ \Carbon\Carbon::parse($event['date'])->format('d M Y H:i') }}
+                                            </p>
+                                        </div>
+
+                                        <p class="text-sm text-gray-700 mt-1">{{ $event['description'] }}</p>
+
+                                        <p class="text-xs text-gray-500 mt-2">
+                                            Added by: {{ $event['user'] }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     @endif
                 </div>
