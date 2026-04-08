@@ -11,19 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-Schema::create('appointment_user', function (Blueprint $table) {
+       Schema::create('appointment_user', function (Blueprint $table) {
     $table->id();
 
     $table->foreignId('appointment_id')
-        ->constrained('appointments')
-        ->cascadeOnDelete();
+          ->constrained()
+          ->cascadeOnDelete();
 
     $table->foreignId('user_id')
-        ->constrained('users')
-        ->cascadeOnDelete();
+          ->constrained()
+          ->cascadeOnDelete();
 
     $table->timestamps();
+
+    $table->unique(['appointment_id', 'user_id']);
 });
+
     }
 
     /**
@@ -31,6 +34,6 @@ Schema::create('appointment_user', function (Blueprint $table) {
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('appointment_user');
     }
 };

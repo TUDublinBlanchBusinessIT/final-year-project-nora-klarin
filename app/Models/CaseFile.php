@@ -105,7 +105,7 @@ class CaseFile extends Model
                 'title' => 'Document uploaded',
                 'description' => $doc->name ?? $doc->title ?? 'A document was uploaded',
                 'icon' => 'document',
-                'user' => $doc->uploadedBy->name ?? 'User',
+                'user' => $doc->uploader->name ?? 'User',
             ]);
         }
 
@@ -121,7 +121,7 @@ class CaseFile extends Model
 
         foreach ($this->appointments as $appointment) {
             $events->push([
-                'date' => $appointment->created_at,
+                'date' => $appointment->created_at ?? $appointment->start_time,
                 'title' => 'Appointment scheduled',
                 'description' => ($appointment->location ?? 'No location set') . ' | ' .
                     Carbon::parse($appointment->start_time)->format('d M Y H:i'),
@@ -139,16 +139,6 @@ class CaseFile extends Model
                 'user' => $placement->placement->carer->name ?? 'Social Worker',
             ]);
         }
-
-        // foreach ($this->alerts as $alert) {
-        //     $events->push([
-        //         'date' => $alert->created_at,
-        //         'title' => 'Alert created',
-        //         'description' => $alert->message ?? 'A case alert was created',
-        //         'icon' => 'alert',
-        //         'user' => 'System',
-        //     ]);
-        // }
 
         return $events->sortByDesc('date')->values();
     }

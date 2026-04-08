@@ -6,36 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-Schema::create('case_user', function (Blueprint $table) {
-    $table->id();
+        Schema::create('case_user', function (Blueprint $table) {
+            $table->id();
 
-    $table->foreignId('case_id')
-          ->constrained('case_files')
-          ->cascadeOnDelete();
+            $table->foreignId('case_file_id')
+                ->constrained('case_files')
+                ->cascadeOnDelete();
 
-    $table->foreignId('user_id')
-          ->constrained()
-          ->cascadeOnDelete();
+            $table->foreignId('user_id')
+                ->constrained()
+                ->cascadeOnDelete();
 
-    $table->enum('role', ['social_worker', 'carer']);
+            $table->enum('role', ['social_worker', 'carer']);
 
-    $table->timestamp('assigned_at')->nullable();
+            $table->timestamp('assigned_at')->nullable();
 
-    $table->timestamps();
+            $table->timestamps();
 
-    $table->unique(['case_id', 'user_id']);
-});
-
+            $table->unique(['case_file_id', 'user_id']);
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('case_user');

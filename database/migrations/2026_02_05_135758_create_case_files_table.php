@@ -6,35 +6,33 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-public function up(): void
+    public function up(): void
+    {
+        Schema::create('case_files', function (Blueprint $table) {
+            $table->id();
 
-{
+            $table->string('case_reference')->nullable()->unique();
 
-    Schema::create('case_files', function (Blueprint $table) {
+            $table->unsignedBigInteger('youngpersonid')->nullable();
 
-        $table->id();
+            $table->string('risklevel')->nullable();
 
-        $table->unsignedBigInteger('youngpersonid')->nullable();
+            $table->timestamp('openedat')->nullable();
 
-        $table->string('risklevel')->nullable();
+            $table->string('status')->nullable();
 
-        $table->timestamp('openedat')->nullable();
+            $table->string('placement_type')->nullable();
+            $table->string('placement_location')->nullable();
 
-        $table->string('status')->nullable();
+            $table->timestamp('closed_at')->nullable();
+            $table->timestamp('last_reviewed_at')->nullable();
 
-        $table->timestamps();
+            $table->text('summary')->nullable();
 
-    });
+            $table->timestamps();
+        });
+    }
 
-}
-
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('case_files');

@@ -1,12 +1,8 @@
 <!-- resources/views/layouts/app.blade.php -->
 
-
-
 <!DOCTYPE html>
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
-
 
 <head>
 
@@ -22,9 +18,13 @@
 
 
 
-    <!-- Tailwind / Vite -->
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+
+
+    {{-- Bootstrap CSS --}}
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 
 
@@ -40,7 +40,7 @@
 
 @php
 
-$user = auth()->user();
+    $user = auth()->user();
 
 @endphp
 
@@ -52,8 +52,6 @@ $user = auth()->user();
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-
-
         <div class="flex justify-between h-16">
 
 
@@ -61,8 +59,6 @@ $user = auth()->user();
             <!-- Left side -->
 
             <div class="flex items-center">
-
-
 
                 <a href="{{ url('/') }}" class="text-xl font-bold text-gray-800">
 
@@ -74,57 +70,55 @@ $user = auth()->user();
 
                 @auth
 
-                <div class="hidden md:flex ml-10 space-x-4">
+                    <div class="hidden md:flex ml-10 space-x-4">
 
 
 
-                    @if($user->role === 'admin')
+                        @if($user->role === 'admin')
 
-                        <a href="{{ route('admin.users.index') }}"
+                            <a href="{{ route('admin.users.index') }}"
 
-                           class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
 
-                            Users
+                                Users
 
-                        </a>
+                            </a>
 
-                    @endif
-
-
-
-                    @if($user->role === 'social_worker')
-
-                        <a href="{{ route('socialworker.dashboard') }}"
-
-                           class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-
-                            Dashboard
-
-                        </a>
-
-                    @endif
+                        @endif
 
 
 
-                    @if($user->role === 'carer')
+                        @if($user->role === 'social_worker')
 
-                        <a href="{{ route('carer.dashboard') }}"
+                            <a href="{{ route('socialworker.dashboard') }}"
 
-                           class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
 
-                            Dashboard
+                                Dashboard
 
-                        </a>
+                            </a>
 
-                    @endif
+                        @endif
 
 
 
-                </div>
+                        @if($user->role === 'carer')
+
+                            <a href="{{ route('carer.dashboard') }}"
+
+                               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+
+                                Dashboard
+
+                            </a>
+
+                        @endif
+
+
+
+                    </div>
 
                 @endauth
-
-
 
             </div>
 
@@ -134,51 +128,41 @@ $user = auth()->user();
 
             <div class="flex items-center space-x-4">
 
-
-
                 @auth
 
+                    <span class="text-gray-700 text-sm">
 
+                        {{ $user->name }}
 
-                <span class="text-gray-700 text-sm">
+                        ({{ ucfirst(str_replace('_', ' ', $user->role)) }})
 
-                    {{ $user->name }}
-
-                    ({{ ucfirst(str_replace('_',' ', $user->role)) }})
-
-                </span>
+                    </span>
 
 
 
-                <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout') }}">
 
-                    @csrf
+                        @csrf
 
-                    <button
+                        <button
 
-                        type="submit"
+                            type="submit"
 
-                        class="text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                            class="text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition">
 
-                        Logout
+                            Logout
 
-                    </button>
+                        </button>
 
-                </form>
-
-
+                    </form>
 
                 @endauth
-
-
 
             </div>
 
 
 
         </div>
-
-
 
     </div>
 
@@ -190,15 +174,15 @@ $user = auth()->user();
 
 @isset($header)
 
-<header class="bg-white shadow">
+    <header class="bg-white shadow">
 
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
 
-        {{ $header }}
+            {{ $header }}
 
-    </div>
+        </div>
 
-</header>
+    </header>
 
 @endisset
 
@@ -211,6 +195,14 @@ $user = auth()->user();
     {{ $slot }}
 
 </main>
+
+
+
+{{-- Bootstrap JS --}}
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 
 
 
