@@ -51,10 +51,19 @@ Route::middleware('auth')->group(function () {
     
 });
 
+
+
+
 Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
         ->name('child.dashboard');
+
 });
+
+Route::get('/child/wellbeing', function () {
+    return view('child.wellbeing.check');
+})->middleware(['auth', 'role:young_person'])
+  ->name('child.wellbeing.check');
 
 Route::middleware(['auth', 'role:social_worker'])->group(function () {
     Route::get('/social-worker/dashboard', 
@@ -207,14 +216,68 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
         ->name('child.messages.store');
+
+        Route::post('/wellbeing/start', [WellbeingCheckController::class, 'start'])
+        ->middleware('role:young_person')
+        ->name('wellbeing.start');
+
+    Route::post('/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submit'])
+        ->middleware('role:young_person')
+        ->name('wellbeing.submit');
+
+    Route::get('/wellbeing/{youngPerson}/history', [WellbeingCheckController::class, 'history'])
+        ->middleware('role:staff')
+        ->name('wellbeing.history');
+
+    Route::get('/wellbeing/{youngPerson}/goal-suggestions', [WellbeingCheckController::class, 'goalSuggestions'])
+        ->middleware('role:social_worker')
+        ->name('wellbeing.goal-suggestions');
+
+    Route::get('/alerts/unacknowledged', [AlertController::class, 'unacknowledged'])
+        ->middleware('role:staff')
+        ->name('alerts.unacknowledged');
+
+    Route::get('/alerts/{youngPerson}', [AlertController::class, 'forYoungPerson'])
+        ->middleware('role:staff')
+        ->name('alerts.for-young-person');
+
+    Route::patch('/alerts/{alert}/acknowledge', [AlertController::class, 'acknowledge'])
+        ->middleware('role:staff')
+        ->name('alerts.acknowledge');
+
+    Route::patch('/alerts/acknowledge-all', [AlertController::class, 'acknowledgeAll'])
+        ->middleware('role:staff')
+        ->name('alerts.acknowledge-all');
 });
 
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
+
+if (app()->environment('local')) {
+
+    Route::get('/demo/wellbeing-check/{userId?}', function ($userId = null) {
+
+        // Find a young_person user — use the ID passed in, or find the first one
+        $youngPerson = $userId
+            ? \App\Models\User::where('id', $userId)
+                              ->where('role', 'young_person')
+                              ->firstOrFail()
+            : \App\Models\User::where('role', 'young_person')->firstOrFail();
+
+        // Log in as that user for this session
+        Auth::login($youngPerson);
+
+        return redirect()->route('wellbeing.check');
+
+    })->name('demo.wellbeing');
+
+}
+
 require __DIR__.'/auth.php';
 require __DIR__.'/carer.php';
 require __DIR__.'/socialworker.php';
+
 
 

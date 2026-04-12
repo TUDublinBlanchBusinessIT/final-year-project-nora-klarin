@@ -71,12 +71,6 @@
     @endif
 
 </div>
-                    <div x-show="tab === 'caseDetails'" x-transition class="bg-white p-6 rounded-xl shadow space-y-2">
-                        <p><strong>Status:</strong> {{ $case->status }}</p>
-                        <p><strong>Risk Level:</strong> {{ $case->risk_level }}</p>
-                        <p><strong>Summary:</strong> {{ $case->summary ?? '-' }}</p>
-                        <p><strong>Last Reviewed:</strong> {{ $case->last_reviewed_at ?? '-' }}</p>
-                    </div>
 
                     {{-- Placements --}}
                     <div x-show="tab === 'placements'" x-transition class="bg-white p-6 rounded-xl shadow space-y-2">
@@ -202,7 +196,7 @@
                         </div>
 
                     </div>
-
+                    
                     {{-- WELLBEING TAB --}}
                 <div x-show="tab === 'wellbeing'" x-transition class="bg-white p-6 rounded-xl shadow space-y-6">
 

@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DomainScore extends Model
 {
-    protected $table = 'wellbeing_domain_scores'; // <-- use your actual table
+    protected $table = 'wellbeing_domain_scores';
 
     protected $fillable = [
         'wellbeing_check_id',

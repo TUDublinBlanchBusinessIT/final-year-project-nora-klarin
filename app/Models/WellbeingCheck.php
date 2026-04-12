@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WellbeingCheck extends Model
 {
-    protected $table = 'wellbeing_checks'; // <- REQUIRED if Laravel guesses wrong
+    protected $table = 'wellbeing_checks'; 
     protected $fillable = [
         'case_file_id',
         'overall_score',
@@ -34,6 +34,11 @@ class WellbeingCheck extends Model
     public function responses()
     {
         return $this->hasMany(WellbeingAnswer::class, 'checkid');
+    }
+
+    public function alerts()
+    {
+        return $this->hasMany(Alert::class, 'wellbeing_check_id');
     }
 
     public function getRiskLevelAttribute()

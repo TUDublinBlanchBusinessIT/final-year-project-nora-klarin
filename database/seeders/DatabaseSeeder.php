@@ -10,17 +10,18 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1) Seed the carer user
         $this->call(UserSeeder::class);
 
-        // 2) Ensure the existing Test User still exists
         User::updateOrCreate(
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
                 'password' => Hash::make('password'),
                 'role' => 'carer', // keep consistent for now
-            ]
+            ],
+        DomainAndTagSeeder::class,
+        GoalTemplateSeeder::class,
+        QuestionBankSeeder::class,
         );
     }
 }

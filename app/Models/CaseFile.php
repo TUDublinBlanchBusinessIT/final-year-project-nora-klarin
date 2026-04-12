@@ -130,10 +130,12 @@ class CaseFile extends Model
         return now()->parse($startDate)->addDays($intervalDays);
     }
 
+
     public function wellbeingChecks()
-    {
-        return $this->hasMany(WellbeingCheck::class); 
-    }
+{
+    return $this->hasMany(\App\Models\WellbeingCheck::class)
+                ->with(['domainScores.domain', 'alerts']);
+}
 
     protected static function boot()
     {

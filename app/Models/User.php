@@ -57,7 +57,10 @@ public function appointments()
     );
 }
 
-
+public function wellbeingChecks()
+{
+    return $this->hasMany(\App\Models\WellbeingCheck::class, 'young_person_id');
+}
 
 }
 

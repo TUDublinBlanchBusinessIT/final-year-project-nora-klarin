@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class SocialWorkerDashboardController extends Controller
 {
-    public function index()
+public function index()
 {
     $user = Auth::user();
 
@@ -22,28 +22,48 @@ class SocialWorkerDashboardController extends Controller
         'wellbeingChecks.domainScores.domain'
     ])->get();
 
+    $wellbeingChecks = $cases->flatMap(function ($case) {
+        return $case->wellbeingChecks;
+    })->sortBy('created_at');
+
     $wellbeingData = [];
 
- foreach ($cases as $case) {
-    $child = $case->youngPerson;
-    $checks = $case->wellbeingChecks->sortByDesc('week_start')->take(8);
-    if ($checks->isEmpty()) continue;
+    foreach ($cases as $case) {
+        $child = $case->youngPerson;
+        $checks = $case->wellbeingChecks->sortByDesc('week_start')->take(8);
+        if ($checks->isEmpty()) continue;
 
-    $latestCheck = $checks->first();
+        $latestCheck = $checks->first();
 
-    $domainScores = $latestCheck->domainScores->mapWithKeys(function($ds){
-        return [$ds->domain->name => $ds->average_score ?? 0];
-    });
+        $domainScores = $latestCheck->domainScores->mapWithKeys(function($ds){
+            return [$ds->domain->name => $ds->average_score ?? 0];
+        });
 
-    $wellbeingData[] = [
-        'child' => $child,
-        'check' => $latestCheck,
-        'checks' => $checks,
-        'domainScores' => $domainScores
-    ];
-}
+        $wellbeingData[] = [
+            'child' => $child,
+            'check' => $latestCheck,
+            'checks' => $checks,
+            'domainScores' => $domainScores
+        ];
+    }
 
-    return view('socialworker.dashboard', compact('cases', 'wellbeingData'));
+    $placements = \App\Models\Placement::select(
+            'id',
+            'location',
+            'type',
+            'latitude',
+            'longitude'
+        )
+        ->whereNotNull('latitude')
+        ->whereNotNull('longitude')
+        ->get();
+
+    return view('socialworker.dashboard', compact(
+        'cases',
+        'wellbeingData',
+        'wellbeingChecks',
+        'placements'
+    ));
 }
     
 
