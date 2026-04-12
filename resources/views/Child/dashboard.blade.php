@@ -10,7 +10,6 @@
                     $totalNotificationCount = ($reminderCount ?? 0) + ($unreadMessageCount ?? 0);
                 @endphp
 
-                {{-- Bell --}}
                 <div x-data="{ open: false }" class="relative">
                     <button
                         type="button"
@@ -103,10 +102,8 @@
     <div class="min-h-screen py-10 bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
-            {{-- TOP CARDS --}}
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-                {{-- Check-in --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100">
                     <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>
                     <p class="text-gray-600 mt-2">How are you feeling today?</p>
@@ -122,7 +119,6 @@
                     <p class="text-xs text-gray-500 mt-3">Pick one to start your day 🌈</p>
                 </div>
 
-                {{-- Quick Links --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-pink-100">
                     <h3 class="text-lg font-extrabold text-pink-700">📌 Quick Links</h3>
 
@@ -149,7 +145,6 @@
                     </div>
                 </div>
 
-                {{-- Messages --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
                     <h3 class="text-lg font-extrabold text-indigo-700">💬 Messages</h3>
 
@@ -167,7 +162,6 @@
                     </p>
                 </div>
 
-                {{-- Help --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-yellow-100">
                     <h3 class="text-lg font-extrabold text-yellow-700">🆘 Need Help?</h3>
                     <p class="text-gray-600 mt-2">
@@ -185,10 +179,7 @@
                 </div>
             </div>
 
-            {{-- DIARY + RECENT --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {{-- Diary Form --}}
                 <div id="diary" class="lg:col-span-2 rounded-3xl p-7 sm:p-8 shadow-xl bg-white/95 backdrop-blur border border-indigo-100">
                     <div class="flex items-start justify-between gap-4">
                         <div>
@@ -248,11 +239,11 @@
                                     name="mood"
                                     class="w-full rounded-2xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3"
                                 >
-                                    <option value="happy"  @selected(old('mood') === 'happy')>😊 Happy</option>
-                                    <option value="calm"   @selected(old('mood') === 'calm')>😌 Calm</option>
-                                    <option value="okay"   @selected(old('mood') === 'okay')>😐 Okay</option>
-                                    <option value="worried"@selected(old('mood') === 'worried')>😟 Worried</option>
-                                    <option value="sad"    @selected(old('mood') === 'sad')>😢 Sad</option>
+                                    <option value="happy" @selected(old('mood') === 'happy')>😊 Happy</option>
+                                    <option value="calm" @selected(old('mood') === 'calm')>😌 Calm</option>
+                                    <option value="okay" @selected(old('mood') === 'okay')>😐 Okay</option>
+                                    <option value="worried" @selected(old('mood') === 'worried')>😟 Worried</option>
+                                    <option value="sad" @selected(old('mood') === 'sad')>😢 Sad</option>
                                 </select>
                             </div>
 
@@ -273,18 +264,12 @@
 
                         <button
                             type="submit"
-                            class="w-full rounded-2xl px-6 py-3
-                                   font-semibold text-slate-700
-                                   bg-white border border-slate-200 shadow-sm
-                                   hover:bg-slate-50 hover:border-slate-300
-                                   active:scale-[0.98] transition
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                            class="w-full rounded-2xl px-6 py-3 font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition focus:outline-none focus:ring-2 focus:ring-indigo-200">
                             Save Diary Entry ✨
                         </button>
                     </form>
                 </div>
 
-                {{-- Recent Entries --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
                     <h3 class="text-lg font-extrabold text-indigo-700">🗂️ Recent Entries</h3>
                     <p class="text-sm text-gray-600 mt-1">Your latest diary entries.</p>
@@ -329,7 +314,6 @@
                 </div>
             </div>
 
-            {{-- Bottom cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="rounded-3xl p-6 shadow-lg bg-gradient-to-br from-green-50 to-blue-50 border border-green-100">
                     <h3 class="text-lg font-extrabold text-green-700">🎯 My Goal This Week</h3>
@@ -349,7 +333,13 @@
                     <div class="mt-4 text-3xl">💛✨</div>
                 </div>
             </div>
-
         </div>
     </div>
+
+    {{-- Floating Chatbot Button --}}
+    <a href="{{ route('chatbot.index') }}"
+       class="fixed bottom-6 right-6 z-50 flex items-center justify-center w-16 h-16 rounded-full bg-blue-700 hover:bg-blue-800 text-white shadow-2xl transition transform hover:scale-105"
+       aria-label="Open CareHub Assistant">
+        <span class="text-2xl">💬</span>
+    </a>
 </x-app-layout>

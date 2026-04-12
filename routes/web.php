@@ -18,8 +18,11 @@ use App\Http\Controllers\SocialWorkerDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SocialWorkerAppointmentController;
 
-// ✅ Child messages controller
+// Child messages controller
 use App\Http\Controllers\ChildMessageController;
+
+// Chatbot controller
+use App\Http\Controllers\ChatController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -91,7 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | 🆕 Support Map (NEW)
+    | Support Map
     |--------------------------------------------------------------------------
     */
     Route::get('/child/support-map', function () {
@@ -116,6 +119,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
         ->name('child.messages.store');
+
+    /*
+    |--------------------------------------------------------------------------
+    | CareHub Chatbot
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/chatbot', [ChatController::class, 'index'])
+        ->name('chatbot.index');
+
+    Route::post('/chatbot/send', [ChatController::class, 'send'])
+        ->name('chatbot.send');
 });
 
 /*
