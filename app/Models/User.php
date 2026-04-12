@@ -13,15 +13,21 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-    'name',
-    'username',   // ✅ add this
-    'email',
-    'password',
-    'role',
-    'carer_id',
-    'login_code',
-    'login_code_expires_at',
-];
+        'name',
+        'username',
+        'email',
+        'password',
+        'role',
+        'carer_id',
+        'login_code',
+        'login_code_expires_at',
+
+        // ✅ Customization
+        'theme',
+        'chatbot_name',
+        'dashboard_layout', // ✅ ADD THIS
+    ];
+
     protected $hidden = [
         'password',
         'remember_token',

@@ -134,12 +134,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Profile Routes
+| Profile Routes (UPDATED HERE)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // ✅ NEW CUSTOMIZATION ROUTE
+    Route::patch('/profile/customization', [ProfileController::class, 'updateCustomization'])
+        ->name('profile.customization.update');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
