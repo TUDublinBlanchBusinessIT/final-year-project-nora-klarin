@@ -52,7 +52,18 @@ Route::middleware('auth')->group(function () {
 });
 
 
+Route::middleware(['auth', 'role:young_person'])->group(function () {
 
+    Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'index'])
+        ->name('child.wellbeing.check');
+
+    Route::post('/child/wellbeing/start', [WellbeingCheckController::class, 'start'])
+        ->name('child.wellbeing.start');
+
+    Route::post('/child/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submitCheck'])
+        ->name('child.wellbeing.submit');
+
+});
 
 Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
@@ -60,10 +71,6 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
 });
 
-Route::get('/child/wellbeing', function () {
-    return view('child.wellbeing.check');
-})->middleware(['auth', 'role:young_person'])
-  ->name('child.wellbeing.check');
 
 Route::middleware(['auth', 'role:social_worker'])->group(function () {
     Route::get('/social-worker/dashboard', 
@@ -162,14 +169,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
         ->name('child.messages.store');
 
-        Route::get('/child/wellbeing', [WellbeingCheckController::class, 'create'])
-        ->name('child.wellbeing.form');
+        //Route::get('/child/wellbeing', [WellbeingCheckController::class, 'create'])
+        //->name('child.wellbeing.form');
 
-    Route::post('/child/wellbeing', [WellbeingCheckController::class, 'submit'])
-        ->name('child.wellbeing.submit');
+    //Route::post('/child/wellbeing', [WellbeingCheckController::class, 'submit'])
+        //->name('child.wellbeing.submit');
 
-    Route::get('/child/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
-        ->name('child.wellbeing.result');
+    //Route::get('/child/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
+        //->name('child.wellbeing.result');
 
 });
 
@@ -217,13 +224,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
         ->name('child.messages.store');
 
-        Route::post('/wellbeing/start', [WellbeingCheckController::class, 'start'])
-        ->middleware('role:young_person')
-        ->name('wellbeing.start');
+        //Route::post('/wellbeing/start', [WellbeingCheckController::class, 'start'])
+        //->middleware('role:young_person')
+        //->name('wellbeing.start');
 
-    Route::post('/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submit'])
-        ->middleware('role:young_person')
-        ->name('wellbeing.submit');
+    //Route::post('/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submit'])
+        //->middleware('role:young_person')
+        //->name('wellbeing.submit');
 
     Route::get('/wellbeing/{youngPerson}/history', [WellbeingCheckController::class, 'history'])
         ->middleware('role:staff')
@@ -255,25 +262,25 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 
-if (app()->environment('local')) {
 
-    Route::get('/demo/wellbeing-check/{userId?}', function ($userId = null) {
+Route::prefix('demo')->name('demo.')->group(function () {
 
-        // Find a young_person user — use the ID passed in, or find the first one
-        $youngPerson = $userId
-            ? \App\Models\User::where('id', $userId)
-                              ->where('role', 'young_person')
-                              ->firstOrFail()
-            : \App\Models\User::where('role', 'young_person')->firstOrFail();
+    Route::get('/', function () {
+        $accounts = \App\Models\User::whereIn('role', ['young_person', 'social_worker', 'carer'])
+            ->orderBy('role')->orderBy('name')
+            ->get(['id', 'name', 'role', 'email']);
+        return view('demo.switcher', compact('accounts'));
+    })->name('switcher');
 
-        // Log in as that user for this session
-        Auth::login($youngPerson);
+    Route::post('/login-as/{user}', function (\App\Models\User $user) {
+        Auth::login($user);
+        return match($user->role) {
+            'young_person'  => redirect()->route('child.wellbeing.check'),
+            default         => redirect()->route('dashboard'),
+        };
+    })->name('login-as');
 
-        return redirect()->route('wellbeing.check');
-
-    })->name('demo.wellbeing');
-
-}
+});
 
 require __DIR__.'/auth.php';
 require __DIR__.'/carer.php';
