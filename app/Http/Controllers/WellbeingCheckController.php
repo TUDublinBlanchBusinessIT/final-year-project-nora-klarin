@@ -26,7 +26,23 @@ class WellbeingCheckController extends Controller
         return view('child.wellbeing.check');
     }
 
+public function show()
+{
+    $questions = \DB::table('questions')
+        ->join('domains', 'questions.domain_id', '=', 'domains.id')
+        ->select(
+            'questions.id',
+            'questions.text',
+            'questions.response_type',
+            'questions.min_value',
+            'questions.max_value',
+            'domains.name as domain'
+        )
+        ->where('questions.is_active', 1)
+        ->get();
 
+    return view('Child.wellbeing.check', compact('questions'));
+}
     public function start(Request $request): JsonResponse
     {
         /** @var \App\Models\User $youngPerson */

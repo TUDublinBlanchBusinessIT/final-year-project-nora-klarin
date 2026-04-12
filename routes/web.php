@@ -261,7 +261,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
-
+Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'show'])
+    ->middleware('auth')
+    ->name('wellbeing.check');
 
 Route::prefix('demo')->name('demo.')->group(function () {
 

@@ -7,7 +7,10 @@
 
     <div class="py-6">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div x-data="wellbeingCheck()" x-init="init()">
+            <div 
+                x-data="wellbeingCheck({{ $questions->toJson() }})"
+                x-init="init()"
+            >
 
                 <div x-show="phase === 'intro'" x-transition>
                     <div class="bg-white rounded-xl shadow p-8 text-center space-y-4">
@@ -258,8 +261,9 @@
 
     @push('scripts')
     <script>
-    function wellbeingCheck() {
+        function wellbeingCheck(initialQuestions) {
         return {
+            questions: initialQuestions || [],
             phase:        'intro',
             loading:      false,
             toast:        null,
@@ -335,38 +339,13 @@
                 return labels.map((label, i) => ({ label, value: q.min_value + i }))
             },
 
-            async begin() {
-                this.loading = true
-                try {
-                    const data        = await this.api('POST', '/api/wellbeing/start')
-                    this.checkId      = data.check_id
-                    this.questions    = data.questions
-                    this.answers      = {}
-                    this.currentIndex = 0
-                    this.phase        = 'question'
-                } catch (e) {
-                    this.phase    = 'error'
-                    this.errorMsg = "We couldn't start your check right now. Please try again."
-                } finally {
-                    this.loading = false
-                }
-            },
-
-            async submitCheck() {
-                this.phase    = 'submitting'
-                const responses = Object.entries(this.answers).map(([id, raw]) => ({
-                    question_id: parseInt(id),
-                    raw_value:   raw,
-                }))
-                try {
-                    const data  = await this.api('POST', `/api/wellbeing/${this.checkId}/submit`, { responses })
-                    this.result = data
-                    this.phase  = 'complete'
-                } catch (e) {
-                    this.phase = 'question'
-                    this.showToast('Something went wrong saving your answers. Please try again.')
-                }
-            },
+            begin() {
+            this.phase = 'question'
+        }
+           submitCheck() {
+    console.log(this.answers)
+    this.phase = 'complete'
+}
 
             goNext() {
                 if (this.currentRaw === null) return
