@@ -9,7 +9,6 @@
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div x-data="wellbeingCheck()" x-init="init()">
 
-                {{-- ── INTRO ─────────────────────────────────────── --}}
                 <div x-show="phase === 'intro'" x-transition>
                     <div class="bg-white rounded-xl shadow p-8 text-center space-y-4">
                         <div class="text-5xl">👋</div>
@@ -270,11 +269,10 @@
             answers:      {},
             currentIndex: 0,
             result:       { domain_scores: [] },
-            ringC:        2 * Math.PI * 28,  // circumference for r=28
+            ringC:        2 * Math.PI * 28, 
 
             init() {},
 
-            // ── Getters ─────────────────────────────────────────────
             get currentQuestion() {
                 return this.questions[this.currentIndex] ?? null
             },
@@ -337,7 +335,6 @@
                 return labels.map((label, i) => ({ label, value: q.min_value + i }))
             },
 
-            // ── API calls ───────────────────────────────────────────
             async begin() {
                 this.loading = true
                 try {
@@ -371,7 +368,6 @@
                 }
             },
 
-            // ── Navigation ──────────────────────────────────────────
             goNext() {
                 if (this.currentRaw === null) return
                 if (this.isLastQuestion) { this.submitCheck(); return }
@@ -382,7 +378,6 @@
             },
             retry() { this.phase = 'intro' },
 
-            // ── Input handlers ──────────────────────────────────────
             onSliderInput(val) {
                 if (this.currentQuestion)
                     this.answers[this.currentQuestion.id] = parseInt(val)
@@ -392,17 +387,15 @@
                     this.answers[this.currentQuestion.id] = value
             },
 
-            // ── Score ring helpers ───────────────────────────────────
             ringColour(score) {
-                if (score >= 70) return '#22c55e'   // green-500
-                if (score >= 45) return '#f59e0b'   // amber-400
-                return '#ef4444'                     // red-500
+                if (score >= 70) return '#22c55e'   
+                if (score >= 45) return '#f59e0b'
+                return '#ef4444'                    
             },
             ringOffset(score) {
                 return this.ringC * (1 - score / 100)
             },
 
-            // ── Domain badge class ───────────────────────────────────
             domainBadgeClass(domain) {
                 const map = {
                     'Emotional':   'bg-pink-100 text-pink-700',
@@ -415,13 +408,11 @@
                 return map[domain] ?? 'bg-gray-100 text-gray-600'
             },
 
-            // ── Toast ────────────────────────────────────────────────
             showToast(msg) {
                 this.toast = msg
                 setTimeout(() => { this.toast = null }, 4500)
             },
 
-            // ── Fetch wrapper ────────────────────────────────────────
             async api(method, url, body = null) {
                 const res = await fetch(url, {
                     method,

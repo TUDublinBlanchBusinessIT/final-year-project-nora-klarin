@@ -5,37 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * QuestionBankSeeder
- *
- * Seeds the full question bank across all six wellbeing domains.
- *
- * Each question is grounded in one or more validated frameworks:
- *   OECD    — OECD Child Wellbeing Framework (OECD, 2009)
- *   SDQ     — Strengths and Difficulties Questionnaire (Goodman, 1997)
- *   HBSC    — Health Behaviour in School-aged Children protocol
- *   CORS    — Children's Outcome Rating Scale (Duncan et al., 2006)
- *   WEMWBS  — Warwick-Edinburgh Mental Wellbeing Scale (Tennant et al., 2007)
- *   M&MF    — Me and My Feelings (Deighton et al., 2014)
- *
- * The system does not replicate any instrument in full and makes no claim
- * to clinical diagnostic validity. Questions draw on the constructs,
- * domains, and measurement principles of these frameworks for use as a
- * monitoring and early-alert tool.
- *
- * Risk weight values:
- *   low      = 0.5   (contributes minimally to risk score)
- *   medium   = 1.0
- *   high     = 2.0
- *   critical = 4.0   (safety/harm questions — disproportionate risk contribution)
- *
- * Response types:
- *   likert_3     — 3-point scale (younger children, simpler items)
- *   likert_5     — 5-point scale (standard)
- *   slider       — continuous 0–10 draggable scale
- *   emoji_scale  — 5 emoji faces (most accessible for younger children)
- *   scenario     — brief narrative scenario with response options
- */
 class QuestionBankSeeder extends Seeder
 {
     public function run(): void
@@ -48,11 +17,6 @@ class QuestionBankSeeder extends Seeder
         $this->seedSafetyDomain();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // EMOTIONAL DOMAIN
-    // Frameworks: WEMWBS, M&MF, CORS, OECD subjective wellbeing
-    // Constructs: affect, anxiety, mood, self-worth, optimism, emotional experience
-    // ─────────────────────────────────────────────────────────────────────────
     private function seedEmotionalDomain(): void
     {
         $domainId = $this->domainId('Emotional');
