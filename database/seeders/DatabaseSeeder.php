@@ -23,5 +23,11 @@ class DatabaseSeeder extends Seeder
         GoalTemplateSeeder::class,
         QuestionBankSeeder::class,
         );
+        $this->call([
+            QuestionSeeder::class,
+            QuestionTagSeeder::class,
+            QuestionWordingsSeeder::class,
+        ]);
     }
 }
+
