@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CaseFile;
 use App\Models\Message;
 use App\Models\Thread;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ChildMessageController extends Controller
 {
@@ -14,24 +16,48 @@ class ChildMessageController extends Controller
     {
         $child = Auth::user();
 
-        // ✅ Use the child’s assigned carer_id (NOT "first carer in DB")
-        $carerId = $child->carer_id;
+        $caseFile = CaseFile::where('young_person_id', $child->id)->first();
 
-        abort_unless($carerId, 404, 'No carer assigned to this child.');
+        if (!$caseFile) {
+            abort(404, 'No case file found for this child.');
+        }
+
+        $carerLink = DB::table('case_user')
+            ->where('case_id', $caseFile->id)
+            ->where('role', 'carer')
+            ->first();
+
+        if (!$carerLink) {
+            abort(404, 'No carer linked to this case.');
+        }
+
+        $carer = User::find($carerLink->user_id);
+
+        if (!$carer) {
+            abort(404, 'Linked carer not found.');
+        }
 
         $thread = Thread::firstOrCreate([
             'child_id' => $child->id,
-            'carer_id' => $carerId,
+            'carer_id' => $carer->id,
         ]);
 
         $messages = $thread->messages()
-            ->with('sender')
-            ->orderBy('created_at')
+            ->orderBy('created_at', 'asc')
             ->get();
 
-        $carer = User::find($carerId);
+        // Mark incoming messages from carer as read
+        $thread->messages()
+            ->where('sender_id', '!=', $child->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
 
-        return view('child.messages', compact('thread', 'messages', 'carer'));
+        return view('child.messages', [
+            'thread' => $thread,
+            'messages' => $messages,
+            'carer' => $carer,
+            'caseFile' => $caseFile,
+        ]);
     }
 
     public function store(Request $request, Thread $thread)
@@ -40,16 +66,17 @@ class ChildMessageController extends Controller
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
-        // ✅ Security: child must own this thread
-        abort_unless($thread->child_id === Auth::id(), 403);
+        $userId = Auth::id();
+
+        $allowed = ($thread->child_id === $userId) || ($thread->carer_id === $userId);
+        abort_unless($allowed, 403);
 
         Message::create([
             'thread_id' => $thread->id,
-            'sender_id' => Auth::id(),
+            'sender_id' => $userId,
             'body' => $request->body,
         ]);
 
-        // ✅ IMPORTANT: redirect back to SAME thread chat screen
-        return redirect()->route('child.messages.index')->with('success', 'Message sent!');
+        return redirect()->route('child.messages.index');
     }
 }

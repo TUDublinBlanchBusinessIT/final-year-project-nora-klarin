@@ -92,7 +92,7 @@ class WellbeingCheck extends Model
 
     {
 
-        return $this->hasMany(WellbeingAnswer::class, 'checkid');
+        return $this->hasMany(WellbeingAnswer::class, 'wellbeing_check_id');
 
     }
 

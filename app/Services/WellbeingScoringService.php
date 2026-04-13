@@ -1,104 +1,259 @@
 <?php
 
+
+
 namespace App\Services;
 
-use App\Models\Question;
+
 
 class WellbeingScoringService
-{
-    public function normalise($raw, $min, $max, $isPositive)
-    {
-        $normalised = ($raw - $min) / ($max - $min);
 
-        if (!$isPositive) {
-            $normalised = 1 - $normalised;
+{
+
+    public function normalise($raw, $min, $max, $isPositive)
+
+    {
+
+        if ($max == $min) {
+
+            return 0;
+
         }
 
-        return round($normalised * 100, 2);
+
+
+        $normalized = ($raw - $min) / ($max - $min);
+
+
+
+        if (!$isPositive) {
+
+            $normalized = 1 - $normalized;
+
+        }
+
+
+
+        return round($normalized * 100, 2);
+
     }
+
+
 
     public function riskContribution($wbScore, $weight)
+
     {
+
+        $weight = $weight ?? 1;
+
+
+
         return round((100 - $wbScore) * $weight, 2);
+
     }
 
+
+
     public function calculateDomainScores($check)
+
     {
+
         $responses = $check->responses()->with('question.domain')->get();
 
-        $grouped = $responses->groupBy(fn($r) => $r->question->domain_id);
+
+
+        $grouped = $responses->filter(function ($response) {
+
+            return $response->question && $response->question->domain_id;
+
+        })->groupBy(function ($response) {
+
+            return $response->question->domain_id;
+
+        });
+
+
 
         foreach ($grouped as $domainId => $items) {
 
-            $avgScore = round($items->avg('normalised_score'), 2);
-            $riskScore = round($items->sum('risk_contribution'), 2);
+            $avgScore = round($items->avg('normalized_score') ?? 0, 2);
 
-            $check->domainScores()->create([
-                'domain_id' => $domainId,
-                'average_score' => $avgScore,
-                'risk_score' => $riskScore,
-            ]);
+            $riskScore = round($items->sum('risk_score') ?? 0, 2);
+
+
+
+            $check->domainScores()->updateOrCreate(
+
+                [
+
+                    'domain_id' => $domainId,
+
+                ],
+
+                [
+
+                    'average_score' => $avgScore,
+
+                    'risk_score' => $riskScore,
+
+                ]
+
+            );
+
         }
+
     }
+
+
 
     public function overallFromDomains($check)
-    {
-        $domainScores = $check->domainScores;
 
-        return round($domainScores->avg('average_score'), 2);
+    {
+
+        return round($check->domainScores()->avg('average_score') ?? 0, 2);
+
     }
+
+
 
     public function overallRiskFromDomains($check)
+
     {
-        return round($check->domainScores->sum('risk_score'), 2);
+
+        return round($check->domainScores()->sum('risk_score') ?? 0, 2);
+
     }
+
+
 
     public function classifyRisk($riskScore)
+
     {
-        if ($riskScore >= 250) return 'critical';
-        if ($riskScore >= 150) return 'high';
-        if ($riskScore >= 80) return 'moderate';
+
+        if ($riskScore >= 250) {
+
+            return 'critical';
+
+        }
+
+
+
+        if ($riskScore >= 150) {
+
+            return 'high';
+
+        }
+
+
+
+        if ($riskScore >= 80) {
+
+            return 'moderate';
+
+        }
+
+
+
         return 'low';
+
     }
+
+
 
     public function analyseTagPatterns($check)
-{
-    $responses = $check->responses()->with('question.tags')->get();
 
-    $tagScores = [];
-    $safeguardingTriggered = false;
+    {
 
-    foreach ($responses as $response) {
+        $responses = $check->responses()->with('question.tags')->get();
 
-        foreach ($response->question->tags as $tag) {
 
-            if (!isset($tagScores[$tag->name])) {
-                $tagScores[$tag->name] = [
-                    'count' => 0,
-                    'average_score' => 0,
-                ];
+
+        $tagScores = [];
+
+        $safeguardingTriggered = false;
+
+
+
+        foreach ($responses as $response) {
+
+            if (!$response->question) {
+
+                continue;
+
             }
 
-            $tagScores[$tag->name]['count']++;
-            $tagScores[$tag->name]['average_score'] += $response->normalised_score;
 
-            if ($tag->is_safeguarding && $response->normalised_score < 40) {
-                $safeguardingTriggered = true;
+
+            foreach ($response->question->tags as $tag) {
+
+                if (!isset($tagScores[$tag->name])) {
+
+                    $tagScores[$tag->name] = [
+
+                        'count' => 0,
+
+                        'average_score' => 0,
+
+                    ];
+
+                }
+
+
+
+                $tagScores[$tag->name]['count']++;
+
+                $tagScores[$tag->name]['average_score'] += ($response->normalized_score ?? 0);
+
+
+
+                $isSafeguardingTag =
+
+                    ($tag->category ?? null) === 'safeguarding' ||
+
+                    ($tag->alert_override ?? false);
+
+
+
+                $threshold = $tag->alert_threshold ?? 40;
+
+
+
+                if ($isSafeguardingTag && ($response->normalized_score ?? 0) < $threshold) {
+
+                    $safeguardingTriggered = true;
+
+                }
+
             }
+
         }
+
+
+
+        foreach ($tagScores as $tagName => $data) {
+
+            $tagScores[$tagName]['average_score'] = $data['count'] > 0
+
+                ? round($data['average_score'] / $data['count'], 2)
+
+                : 0;
+
+        }
+
+
+
+        $check->update([
+
+            'tag_summary' => $tagScores,
+
+            'safeguarding_flag' => $safeguardingTriggered,
+
+        ]);
+
+
+
+        return $safeguardingTriggered;
+
     }
 
-    foreach ($tagScores as $tag => $data) {
-        $tagScores[$tag]['average_score'] =
-            round($data['average_score'] / $data['count'], 2);
-    }
-
-    $check->update([
-        'tag_summary' => $tagScores,
-        'safeguarding_flag' => $safeguardingTriggered
-    ]);
-
-    return $safeguardingTriggered;
 }
-}
-

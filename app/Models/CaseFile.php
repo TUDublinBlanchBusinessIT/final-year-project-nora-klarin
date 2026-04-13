@@ -28,15 +28,27 @@ class CaseFile extends Model
 
         'youngpersonid',
 
+        'young_person_id',
+
         'risklevel',
 
+        'risk_level',
+
         'openedat',
+
+        'opened_at',
 
         'status',
 
         'summary',
 
         'last_reviewed_at',
+
+        'placement_type',
+
+        'placement_location',
+
+        'closed_at',
 
     ];
 
@@ -86,7 +98,15 @@ class CaseFile extends Model
 
     {
 
-        return $this->belongsTo(User::class, 'youngpersonid', 'id');
+        return $this->belongsTo(
+
+            User::class,
+
+            $this->hasColumnValue('young_person_id') ? 'young_person_id' : 'youngpersonid',
+
+            'id'
+
+        );
 
     }
 
@@ -376,4 +396,35 @@ class CaseFile extends Model
 
     }
 
+
+
+    public function getRiskLevelAttribute()
+
+    {
+
+        return $this->attributes['risk_level'] ?? $this->attributes['risklevel'] ?? null;
+
+    }
+
+
+
+    public function getOpenedAtAttribute()
+
+    {
+
+        return $this->attributes['opened_at'] ?? $this->attributes['openedat'] ?? null;
+
+    }
+
+
+
+    protected function hasColumnValue(string $key): bool
+
+    {
+
+        return array_key_exists($key, $this->attributes) && !is_null($this->attributes[$key]);
+
+    }
+
 }
+

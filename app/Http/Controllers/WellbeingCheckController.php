@@ -8,21 +8,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use Illuminate\Support\Facades\Auth;
-
-use App\Models\CaseFile;
-
-use App\Models\User;
-
 use App\Models\Question;
 
 use App\Models\Domain;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\WellbeingCheck;
 
 use App\Services\WellbeingScoringService;
-
-use App\Models\WellbeingCheck;
 
 
 
@@ -34,15 +26,19 @@ class WellbeingCheckController extends Controller
 
     {
 
-        $domains = Domain::with(['questions' => function ($q) {
+        $questions = Domain::with(['questions' => function ($q) {
 
             $q->where('is_active', true);
 
-        }])->get();
+        }])->get()->mapWithKeys(function ($domain) {
+
+            return [$domain->name => $domain->questions];
+
+        });
 
 
 
-        return view('child.wellbeing.check', compact('domains'));
+        return view('child.wellbeing.check', compact('questions'));
 
     }
 
@@ -56,13 +52,33 @@ class WellbeingCheckController extends Controller
 
 
 
+        $child = auth()->user();
+
+        $caseFile = $child->caseFile;
+
+
+
+        if (!$caseFile) {
+
+            return back()->withErrors([
+
+                'wellbeing' => 'No case file is linked to this young person.',
+
+            ]);
+
+        }
+
+
+
         $check = WellbeingCheck::create([
 
-            'child_id' => auth()->id(),
+            'child_id' => $child->id,
+
+            'case_file_id' => $caseFile->id,
 
             'completed_by_type' => 'child',
 
-            'completed_by_user_id' => auth()->id(),
+            'completed_by_user_id' => $child->id,
 
             'week_start' => now()->startOfWeek(),
 
@@ -80,7 +96,11 @@ class WellbeingCheckController extends Controller
 
 
 
-            if ($raw === null) continue;
+            if ($raw === null) {
+
+                continue;
+
+            }
 
 
 
@@ -114,9 +134,9 @@ class WellbeingCheckController extends Controller
 
                 'raw_value' => $raw,
 
-                'normalised_score' => $score,
+                'normalized_score' => $score,
 
-                'risk_contribution' => $risk
+                'risk_score' => $risk,
 
             ]);
 
@@ -152,7 +172,7 @@ class WellbeingCheckController extends Controller
 
             'overall_risk_score' => $overallRisk,
 
-            'risk_level' => $riskLevel
+            'risk_level' => $riskLevel,
 
         ]);
 
@@ -190,7 +210,7 @@ class WellbeingCheckController extends Controller
 
 
 
-        $checks = \App\Models\WellbeingCheck::with('child')
+        $checks = WellbeingCheck::with('child')
 
             ->whereIn('risk_level', ['high', 'critical'])
 
@@ -228,7 +248,7 @@ class WellbeingCheckController extends Controller
 
             'relationship_score' => 'required|integer|min:1|max:5',
 
-            'journal_notes' => 'nullable|string'
+            'journal_notes' => 'nullable|string',
 
         ]);
 
@@ -263,4 +283,3 @@ class WellbeingCheckController extends Controller
     }
 
 }
-

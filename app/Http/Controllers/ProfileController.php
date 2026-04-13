@@ -38,6 +38,26 @@ class ProfileController extends Controller
     }
 
     /**
+     * ✅ Update customization (theme + chatbot name + layout)
+     */
+    public function updateCustomization(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'theme' => 'required|in:calm,bright,simple,dark',
+            'chatbot_name' => 'required|string|max:50',
+            'dashboard_layout' => 'required|in:standard,minimal', // ✅ NEW
+        ]);
+
+        $request->user()->update([
+            'theme' => $request->theme,
+            'chatbot_name' => $request->chatbot_name,
+            'dashboard_layout' => $request->dashboard_layout, // ✅ NEW
+        ]);
+
+        return Redirect::route('profile.edit')->with('status', 'customization-updated');
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

@@ -36,6 +36,8 @@ use App\Http\Controllers\WellbeingCheckController;
 
 use App\Http\Controllers\ChildWellbeingController;
 
+use App\Http\Controllers\ChatController;
+
 
 
 Route::get('/', function () {
@@ -78,17 +80,47 @@ Route::get('/dashboard', function () {
 
 
 
+/*
+
+|--------------------------------------------------------------------------
+
+| Shared Auth Routes
+
+|--------------------------------------------------------------------------
+
+*/
+
 Route::middleware('auth')->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
+    Route::patch('/profile/customization', [ProfileController::class, 'updateCustomization'])
+
+        ->name('profile.customization.update');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+
+    Route::get('/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
+
+        ->name('wellbeing.result');
 
 });
 
 
+
+/*
+
+|--------------------------------------------------------------------------
+
+| Young Person Routes
+
+|--------------------------------------------------------------------------
+
+*/
 
 Route::middleware(['auth', 'role:young_person'])->group(function () {
 
@@ -152,6 +184,14 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
 
 
+    Route::get('/child/support-map', function () {
+
+        return view('child.support-map');
+
+    })->name('child.support.map');
+
+
+
     Route::get('/child/diary', [DiaryEntryController::class, 'index'])
 
         ->name('child.diary.index');
@@ -188,19 +228,35 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
 
 
-    Route::get('/child/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
-
-        ->name('child.wellbeing.result');
-
-
-
     Route::post('/child/wellbeing/store', [ChildWellbeingController::class, 'store'])
 
         ->name('child.wellbeing.store');
 
+
+
+    Route::get('/chatbot', [ChatController::class, 'index'])
+
+        ->name('chatbot.index');
+
+
+
+    Route::post('/chatbot/send', [ChatController::class, 'send'])
+
+        ->name('chatbot.send');
+
 });
 
 
+
+/*
+
+|--------------------------------------------------------------------------
+
+| Social Worker Routes
+
+|--------------------------------------------------------------------------
+
+*/
 
 Route::middleware(['auth', 'role:social_worker'])->group(function () {
 
@@ -283,13 +339,16 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
 });
 
 
-Route::middleware(['auth'])->group(function () {
 
-    Route::get('/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
+/*
 
-        ->name('wellbeing.result');
-});
+|--------------------------------------------------------------------------
 
+| Admin Routes
+
+|--------------------------------------------------------------------------
+
+*/
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
