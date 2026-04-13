@@ -1,9 +1,23 @@
 <?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 class WellbeingAnswer extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['wellbeing_check_id', 'question_id', 'raw_value', 'normalized_score', 'risk_score', 'tag'];
+    protected $table = 'wellbeing_responses';
+
+    protected $fillable = [
+        'wellbeing_check_id',
+        'question_id',
+        'raw_value',
+        'normalised_score',
+        'risk_contribution',
+    ];
 
     public function wellbeingCheck()
     {
@@ -12,6 +26,6 @@ class WellbeingAnswer extends Model
 
     public function question()
     {
-        return $this->belongsTo(WellbeingQuestion::class, 'question_id');
+        return $this->belongsTo(Question::class, 'question_id');
     }
 }

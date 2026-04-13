@@ -16,10 +16,6 @@
                     <div class="bg-white rounded-xl shadow p-8 text-center space-y-4">
                         <div class="text-5xl">👋</div>
                         <h2 class="text-2xl font-semibold text-gray-800">How are you doing?</h2>
-                        <p class="text-gray-500 text-sm leading-relaxed">
-                            A few quick questions — just for you.<br>
-                            There are no right or wrong answers.
-                        </p>
                         <div class="flex justify-center gap-3 text-xs text-gray-400 font-medium">
                             <span class="bg-gray-100 rounded-full px-3 py-1">⏱ About 3 minutes</span>
                             <span class="bg-gray-100 rounded-full px-3 py-1"
@@ -30,7 +26,7 @@
                             :disabled="loading"
                             class="mt-2 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <span x-text="loading ? 'Getting your check ready…' : 'Let\'s go →'"></span>
+                            <span x-text="loading ? 'Getting your check ready…' : 'Get Started'"></span>
                         </button>
                     </div>
                 </div>
@@ -58,11 +54,6 @@
                     {{-- Question card --}}
                     <div class="bg-white rounded-xl shadow p-6 space-y-5">
 
-                        {{-- Domain badge --}}
-                        <span class="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
-                              :class="domainBadgeClass(currentQuestion?.domain)"
-                              x-text="currentQuestion?.domain">
-                        </span>
 
                         {{-- Question text --}}
                         <p class="text-gray-800 font-medium text-lg leading-snug"
@@ -261,155 +252,201 @@
 
     @push('scripts')
     <script>
-        function wellbeingCheck(initialQuestions) {
-        return {
-            questions: initialQuestions || [],
-            phase:        'intro',
-            loading:      false,
-            toast:        null,
-            errorMsg:     '',
-            checkId:      null,
-            questions:    [],
-            answers:      {},
-            currentIndex: 0,
-            result:       { domain_scores: [] },
-            ringC:        2 * Math.PI * 28, 
+function wellbeingCheck(initialQuestions) {
+    return {
+        phase:        'intro',
+        loading:      false,
+        toast:        null,
+        errorMsg:     '',
+        checkId:      null,
+        questions:    [],
+        answers:      {},
+        currentIndex: 0,
+        result:       { domain_scores: [] },
+        ringC:        2 * Math.PI * 28,
 
-            init() {},
+        init() {
+            this.$watch('currentIndex', () => {
+                this.initCurrentAnswer()
+            })
+        },
 
-            get currentQuestion() {
-                return this.questions[this.currentIndex] ?? null
-            },
-            get currentRaw() {
-                if (!this.currentQuestion) return null
-                const v = this.answers[this.currentQuestion.id]
-                return v !== undefined ? v : null
-            },
-            get isLastQuestion() {
-                return this.currentIndex === this.questions.length - 1
-            },
-            get progressPct() {
-                if (!this.questions.length) return 0
-                return Math.round(((this.currentIndex + 1) / this.questions.length) * 100)
-            },
-            get midpoint() {
-                if (!this.currentQuestion) return 5
-                const q = this.currentQuestion
-                return Math.round((q.min_value + q.max_value) / 2)
-            },
-            get sliderFillPct() {
-                if (!this.currentQuestion) return 50
-                const q   = this.currentQuestion
-                const raw = this.currentRaw ?? this.midpoint
-                return ((raw - q.min_value) / (q.max_value - q.min_value)) * 100
-            },
-            get sliderEmoji() {
-                const p = this.sliderFillPct
-                if (p <= 15) return '😢'
-                if (p <= 35) return '😕'
-                if (p <= 55) return '😐'
-                if (p <= 75) return '🙂'
-                return '😄'
-            },
-            get emojiOptions() {
-                if (!this.currentQuestion) return []
-                const q     = this.currentQuestion
-                const count = q.max_value - q.min_value + 1
-                return count <= 3
-                    ? [
-                        { emoji: '😢', label: 'Not really', value: q.min_value },
-                        { emoji: '😐', label: 'Sometimes',  value: Math.round((q.min_value + q.max_value) / 2) },
-                        { emoji: '😄', label: 'Yes!',        value: q.max_value },
-                      ]
-                    : [
-                        { emoji: '😢', label: 'Very bad',  value: q.min_value },
-                        { emoji: '😕', label: 'Not great', value: Math.round(q.min_value + (q.max_value - q.min_value) * 0.25) },
-                        { emoji: '😐', label: 'Okay',      value: Math.round((q.min_value + q.max_value) / 2) },
-                        { emoji: '🙂', label: 'Good',      value: Math.round(q.min_value + (q.max_value - q.min_value) * 0.75) },
-                        { emoji: '😄', label: 'Great',     value: q.max_value },
-                      ]
-            },
-            get likertOptions() {
-                if (!this.currentQuestion) return []
-                const q      = this.currentQuestion
-                const count  = q.max_value - q.min_value + 1
-                const labels = count <= 3
+        initCurrentAnswer() {
+            const q = this.currentQuestion
+            if (!q || this.answers[q.id] !== undefined) return
+            if (q.response_type === 'slider') {
+                this.answers[q.id] = Math.round((q.min_value + q.max_value) / 2)
+            }
+        },
+
+        get currentQuestion() {
+            return this.questions[this.currentIndex] ?? null
+        },
+        get currentRaw() {
+            if (!this.currentQuestion) return null
+            const v = this.answers[this.currentQuestion.id]
+            return v !== undefined ? v : null
+        },
+        get isLastQuestion() {
+            return this.currentIndex === this.questions.length - 1
+        },
+        get progressPct() {
+            if (!this.questions.length) return 0
+            return Math.round(((this.currentIndex + 1) / this.questions.length) * 100)
+        },
+        get midpoint() {
+            if (!this.currentQuestion) return 5
+            const q = this.currentQuestion
+            return Math.round((q.min_value + q.max_value) / 2)
+        },
+        get sliderFillPct() {
+            if (!this.currentQuestion) return 50
+            const q   = this.currentQuestion
+            const raw = this.currentRaw ?? this.midpoint
+            return ((raw - q.min_value) / (q.max_value - q.min_value)) * 100
+        },
+        get sliderEmoji() {
+            const p = this.sliderFillPct
+            if (p <= 15) return '😢'
+            if (p <= 35) return '😕'
+            if (p <= 55) return '😐'
+            if (p <= 75) return '🙂'
+            return '😄'
+        },
+
+        get likertOptions() {
+            if (!this.currentQuestion) return []
+            const q = this.currentQuestion
+            const count = q.max_value - q.min_value + 1
+            const labels = q.option_labels ?? (
+                count <= 3
                     ? ['No', 'Sometimes', 'Yes']
                     : ['Never', 'Rarely', 'Sometimes', 'Often', 'Always']
-                return labels.map((label, i) => ({ label, value: q.min_value + i }))
-            },
+            )
+            return labels.map((label, i) => ({ label, value: q.min_value + i }))
+        },
 
-            begin() {
-            this.phase = 'question'
-        }
-           submitCheck() {
-    console.log(this.answers)
-    this.phase = 'complete'
-}
+        get emojiOptions() {
+            if (!this.currentQuestion) return []
+            const q = this.currentQuestion
+            const count = q.max_value - q.min_value + 1
+            const defaultEmojis = count <= 3
+                ? ['😢', '😐', '😄']
+                : ['😢', '😕', '😐', '🙂', '😄']
+            const labels = q.option_labels ?? (
+                count <= 3
+                    ? ['Not really', 'Sometimes', 'Yes!']
+                    : ['Very bad', 'Not great', 'Okay', 'Good', 'Great']
+            )
+            return labels.map((label, i) => ({
+                emoji: defaultEmojis[i],
+                label,
+                value: q.min_value + i,
+            }))
+        },
 
-            goNext() {
-                if (this.currentRaw === null) return
-                if (this.isLastQuestion) { this.submitCheck(); return }
-                this.currentIndex++
-            },
-            goBack() {
-                if (this.currentIndex > 0) this.currentIndex--
-            },
-            retry() { this.phase = 'intro' },
+        async begin() {
+            this.loading = true
+            try {
+                const data = await this.api('POST', '{{ route("child.wellbeing.start") }}')
+                this.checkId = data.check_id
+                this.questions = data.questions
+                this.phase = 'question'
+                this.initCurrentAnswer()
+            } catch (e) {
+                this.errorMsg = e.message
+                this.phase = 'error'
+            } finally {
+                this.loading = false
+            }
+        },
 
-            onSliderInput(val) {
-                if (this.currentQuestion)
-                    this.answers[this.currentQuestion.id] = parseInt(val)
-            },
-            pickValue(value) {
-                if (this.currentQuestion)
-                    this.answers[this.currentQuestion.id] = value
-            },
+        async submitCheck() {
+            this.phase = 'submitting'
+            try {
+                const responses = Object.entries(this.answers).map(([question_id, raw_value]) => ({
+                    question_id: parseInt(question_id),
+                    raw_value,
+                }))
+                const data = await this.api(
+                    'POST',
+                    `/child/wellbeing/${this.checkId}/submit`,
+                    { responses }
+                )
+                this.result = data
+                this.phase = 'complete'
+            } catch (e) {
+                this.errorMsg = e.message
+                this.phase = 'error'
+            }
+        },
 
-            ringColour(score) {
-                if (score >= 70) return '#22c55e'   
-                if (score >= 45) return '#f59e0b'
-                return '#ef4444'                    
-            },
-            ringOffset(score) {
-                return this.ringC * (1 - score / 100)
-            },
+        goNext() {
+            if (this.currentRaw === null) return
+            if (this.isLastQuestion) { this.submitCheck(); return }
+            this.currentIndex++
+        },
 
-            domainBadgeClass(domain) {
-                const map = {
-                    'Emotional':   'bg-pink-100 text-pink-700',
-                    'Behavioural': 'bg-amber-100 text-amber-700',
-                    'Social':      'bg-blue-100 text-blue-700',
-                    'Physical':    'bg-green-100 text-green-700',
-                    'Education':   'bg-purple-100 text-purple-700',
-                    'Safety':      'bg-red-100 text-red-700',
-                }
-                return map[domain] ?? 'bg-gray-100 text-gray-600'
-            },
+        goBack() {
+            if (this.currentIndex > 0) this.currentIndex--
+        },
 
-            showToast(msg) {
-                this.toast = msg
-                setTimeout(() => { this.toast = null }, 4500)
-            },
+        retry() { this.phase = 'intro' },
 
-            async api(method, url, body = null) {
-                const res = await fetch(url, {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept':       'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                    },
-                    body: body ? JSON.stringify(body) : null,
-                })
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}))
-                    throw new Error(err.message ?? `HTTP ${res.status}`)
-                }
-                return res.json()
-            },
-        }
+        onSliderInput(val) {
+            if (this.currentQuestion)
+                this.answers[this.currentQuestion.id] = parseInt(val)
+        },
+
+        pickValue(value) {
+            if (this.currentQuestion)
+                this.answers[this.currentQuestion.id] = value
+        },
+
+        ringColour(score) {
+            if (score >= 70) return '#22c55e'
+            if (score >= 45) return '#f59e0b'
+            return '#ef4444'
+        },
+        ringOffset(score) {
+            return this.ringC * (1 - score / 100)
+        },
+
+        domainBadgeClass(domain) {
+            const map = {
+                'Emotional':   'bg-pink-100 text-pink-700',
+                'Behavioural': 'bg-amber-100 text-amber-700',
+                'Social':      'bg-blue-100 text-blue-700',
+                'Physical':    'bg-green-100 text-green-700',
+                'Education':   'bg-purple-100 text-purple-700',
+                'Safety':      'bg-red-100 text-red-700',
+            }
+            return map[domain] ?? 'bg-gray-100 text-gray-600'
+        },
+
+        showToast(msg) {
+            this.toast = msg
+            setTimeout(() => { this.toast = null }, 4500)
+        },
+
+        async api(method, url, body = null) {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                },
+                body: body ? JSON.stringify(body) : null,
+            })
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.message ?? `HTTP ${res.status}`)
+            }
+            return res.json()
+        },
     }
+}
     </script>
     @endpush
 

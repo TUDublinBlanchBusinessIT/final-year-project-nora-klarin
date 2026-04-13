@@ -2,24 +2,45 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Alert extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'wellbeing_check_id',
+        'young_person_id',
+        'response_id',
+        'tag_id',
+        'domain_id',
+        'alert_type',
+        'severity',
+        'message',
+        'acknowledged_at',
+        'acknowledged_by',
+    ];
 
-    protected $table = 'alerts';
-    protected $fillable = ['case_file_id', 'title', 'description'];
-
-    public function caseFile()
+    public function wellbeingCheck()
     {
-        return $this->belongsTo(CaseFile::class, 'case_file_id');
+        return $this->belongsTo(WellbeingCheck::class);
     }
 
-    public function youngPerson() { return $this->belongsTo(User::class, 'young_person_id'); }
+    public function response()
+    {
+        return $this->belongsTo(WellbeingResponse::class, 'response_id');
+    }
 
-    public function domain()      { return $this->belongsTo(Domain::class); }
-    
-    public function tag()         { return $this->belongsTo(Tag::class); }
+    public function tag()
+    {
+        return $this->belongsTo(Tag::class);
+    }
+
+    public function domain()
+    {
+        return $this->belongsTo(Domain::class);
+    }
+
+    public function acknowledgedBy()
+    {
+        return $this->belongsTo(User::class, 'acknowledged_by');
+    }
 }

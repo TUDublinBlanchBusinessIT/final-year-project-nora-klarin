@@ -259,19 +259,15 @@ class CheckQuestionSelector
                 continue;
             }
 
-            // Score each candidate by tag recurrence weight
             $scored = $candidates->map(function ($question) use ($tagRecurrence) {
                 $tagIds = DB::table('question_tag')
                     ->where('question_id', $question->id)
                     ->pluck('tag_id');
 
-                // Sum the recurrence count for all tags on this question
                 $recurrenceScore = $tagIds->sum(fn($tid) => $tagRecurrence->get($tid, 0));
 
-                return (object) array_merge(
-                    (array) $question,
-                    ['recurrence_score' => $recurrenceScore]
-                );
+                $question->recurrence_score = $recurrenceScore;  
+                return $question;
             });
 
             // Sort by recurrence score descending, then shuffle within ties
@@ -359,6 +355,7 @@ class CheckQuestionSelector
                 'max_value'     => $question->max_value,
                 'is_positive'   => (bool) $question->is_positive,
                 'risk_level'    => $question->risk_level,
+                'option_labels' => $question->option_labels ?? null,
             ];
         });
     }

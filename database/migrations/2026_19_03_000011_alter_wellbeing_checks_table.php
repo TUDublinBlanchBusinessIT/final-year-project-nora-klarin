@@ -6,39 +6,31 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::table('wellbeing_checks', function (Blueprint $table) {
-            // Drop hardcoded domain score columns — replaced by wellbeing_domain_scores
-            $table->dropColumn([
-                'emotional_score',
-                'behavioural_score',
-                'physical_score',
-                'safety_score',
-                'school_score',
-                'relationship_score',
-                'journal_notes',
-                'tag_summary',
-                'safeguarding_flag',
-            ]);
+public function up()
+{
+    Schema::table('wellbeing_checks', function (Blueprint $table) {
+        $columnsToDrop = [
+            'emotional_score',
+            'behavioural_score',
+            'physical_score',
+            'safety_score',
+            'school_score',
+            'relationship_score',
+            'journal_notes',
+            'tag_summary',
+            'safeguarding_flag',
+        ];
 
+        $existing = array_filter(
+            $columnsToDrop,
+            fn($col) => Schema::hasColumn('wellbeing_checks', $col)
+        );
 
-            // Computed scores (stored for performance, derived from responses)
-            $table->decimal('overall_wb_score', 5, 2)->nullable()->after('overall_score');
-            $table->decimal('overall_risk_score', 8, 2)->nullable()->after('overall_wb_score');
-
-            // Check metadata
-            $table->enum('check_type', ['scheduled', 'intake', 'triggered'])
-                  ->default('scheduled')
-                  ->after('overall_risk_score');
-
-            $table->enum('game_mode', ['slider', 'emoji', 'scenario', 'safety_focused'])
-                  ->nullable()
-                  ->after('check_type');
-
-            $table->timestamp('completed_at')->nullable()->after('game_mode');
-        });
-    }
+        if (!empty($existing)) {
+            $table->dropColumn($existing);
+        }
+    });
+}
 
     public function down(): void
     {

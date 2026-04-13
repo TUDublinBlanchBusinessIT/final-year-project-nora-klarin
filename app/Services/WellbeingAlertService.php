@@ -7,31 +7,6 @@ use App\Models\WellbeingCheck;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
-/**
- * WellbeingAlertService
- *
- * Evaluates a processed wellbeing check for alert conditions and writes
- * rows to the alerts table for social worker review.
- *
- * Called by WellbeingScoringService::process() after all scores are written.
- * Consumes the summary array returned by that method.
- *
- * Alert evaluation order (highest to lowest priority):
- *   1. Tag overrides      — safeguarding tags that fired on individual responses
- *   2. Critical responses — single questions with critical risk_level and low wb_score
- *   3. Domain drop        — domain average below absolute threshold
- *   4. Domain decline     — domain dropped N+ points vs previous check
- *
- * Each condition writes a typed, severity-classified row to alerts.
- * Multiple conditions can fire from a single check — they are evaluated
- * independently and each generates its own alert record.
- *
- * Alert types map to different social worker response workflows:
- *   tag_override      → immediate safeguarding response required
- *   critical_response → urgent review of specific question and context
- *   domain_drop       → review domain trend and consider goal assignment
- *   domain_decline    → monitor trend; consider check-in or intervention
- */
 class WellbeingAlertService
 {
     // wb_score below this on a critical-risk-level question fires an alert

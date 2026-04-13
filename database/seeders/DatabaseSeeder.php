@@ -8,26 +8,17 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    public function run(): void
-    {
-        $this->call(UserSeeder::class);
-
-        User::updateOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => Hash::make('password'),
-                'role' => 'carer', // keep consistent for now
-            ],
+public function run(): void
+{
+    $this->call([
+        UserSeeder::class,
         DomainAndTagSeeder::class,
         GoalTemplateSeeder::class,
-        QuestionBankSeeder::class,
-        );
-        $this->call([
-            QuestionSeeder::class,
-            QuestionTagSeeder::class,
-            QuestionWordingsSeeder::class,
-        ]);
-    }
+        QuestionSeeder::class,
+        QuestionTagSeeder::class,
+        QuestionWordingsSeeder::class,
+    ]);
+
+}
 }
 

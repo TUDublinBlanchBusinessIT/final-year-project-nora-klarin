@@ -8,19 +8,14 @@ class WellbeingCheck extends Model
 {
     protected $table = 'wellbeing_checks'; 
     protected $fillable = [
+        'young_person_id',
         'case_file_id',
         'overall_score',
-        'emotional_score',
-        'behavioural_score',
-        'physical_score',
-        'safety_score',
-        'school_score',
-        'relationship_score',
-        'journal_notes',
-        'tag_summary',
-        'safeguarding_flag'
+        'completed_at',
+        'check_type',
+        'game_mode',
     ];
-
+protected $casts = ['completed_at' => 'datetime'];
     public function caseFile()
     {
         return $this->belongsTo(CaseFile::class);
@@ -33,7 +28,7 @@ class WellbeingCheck extends Model
 
     public function responses()
     {
-        return $this->hasMany(WellbeingAnswer::class, 'checkid');
+        return $this->hasMany(WellbeingAnswer::class, 'wellbeing_check_id');
     }
 
     public function alerts()

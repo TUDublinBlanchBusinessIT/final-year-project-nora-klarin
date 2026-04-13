@@ -23,26 +23,11 @@ class WellbeingCheckController extends Controller
 
     public function index()
     {
-        return view('child.wellbeing.check');
+        return view('child.wellbeing.check', [
+            'questions' => collect(),
+        ]);
     }
 
-public function show()
-{
-    $questions = \DB::table('questions')
-        ->join('domains', 'questions.domain_id', '=', 'domains.id')
-        ->select(
-            'questions.id',
-            'questions.text',
-            'questions.response_type',
-            'questions.min_value',
-            'questions.max_value',
-            'domains.name as domain'
-        )
-        ->where('questions.is_active', 1)
-        ->get();
-
-    return view('Child.wellbeing.check', compact('questions'));
-}
     public function start(Request $request): JsonResponse
     {
         /** @var \App\Models\User $youngPerson */
@@ -51,7 +36,7 @@ public function show()
         $caseFileId = DB::table('case_files')
             ->where('young_person_id', $youngPerson->id)
             ->where('status', 'open')
-            ->orderByDesc('opened_at')
+            ->orderByDesc('created_at')
             ->value('id');
 
         abort_if(!$caseFileId, 404, 'No active case file found.');
@@ -87,6 +72,7 @@ public function show()
                 'response_type' => $q->response_type,
                 'min_value'     => $q->min_value,
                 'max_value'     => $q->max_value,
+                'option_labels' => $q->option_labels,
             ]),
         ], 201);
     }

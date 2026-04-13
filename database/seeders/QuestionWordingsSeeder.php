@@ -9,7 +9,7 @@ class QuestionWordingsSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('question_wordings')->insert([
+        DB::table('question_wordings')->insertOrIgnore([
 
             [
                 'question_id'=>2,

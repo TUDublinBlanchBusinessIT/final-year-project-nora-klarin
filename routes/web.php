@@ -53,22 +53,14 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth', 'role:young_person'])->group(function () {
-
-    Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'index'])
-        ->name('child.wellbeing.check');
-
-    Route::post('/child/wellbeing/start', [WellbeingCheckController::class, 'start'])
-        ->name('child.wellbeing.start');
-
-    Route::post('/child/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submitCheck'])
-        ->name('child.wellbeing.submit');
-
-});
-
-Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
         ->name('child.dashboard');
-
+    Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'index'])
+        ->name('child.wellbeing.check');
+    Route::post('/child/wellbeing/start', [WellbeingCheckController::class, 'start'])
+        ->name('child.wellbeing.start');
+    Route::post('/child/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submitCheck'])
+        ->name('child.wellbeing.submit');
 });
 
 
@@ -180,12 +172,6 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
-
-    Route::middleware(['auth', 'role:child'])->group(function() {
-    Route::post('/child/wellbeing', [\App\Http\Controllers\ChildWellbeingController::class, 'store'])->name('child.wellbeing.store');
-});
-
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
         ->name('child.dashboard');
 
@@ -240,30 +226,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:social_worker')
         ->name('wellbeing.goal-suggestions');
 
-    Route::get('/alerts/unacknowledged', [AlertController::class, 'unacknowledged'])
-        ->middleware('role:staff')
-        ->name('alerts.unacknowledged');
-
-    Route::get('/alerts/{youngPerson}', [AlertController::class, 'forYoungPerson'])
-        ->middleware('role:staff')
-        ->name('alerts.for-young-person');
-
-    Route::patch('/alerts/{alert}/acknowledge', [AlertController::class, 'acknowledge'])
-        ->middleware('role:staff')
-        ->name('alerts.acknowledge');
-
-    Route::patch('/alerts/acknowledge-all', [AlertController::class, 'acknowledgeAll'])
-        ->middleware('role:staff')
-        ->name('alerts.acknowledge-all');
-});
 
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
-Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'show'])
-    ->middleware('auth')
-    ->name('wellbeing.check');
+//Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'show'])
+  //  ->middleware('auth')
+   // ->name('wellbeing.check');
 
 Route::prefix('demo')->name('demo.')->group(function () {
 
