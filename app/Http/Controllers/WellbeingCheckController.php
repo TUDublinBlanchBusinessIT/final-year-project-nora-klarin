@@ -185,10 +185,12 @@ class WellbeingCheckController extends Controller
 
 
     public function result(WellbeingCheck $check)
-
     {
 
-        $check->load('domainScores.domain');
+        $check->load([
+            'domainScores.domain',
+            'responses.question.tags'
+        ]);
 
 
 

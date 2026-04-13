@@ -1,5 +1,7 @@
 <x-app-layout>
 
+
+
     <x-slot name="header">
 
         <h2 class="text-2xl font-semibold text-gray-800">
@@ -55,6 +57,88 @@
                 {{ ucfirst($check->risk_level) }}
 
             </span>
+
+        </div>
+
+
+
+        {{-- Triggered Tags --}}
+
+        <div class="text-center">
+
+            @php
+
+                $triggeredTags = collect();
+
+
+
+                foreach ($check->responses as $response) {
+
+                    if (!$response->question) {
+
+                        continue;
+
+                    }
+
+
+
+                    foreach ($response->question->tags as $tag) {
+
+                        if (($response->normalized_score ?? 0) < 40 && ($tag->category ?? null) === 'safeguarding') {
+
+                            $triggeredTags->push($tag->name);
+
+                        }
+
+                    }
+
+                }
+
+
+
+                $triggeredTags = $triggeredTags->unique();
+
+            @endphp
+
+
+
+            @if($triggeredTags->count())
+
+                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+
+                    <p class="text-red-700 font-semibold">
+
+                        ⚠️ Safeguarding concerns detected:
+
+                    </p>
+
+
+
+                    <div class="mt-3 flex flex-wrap justify-center gap-2">
+
+                        @foreach($triggeredTags as $tag)
+
+                            <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+
+                                {{ str_replace('_', ' ', ucfirst($tag)) }}
+
+                            </span>
+
+                        @endforeach
+
+                    </div>
+
+
+
+                    <p class="text-sm text-red-600 mt-3">
+
+                        These areas may need attention from your social worker.
+
+                    </p>
+
+                </div>
+
+            @endif
 
         </div>
 
@@ -132,4 +216,7 @@
 
     </div>
 
+
+
 </x-app-layout>
+
