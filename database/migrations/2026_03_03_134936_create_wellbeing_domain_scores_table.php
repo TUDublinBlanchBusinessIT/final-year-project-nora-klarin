@@ -1,68 +1,36 @@
 <?php
 
-
-
 use Illuminate\Database\Migrations\Migration;
-
 use Illuminate\Database\Schema\Blueprint;
-
 use Illuminate\Support\Facades\Schema;
 
-
-
 return new class extends Migration
-
 {
-
     public function up(): void
-
     {
-
-        Schema::create('case_user', function (Blueprint $table) {
-
+        Schema::create('wellbeing_domain_scores', function (Blueprint $table) {
             $table->id();
 
-
-
-            $table->foreignId('case_id')
-
-                ->constrained('case_files')
-
-                ->cascadeOnDelete();
-
-
-
-            $table->foreignId('user_id')
-
+            $table->foreignId('wellbeing_check_id')
                 ->constrained()
-
                 ->cascadeOnDelete();
 
+            $table->foreignId('domain_id')
+                ->constrained()
+                ->cascadeOnDelete();
 
-
-            $table->enum('role', ['social_worker', 'carer']);
-
-            $table->timestamp('assigned_at')->nullable();
+            $table->decimal('average_score', 5,2);
+            $table->decimal('risk_score', 8,2);
 
             $table->timestamps();
 
-
-
-            $table->unique(['case_id', 'user_id']);
-
+            $table->unique(['wellbeing_check_id','domain_id']);
         });
-
     }
-
-
 
     public function down(): void
-
     {
-
-        Schema::dropIfExists('case_user');
-
+        Schema::dropIfExists('wellbeing_domain_scores');
     }
-
 };
 

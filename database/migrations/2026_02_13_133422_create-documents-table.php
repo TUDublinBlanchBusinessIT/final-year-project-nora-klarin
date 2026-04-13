@@ -38,8 +38,5 @@ return new class extends Migration
     {
         Schema::dropIfExists('documents');
     }
-<<<<<<< HEAD
+
 };
-=======
-};
->>>>>>> origin/nora
