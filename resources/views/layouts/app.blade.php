@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-<!-- resources/views/layouts/app.blade.php -->
-
->>>>>>> 69f4a65e7203d6918585578813f593d3cd8c5e4c
 <!DOCTYPE html>
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -18,14 +13,11 @@
 
 
     <title>{{ config('app.name', 'CareHub') }}</title>
-<<<<<<< HEAD
     @stack('styles')
     @yield('head')
-=======
 
 
 
->>>>>>> 69f4a65e7203d6918585578813f593d3cd8c5e4c
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 
@@ -40,14 +32,11 @@
 
 </head>
 
-<<<<<<< HEAD
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <body class="h-full font-sans antialiased text-gray-900">
     <div class="min-h-full">
-=======
->>>>>>> 69f4a65e7203d6918585578813f593d3cd8c5e4c
 
 
 <body class="bg-gray-100 font-sans antialiased min-h-screen">
@@ -182,9 +171,7 @@
 
     </div>
 
-<<<<<<< HEAD
     @stack('scripts')
-=======
 </nav>
 
 
@@ -233,7 +220,6 @@
 
 
 
->>>>>>> 69f4a65e7203d6918585578813f593d3cd8c5e4c
 </body>
 
 </html>

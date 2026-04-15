@@ -31,6 +31,7 @@ use App\Http\Controllers\SupportRequestController;
 use App\Http\Controllers\DiaryEntryController;
 
 use App\Http\Controllers\ChildMessageController;
+use App\Http\Controllers\SocialWorkerMessagesController;
 
 use App\Http\Controllers\WellbeingCheckController;
 
