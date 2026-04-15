@@ -6,23 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('case_files', function (Blueprint $table) {
-            $table->string('case_reference')->unique()->nullable();
+            $table->string('case_code', 20)->unique()->after('id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('case_files', function (Blueprint $table) {
-            //
+            $table->dropColumn('case_code');
         });
     }
 };

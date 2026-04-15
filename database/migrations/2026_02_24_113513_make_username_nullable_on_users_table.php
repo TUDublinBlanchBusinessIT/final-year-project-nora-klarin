@@ -20,7 +20,7 @@ return new class extends Migration
 
         Schema::table('users', function (Blueprint $table) {
 
-            $table->unsignedBigInteger('carer_id')->nullable()->after('id');
+            $table->string('username')->nullable()->change();
 
         });
 
@@ -34,7 +34,7 @@ return new class extends Migration
 
         Schema::table('users', function (Blueprint $table) {
 
-            $table->dropColumn('carer_id');
+            $table->string('username')->nullable(false)->change();
 
         });
 

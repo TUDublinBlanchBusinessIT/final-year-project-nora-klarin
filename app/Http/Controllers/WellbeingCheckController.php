@@ -1,5 +1,7 @@
 <?php
 
+
+
 namespace App\Http\Controllers;
 
 use App\Models\WellbeingCheck;
@@ -10,9 +12,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\CaseFile;
+use App\Models\User;
+use App\Models\Question;
+use App\Models\Domain;
 
 
 class WellbeingCheckController extends Controller
+
 {
     public function __construct(
         private readonly CheckQuestionSelector   $selector,
@@ -45,6 +52,8 @@ class WellbeingCheckController extends Controller
             ->whereNotNull('completed_at')
             ->exists();
 
+
+
         $check = WellbeingCheck::create([
             'young_person_id' => $youngPerson->id,
             'case_file_id'    => $caseFileId,
@@ -53,7 +62,6 @@ class WellbeingCheckController extends Controller
         ]);
 
         $questions = $this->selector->selectFor($youngPerson);
-
         foreach ($questions as $question) {
             DB::table('check_question_log')->insert([
                 'wellbeing_check_id' => $check->id,
@@ -61,6 +69,9 @@ class WellbeingCheckController extends Controller
                 'created_at'         => now(),
             ]);
         }
+
+        $scoring = new WellbeingScoringService();
+
 
         return response()->json([
             'check_id'   => $check->id,
@@ -131,4 +142,26 @@ class WellbeingCheckController extends Controller
             'safeguarding_flag' => $summary['safeguarding_triggered'],
         ]);
     }
+    public function result(WellbeingCheck $check)
+    {
+        $check->load('domainScores.domain');
+        return view('child.wellbeing.result', compact('check'));
+    }
+
+    public function alerts()
+    {
+        $user = auth()->user();
+        abort_if($user->role !== 'social_worker', 403);
+
+        $checks = WellbeingCheck::with('youngPerson')
+            ->whereIn('risk_level', ['high', 'critical'])
+            ->orderByDesc('completed_at')
+            ->get()
+            ->groupBy('young_person_id');
+
+        return view('socialworker.wellbeing.alerts', compact('checks'));
+    }
 }
+
+
+
