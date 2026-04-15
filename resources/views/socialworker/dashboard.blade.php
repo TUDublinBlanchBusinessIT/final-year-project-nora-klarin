@@ -150,7 +150,7 @@
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold">Messages</h3>
 
-            <a href="{{ route('social_worker.messages.create') }}"
+            <a href="{{ route('socialworker.messages.create') }}"
                class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
                 New Message
             </a>

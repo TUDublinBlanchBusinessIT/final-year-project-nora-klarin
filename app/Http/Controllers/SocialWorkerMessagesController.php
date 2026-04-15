@@ -93,7 +93,7 @@ class SocialWorkerMessagesController extends Controller
                 ->update(['read_at' => now()]);
         }
 
-        return view('social_worker.messages.index', compact('conversations', 'selectedUser', 'messages'));
+        return view('socialworker.messages.index', compact('conversations', 'selectedUser', 'messages'));
     }
 
     public function create(Request $request)

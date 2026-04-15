@@ -7,8 +7,7 @@ use App\Models\CaseFile;
 use App\Models\Appointment;
 use App\Models\User;
 use Illuminate\Http\Request;
-
-
+use App\Models\Message;
 class SocialWorkerDashboardController extends Controller
 {
 public function index()
@@ -57,12 +56,51 @@ public function index()
         ->whereNotNull('latitude')
         ->whereNotNull('longitude')
         ->get();
+    $user = auth()->user();
+
+$partnerIds = Message::query()
+    ->where('sender_id', $user->id)
+    ->orWhere('recipient_id', $user->id)
+    ->get(['sender_id', 'recipient_id'])
+    ->flatMap(fn ($m) => [$m->sender_id, $m->recipient_id])
+    ->unique()
+    ->reject(fn ($id) => $id == $user->id)
+    ->values();
+
+$conversations = User::query()
+    ->whereIn('id', $partnerIds)
+    ->get(['id', 'name', 'email', 'role'])
+    ->map(function ($partner) use ($user) {
+
+        $last = Message::query()
+            ->where(function ($q) use ($user, $partner) {
+                $q->where('sender_id', $user->id)
+                  ->where('recipient_id', $partner->id);
+            })
+            ->orWhere(function ($q) use ($user, $partner) {
+                $q->where('sender_id', $partner->id)
+                  ->where('recipient_id', $user->id);
+            })
+            ->latest()
+            ->first();
+
+        $unread = Message::where('sender_id', $partner->id)
+            ->where('recipient_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+
+        $partner->last_body = $last?->body;
+        $partner->unread_count = $unread;
+
+        return $partner;
+    });
 
     return view('socialworker.dashboard', compact(
         'cases',
         'wellbeingData',
         'wellbeingChecks',
-        'placements'
+        'placements',
+        'conversations'
     ));
 }
     

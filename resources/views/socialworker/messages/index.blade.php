@@ -16,7 +16,7 @@
 
             <div class="flex gap-2">
 
-                <a href="{{ route('social_worker.dashboard') }}"
+                <a href="{{ route('socialworker.dashboard') }}"
 
                    class="px-4 py-2 rounded-2xl bg-white border border-gray-200 text-sm font-medium hover:bg-gray-50 shadow-sm">
 
@@ -26,7 +26,7 @@
 
 
 
-                <a href="{{ route('social_worker.messages.create') }}"
+                <a href="{{ route('socialworker.messages.create') }}"
 
                    class="px-4 py-2 rounded-2xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm">
 
@@ -154,7 +154,7 @@
 
                                     <div class="mt-5">
 
-                                        <a href="{{ route('social_worker.messages.create') }}"
+                                        <a href="{{ route('socialworker.messages.create') }}"
 
                                            class="inline-flex px-4 py-2 rounded-2xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm">
 
@@ -208,7 +208,7 @@
 
 
 
-                                    <a href="{{ route('social_worker.messages.index', ['with' => $c->id]) }}"
+                                    <a href="{{ route('socialworker.messages.index', ['with' => $c->id]) }}"
 
                                        data-name="{{ strtolower($c->name . ' ' . $c->email) }}"
 
@@ -442,7 +442,7 @@
 
                             <div class="border-t border-gray-100 bg-white/90 p-4">
 
-                                <form id="composerForm" method="POST" action="{{ route('social_worker.messages.store') }}" class="flex items-end gap-3">
+                                <form id="composerForm" method="POST" action="{{ route('socialworker.messages.store') }}" class="flex items-end gap-3">
 
                                     @csrf
 
