@@ -10,11 +10,11 @@ use Illuminate\Http\Request;
 
 use App\Models\Question;
 
-use App\Models\Domain;
-
 use App\Models\WellbeingCheck;
 
 use App\Services\WellbeingScoringService;
+
+use App\Services\CheckQuestionSelector;
 
 
 
@@ -26,35 +26,9 @@ class WellbeingCheckController extends Controller
 
     {
 
-        $questions = Domain::with(['questions' => function ($q) {
-
-            $q->where('is_active', true);
-
-        }])->get()->mapWithKeys(function ($domain) {
-
-            return [$domain->name => $domain->questions];
-
-        });
-
-
-
-        return view('child.wellbeing.check', compact('questions'));
-
-    }
-
-
-
-    public function submit(Request $request)
-
-    {
-
-        $questions = Question::where('is_active', true)->get();
-
-
-
         $child = auth()->user();
 
-        $caseFile = $child->caseFile;
+        $caseFile = $child->caseFile ?? $child->childCase ?? null;
 
 
 
@@ -70,9 +44,77 @@ class WellbeingCheckController extends Controller
 
 
 
-        $check = WellbeingCheck::create([
+        $selector = new CheckQuestionSelector();
 
-            'child_id' => $child->id,
+        $selectedQuestions = $selector->selectForCase($caseFile->id, 8);
+
+
+
+        $questions = $selectedQuestions->groupBy(function ($question) {
+
+            return $question->domain->name ?? 'General';
+
+        });
+
+
+
+        return view('child.wellbeing.check', compact('questions'));
+
+    }
+
+
+
+    public function submit(Request $request)
+
+    {
+
+        $child = auth()->user();
+
+        $caseFile = $child->caseFile ?? $child->childCase ?? null;
+
+
+
+        if (!$caseFile) {
+
+            return back()->withErrors([
+
+                'wellbeing' => 'No case file is linked to this young person.',
+
+            ]);
+
+        }
+
+
+
+        $questionIds = collect($request->all())
+
+            ->keys()
+
+            ->filter(fn ($key) => str_starts_with($key, 'question_'))
+
+            ->map(fn ($key) => (int) str_replace('question_', '', $key))
+
+            ->values();
+
+
+
+        if ($questionIds->isEmpty()) {
+
+            return back()->withErrors([
+
+                'wellbeing' => 'No wellbeing answers were submitted.',
+
+            ])->withInput();
+
+        }
+
+
+
+        $questions = Question::whereIn('id', $questionIds)->get()->keyBy('id');
+
+
+
+        $check = WellbeingCheck::create([
 
             'case_file_id' => $caseFile->id,
 
@@ -90,7 +132,19 @@ class WellbeingCheckController extends Controller
 
 
 
-        foreach ($questions as $question) {
+        foreach ($questionIds as $questionId) {
+
+            $question = $questions->get($questionId);
+
+
+
+            if (!$question) {
+
+                continue;
+
+            }
+
+
 
             $raw = $request->input("question_{$question->id}");
 
@@ -178,7 +232,9 @@ class WellbeingCheckController extends Controller
 
 
 
-        return redirect()->route('wellbeing.result', $check);
+        return redirect()->route('child.dashboard')
+
+            ->with('success', 'Wellbeing check submitted successfully!');
 
     }
 
@@ -217,8 +273,6 @@ class WellbeingCheckController extends Controller
 
 
         $checks = WellbeingCheck::with([
-
-                'child',
 
                 'caseFile',
 
@@ -302,9 +356,9 @@ class WellbeingCheckController extends Controller
 
 
 
-        return redirect()->route('casefiles.show', $data['case_file_id'])
+        return redirect()->route('child.dashboard')
 
-            ->with('success', 'Wellbeing check saved');
+            ->with('success', 'Wellbeing check submitted successfully!');
 
     }
 
