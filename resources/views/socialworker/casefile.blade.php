@@ -57,11 +57,13 @@
                         <p>
 
                             <strong>DOB:</strong>
-
-                            {{ $case->youngPerson->dob ?? 'N/A' }}
-
-                            ({{ !empty($case->youngPerson?->dob) ? \Carbon\Carbon::parse($case->youngPerson->dob)->age . ' yrs' : '-' }})
-
+                            @if($case->youngPerson->dob)
+                                {{ \Carbon\Carbon::parse($case->youngPerson->dob)->format('d M Y') }}
+                                ({{ \Carbon\Carbon::parse($case->youngPerson->dob)->age }} yrs)
+                                
+                            @else
+                                N/A (-)
+                            @endif
                         </p>
 
                         <p><strong>Email:</strong> {{ $case->youngPerson->email ?? '-' }}</p>

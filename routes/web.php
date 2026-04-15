@@ -234,6 +234,18 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
 
 
+    Route::post('/child/wellbeing/start', [ChildWellbeingController::class, 'start'])
+
+        ->name('child.wellbeing.start');
+
+
+
+    Route::post('/child/wellbeing/{check}/submit', [ChildWellbeingController::class, 'submitCheck'])
+
+        ->name('child.wellbeing.submit.check');
+
+
+
     Route::get('/chatbot', [ChatController::class, 'index'])
 
         ->name('chatbot.index');

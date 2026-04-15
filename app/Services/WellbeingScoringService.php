@@ -170,6 +170,8 @@ class WellbeingScoringService
 
         $tagScores = [];
 
+        $triggeredSafeguardingTags = [];
+
         $safeguardingTriggered = false;
 
 
@@ -193,6 +195,8 @@ class WellbeingScoringService
                         'count' => 0,
 
                         'average_score' => 0,
+
+                        'category' => $tag->category ?? null,
 
                     ];
 
@@ -222,6 +226,8 @@ class WellbeingScoringService
 
                     $safeguardingTriggered = true;
 
+                    $triggeredSafeguardingTags[] = $tag->name;
+
                 }
 
             }
@@ -244,7 +250,13 @@ class WellbeingScoringService
 
         $check->update([
 
-            'tag_summary' => $tagScores,
+            'tag_summary' => [
+
+                'all_tags' => $tagScores,
+
+                'triggered_safeguarding_tags' => array_values(array_unique($triggeredSafeguardingTags)),
+
+            ],
 
             'safeguarding_flag' => $safeguardingTriggered,
 
@@ -257,3 +269,4 @@ class WellbeingScoringService
     }
 
 }
+

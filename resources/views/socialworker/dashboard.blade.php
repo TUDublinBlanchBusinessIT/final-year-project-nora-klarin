@@ -1,5 +1,7 @@
 <x-app-layout>
 
+
+
     <x-slot name="header">
 
         <div class="flex items-center justify-between w-full">
@@ -60,6 +62,8 @@
 
 
 
+            {{-- Welcome / Header Card --}}
+
             <div class="rounded-3xl bg-white shadow-sm border border-gray-100 p-6">
 
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -74,17 +78,41 @@
 
                         <p class="text-sm text-gray-600 mt-1">
 
-                            View your assigned cases, case risk levels, and recent overview.
+                            View your assigned cases, wellbeing alerts, and recent activity.
 
                         </p>
 
                     </div>
+
+
+
+                    <a href="{{ route('social-worker.wellbeing.alerts') }}"
+
+                       class="relative inline-flex items-center px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 shadow-sm transition">
+
+                        Wellbeing Alerts
+
+
+
+                        @if(($wellbeingAlertCount ?? 0) > 0)
+
+                            <span class="ml-2 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full bg-white text-red-600 text-xs font-bold">
+
+                                {{ $wellbeingAlertCount }}
+
+                            </span>
+
+                        @endif
+
+                    </a>
 
                 </div>
 
             </div>
 
 
+
+            {{-- Tabs --}}
 
             <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-2">
 
@@ -163,6 +191,8 @@
             <div x-show="tab === 'dashboard'" x-transition class="space-y-6">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+
 
                     <div class="rounded-3xl p-6 shadow-sm bg-white border border-blue-100">
 
@@ -276,13 +306,29 @@
 
             <div x-show="tab === 'cases'" x-transition class="space-y-6">
 
-                <div class="flex justify-end">
+
+
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                    <div>
+
+                        <h3 class="text-2xl font-bold text-gray-900">My Cases</h3>
+
+                        <p class="text-sm text-gray-500 mt-1">
+
+                            View and manage all assigned case files.
+
+                        </p>
+
+                    </div>
+
+
 
                     <select
 
                         x-model="riskFilter"
 
-                        class="border rounded-xl px-4 py-2 text-sm shadow-sm"
+                        class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm shadow-sm focus:border-indigo-400 focus:ring-indigo-400"
 
                     >
 
@@ -300,85 +346,41 @@
 
 
 
-                @if($cases->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                    <div class="rounded-3xl p-6 shadow-sm bg-white border border-gray-100 overflow-x-auto">
+                    <div class="rounded-2xl bg-white border border-blue-100 shadow-sm p-5">
 
-                        <h4 class="text-lg font-semibold mb-4 text-gray-900">Assigned Cases</h4>
+                        <p class="text-sm text-gray-500">Assigned Cases</p>
 
-
-
-                        <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden">
-
-                            <thead class="bg-gray-100">
-
-                                <tr>
-
-                                    <th class="px-4 py-3 text-left">Case Reference</th>
-
-                                    <th class="px-4 py-3 text-left">Risk Level</th>
-
-                                    <th class="px-4 py-3 text-left">Status</th>
-
-                                    <th class="px-4 py-3 text-left">Opened At</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                @foreach($cases as $case)
-
-                                    @php
-
-                                        $caseRisk = strtolower($case->risklevel ?? $case->risk_level ?? '');
-
-                                        $caseOpened = $case->openedat ?? $case->created_at ?? null;
-
-                                    @endphp
-
-                                    <tr
-
-                                        class="border-t"
-
-                                        x-show="riskFilter === 'All' || riskFilter === '{{ $caseRisk }}'"
-
-                                    >
-
-                                        <td class="px-4 py-3">
-
-                                            <a href="{{ route('socialworker.case.show', $case->id) }}"
-
-                                               class="text-indigo-600 hover:underline font-medium">
-
-                                                {{ $case->case_reference ?? ('Case #' . $case->id) }}
-
-                                            </a>
-
-                                        </td>
-
-                                        <td class="px-4 py-3">{{ $case->risklevel ?? $case->risk_level ?? '-' }}</td>
-
-                                        <td class="px-4 py-3">{{ $case->status ?? '-' }}</td>
-
-                                        <td class="px-4 py-3">
-
-                                            {{ !empty($caseOpened) ? \Carbon\Carbon::parse($caseOpened)->format('d M Y') : '-' }}
-
-                                        </td>
-
-                                    </tr>
-
-                                @endforeach
-
-                            </tbody>
-
-                        </table>
+                        <p class="mt-2 text-3xl font-bold text-blue-700">{{ $cases->count() }}</p>
 
                     </div>
 
 
+
+                    <div class="rounded-2xl bg-white border border-red-100 shadow-sm p-5">
+
+                        <p class="text-sm text-gray-500">High Priority</p>
+
+                        <p class="mt-2 text-3xl font-bold text-red-600">{{ $highRiskCount }}</p>
+
+                    </div>
+
+
+
+                    <div class="rounded-2xl bg-white border border-yellow-100 shadow-sm p-5">
+
+                        <p class="text-sm text-gray-500">Under Review</p>
+
+                        <p class="mt-2 text-3xl font-bold text-yellow-600">{{ $mediumRiskCount }}</p>
+
+                    </div>
+
+                </div>
+
+
+
+                @if($cases->count() > 0)
 
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
@@ -388,9 +390,21 @@
 
                                 $caseRisk = strtolower($case->risklevel ?? $case->risk_level ?? '');
 
-                                $caseSummary = $case->summary ?? 'No summary available.';
+                                $caseOpened = $case->openedat ?? $case->created_at ?? null;
+
+                                $caseSummary = $case->summary ?? 'No case summary available yet.';
+
+                                $riskBadgeClass =
+
+                                    $caseRisk === 'high' ? 'bg-red-100 text-red-700 border-red-200' :
+
+                                    ($caseRisk === 'medium' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+
+                                    'bg-green-100 text-green-700 border-green-200');
 
                             @endphp
+
+
 
                             <div
 
@@ -398,57 +412,107 @@
 
                                 x-transition
 
+                                class="h-full"
+
                             >
 
                                 <a
 
                                     href="{{ route('socialworker.case.show', $case->id) }}"
 
-                                    class="block p-6 bg-white rounded-2xl shadow-sm hover:shadow-lg transition border-l-4
-
-                                    @if($caseRisk === 'high') border-red-500
-
-                                    @elseif($caseRisk === 'medium') border-yellow-500
-
-                                    @else border-green-500
-
-                                    @endif"
+                                    class="block h-full rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition p-6"
 
                                 >
 
-                                    <div class="font-bold text-lg text-gray-800">
+                                    <div class="flex items-start justify-between gap-3">
 
-                                        {{ $case->case_reference ?? ('Case #' . $case->id) }}
+                                        <div>
 
-                                    </div>
+                                            <div class="text-xl font-bold text-gray-900">
+
+                                                {{ $case->case_reference ?? ('Case #' . $case->id) }}
+
+                                            </div>
 
 
 
-                                    @if(!empty($case->created_at))
+                                            <div class="text-sm text-gray-500 mt-1">
 
-                                        <div class="text-xs text-gray-400 mt-1">
+                                                {{ $case->youngPerson->name ?? 'Young person not assigned' }}
 
-                                            Opened {{ $case->created_at->format('d M Y') }}
+                                            </div>
 
                                         </div>
 
-                                    @endif
 
 
+                                        <span class="px-3 py-1 rounded-full text-xs font-semibold border {{ $riskBadgeClass }}">
 
-                                    <div class="text-gray-600 mt-2">
+                                            {{ ucfirst($caseRisk ?: 'unknown') }}
 
-                                        {{ $caseSummary }}
+                                        </span>
 
                                     </div>
 
 
 
-                                    <div class="mt-4 text-sm text-gray-500 space-y-1">
+                                    <div class="mt-5 grid grid-cols-2 gap-3">
 
-                                        <div>Status: {{ $case->status ?? '-' }}</div>
+                                        <div class="rounded-2xl bg-gray-50 px-4 py-3">
 
-                                        <div>Risk: {{ $case->risklevel ?? $case->risk_level ?? '-' }}</div>
+                                            <div class="text-xs text-gray-500">Status</div>
+
+                                            <div class="mt-1 font-semibold text-gray-800">
+
+                                                {{ $case->status ?? 'N/A' }}
+
+                                            </div>
+
+                                        </div>
+
+
+
+                                        <div class="rounded-2xl bg-gray-50 px-4 py-3">
+
+                                            <div class="text-xs text-gray-500">Opened</div>
+
+                                            <div class="mt-1 font-semibold text-gray-800">
+
+                                                {{ !empty($caseOpened) ? \Carbon\Carbon::parse($caseOpened)->format('d M Y') : 'N/A' }}
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+
+                                    <div class="mt-5">
+
+                                        <div class="text-sm font-semibold text-gray-700 mb-2">Summary</div>
+
+                                        <p class="text-sm text-gray-600 leading-6">
+
+                                            {{ $caseSummary }}
+
+                                        </p>
+
+                                    </div>
+
+
+
+                                    <div class="mt-5 flex items-center justify-between">
+
+                                        <span class="text-sm text-indigo-600 font-semibold">
+
+                                            Open case file
+
+                                        </span>
+
+
+
+                                        <span class="text-xl">→</span>
 
                                     </div>
 
@@ -486,7 +550,23 @@
 
             @isset($wellbeingData)
 
-                <div x-show="tab === 'wellbeing'" x-transition>
+                <div x-show="tab === 'wellbeing'" x-transition class="space-y-6">
+
+
+
+                    <div>
+
+                        <h3 class="text-2xl font-bold text-gray-900">Wellbeing Overview</h3>
+
+                        <p class="text-sm text-gray-500 mt-1">
+
+                            Latest wellbeing summaries for assigned young people.
+
+                        </p>
+
+                    </div>
+
+
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -498,25 +578,61 @@
 
                                 $checks = $data['checks'] ?? collect();
 
-                                $latestCheck = $checks->last();
+                                $latestCheck = $checks->first();
 
                             @endphp
 
 
 
-                            <div class="p-4 bg-white rounded-2xl shadow-sm">
+                            <div class="p-6 bg-white rounded-3xl shadow-sm border border-gray-100">
 
-                                <div class="flex justify-between items-center mb-3">
+                                <div class="flex justify-between items-center mb-4">
 
-                                    <h4 class="font-semibold text-gray-800">{{ $child->name ?? 'Unknown Child' }}</h4>
+                                    <div>
 
-                                    @if($latestCheck && !empty($latestCheck->week_start))
+                                        <h4 class="font-semibold text-gray-800 text-lg">
 
-                                        <span class="text-sm text-gray-500">Last: {{ \Carbon\Carbon::parse($latestCheck->week_start)->format('d M Y') }}</span>
+                                            {{ $child->name ?? 'Unknown Child' }}
 
-                                    @else
+                                        </h4>
 
-                                        <span class="text-sm text-gray-500">No checks yet</span>
+
+
+                                        @if($latestCheck)
+
+                                            <span class="text-sm text-gray-500">
+
+                                                Last: {{ $latestCheck->created_at ? $latestCheck->created_at->format('d M Y') : '-' }}
+
+                                            </span>
+
+                                        @else
+
+                                            <span class="text-sm text-gray-500">No checks yet</span>
+
+                                        @endif
+
+                                    </div>
+
+
+
+                                    @if($latestCheck)
+
+                                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+
+                                            @if(($latestCheck->risk_level ?? null) === 'critical') bg-red-600 text-white
+
+                                            @elseif(($latestCheck->risk_level ?? null) === 'high') bg-red-100 text-red-700
+
+                                            @elseif(($latestCheck->risk_level ?? null) === 'medium' || ($latestCheck->risk_level ?? null) === 'moderate') bg-yellow-100 text-yellow-700
+
+                                            @else bg-green-100 text-green-700
+
+                                            @endif">
+
+                                            {{ ucfirst($latestCheck->risk_level ?? 'unknown') }}
+
+                                        </span>
 
                                     @endif
 
@@ -524,7 +640,7 @@
 
 
 
-                                <div class="space-y-2">
+                                <div class="space-y-3">
 
                                     @if(!empty($data['domainScores']))
 
@@ -542,7 +658,13 @@
 
                                                 <div class="h-2 bg-gray-200 rounded-full mt-1">
 
-                                                    <div class="h-2 rounded-full" style="width: {{ $score }}%; background-color: {{ $score < 50 ? '#f87171' : '#34d399' }}"></div>
+                                                    <div
+
+                                                        class="h-2 rounded-full"
+
+                                                        style="width: {{ $score }}%; background-color: {{ $score < 50 ? '#f87171' : '#34d399' }}">
+
+                                                    </div>
 
                                                 </div>
 
@@ -562,9 +684,9 @@
 
                                 @if($latestCheck)
 
-                                    <div class="mt-3 text-right">
+                                    <div class="mt-4 text-right">
 
-                                        <a href="{{ route('wellbeing.result', $latestCheck) }}" class="text-indigo-600 hover:underline text-sm">
+                                        <a href="{{ route('wellbeing.result', $latestCheck) }}" class="text-indigo-600 hover:underline text-sm font-medium">
 
                                             View Details
 
@@ -630,7 +752,9 @@
 
                         ],
 
-                        backgroundColor: ['#f87171', '#facc15', '#34d399']
+                        backgroundColor: ['#f87171', '#facc15', '#34d399'],
+
+                        borderRadius: 12
 
                     }]
 
@@ -678,5 +802,6 @@
 
     </script>
 
-</x-app-layout>
 
+
+</x-app-layout>

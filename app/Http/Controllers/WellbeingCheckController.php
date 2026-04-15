@@ -185,11 +185,15 @@ class WellbeingCheckController extends Controller
 
 
     public function result(WellbeingCheck $check)
+
     {
 
         $check->load([
+
             'domainScores.domain',
-            'responses.question.tags'
+
+            'responses.question.tags',
+
         ]);
 
 
@@ -212,15 +216,35 @@ class WellbeingCheckController extends Controller
 
 
 
-        $checks = WellbeingCheck::with('child')
+        $checks = WellbeingCheck::with([
 
-            ->whereIn('risk_level', ['high', 'critical'])
+                'child',
+
+                'caseFile',
+
+                'domainScores.domain',
+
+            ])
+
+            ->whereHas('caseFile.users', function ($query) use ($user) {
+
+                $query->where('users.id', $user->id)
+
+                      ->where('case_user.role', 'social_worker');
+
+            })
+
+            ->where(function ($query) {
+
+                $query->where('overall_score', '<', 50)
+
+                      ->orWhere('safeguarding_flag', true);
+
+            })
 
             ->orderByDesc('week_start')
 
-            ->get()
-
-            ->groupBy('child_id');
+            ->get();
 
 
 

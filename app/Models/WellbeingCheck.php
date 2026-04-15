@@ -32,6 +32,8 @@ class WellbeingCheck extends Model
 
         'case_file_id',
 
+        'child_id', // ✅ added
+
         'overall_score',
 
         'emotional_score',
@@ -58,6 +60,16 @@ class WellbeingCheck extends Model
 
 
 
+    protected $casts = [
+
+        'tag_summary' => 'array',
+
+        'safeguarding_flag' => 'boolean',
+
+    ];
+
+
+
     public function caseFile()
 
     {
@@ -73,6 +85,16 @@ class WellbeingCheck extends Model
     {
 
         return $this->belongsTo(User::class, 'submitted_by');
+
+    }
+
+
+
+    public function child()
+
+    {
+
+        return $this->belongsTo(User::class, 'child_id');
 
     }
 
@@ -106,19 +128,11 @@ class WellbeingCheck extends Model
 
 
 
-        if ($score >= 70) {
+        if ($score >= 70) return 'low';
 
-            return 'low';
+        if ($score >= 50) return 'medium';
 
-        } elseif ($score >= 50) {
-
-            return 'medium';
-
-        } elseif ($score >= 30) {
-
-            return 'high';
-
-        }
+        if ($score >= 30) return 'high';
 
 
 

@@ -48,6 +48,13 @@ class User extends Authenticatable
 
     ];
 
+    protected $casts = [
+
+    'dob' => 'date',
+
+    ];
+
+
 
 
     protected $hidden = [
