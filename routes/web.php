@@ -10,6 +10,8 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 use App\Http\Controllers\SocialWorkerDashboardController;
 
+use App\Http\Controllers\SocialWorkerMessageController;
+
 use App\Http\Controllers\ChildDashboardController;
 
 use App\Http\Controllers\AdminUserController;
@@ -347,6 +349,15 @@ Route::middleware(['auth', 'role:social_worker'])->group(function () {
     Route::get('/social-worker/wellbeing-alerts', [WellbeingCheckController::class, 'alerts'])
 
         ->name('social-worker.wellbeing.alerts');
+
+
+    Route::get('/social-worker/messages', [SocialWorkerMessageController::class, 'index'])
+
+        ->name('socialworker.messages.index');
+    
+    Route::post('/social-worker/messages/{thread}', [SocialWorkerMessageController::class, 'store'])
+
+        ->name('socialworker.messages.store');
 
 });
 

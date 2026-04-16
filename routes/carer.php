@@ -24,7 +24,7 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
     Route::get('/carer/messages/create', [CarerMessageController::class, 'create'])
         ->name('carer.messages.create');
 
-    Route::post('/carer/messages', [CarerMessageController::class, 'store'])
+    Route::post('/carer/messages/{thread}', [CarerMessageController::class, 'store'])
         ->name('carer.messages.store');
 
     Route::get('/carer/documents', [CarerDocumentController::class, 'index'])

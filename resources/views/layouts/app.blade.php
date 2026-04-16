@@ -1,5 +1,3 @@
-<!-- resources/views/layouts/app.blade.php -->
-
 <!DOCTYPE html>
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -22,11 +20,7 @@
 
 
 
-    {{-- Bootstrap CSS --}}
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-
 
     <script src="https://unpkg.com/feather-icons"></script>
 
@@ -56,7 +50,7 @@
 
 
 
-            <!-- Left side -->
+            <!-- Left -->
 
             <div class="flex items-center">
 
@@ -76,9 +70,7 @@
 
                         @if($user->role === 'admin')
 
-                            <a href="{{ route('admin.users.index') }}"
-
-                               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            <a href="{{ route('admin.users.index') }}" class="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm">
 
                                 Users
 
@@ -90,9 +82,7 @@
 
                         @if($user->role === 'social_worker')
 
-                            <a href="{{ route('socialworker.dashboard') }}"
-
-                               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            <a href="{{ route('socialworker.dashboard') }}" class="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm">
 
                                 Dashboard
 
@@ -104,9 +94,7 @@
 
                         @if($user->role === 'carer')
 
-                            <a href="{{ route('carer.dashboard') }}"
-
-                               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            <a href="{{ route('carer.dashboard') }}" class="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm">
 
                                 Dashboard
 
@@ -124,39 +112,93 @@
 
 
 
-            <!-- Right side -->
+            <!-- Right (FIXED DROPDOWN) -->
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+
+
 
                 @auth
 
-                    <span class="text-gray-700 text-sm">
+                <div x-data="{ open: false }" class="relative">
+
+
+
+                    <!-- Trigger -->
+
+                    <button @click="open = !open"
+
+                        class="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
+
+
 
                         {{ $user->name }}
 
-                        ({{ ucfirst(str_replace('_', ' ', $user->role)) }})
+                        <span class="text-gray-400 text-xs">
 
-                    </span>
+                            ({{ ucfirst(str_replace('_', ' ', $user->role)) }})
+
+                        </span>
 
 
 
-                    <form method="POST" action="{{ route('logout') }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
-                        @csrf
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 
-                        <button
+                                  d="M19 9l-7 7-7-7" />
 
-                            type="submit"
+                        </svg>
 
-                            class="text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                    </button>
 
-                            Logout
 
-                        </button>
 
-                    </form>
+                    <!-- Dropdown -->
+
+                    <div x-show="open"
+
+                         @click.outside="open = false"
+
+                         x-transition
+
+                         class="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+
+
+
+                        <a href="{{ route('profile.edit') }}"
+
+                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+
+                            Profile
+
+                        </a>
+
+
+
+                        <form method="POST" action="{{ route('logout') }}">
+
+                            @csrf
+
+                            <button type="submit"
+
+                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+
+                                Log Out
+
+                            </button>
+
+                        </form>
+
+
+
+                    </div>
+
+                </div>
 
                 @endauth
+
+
 
             </div>
 
@@ -174,21 +216,21 @@
 
 @isset($header)
 
-    <header class="bg-white shadow">
+<header class="bg-white shadow">
 
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
 
-            {{ $header }}
+        {{ $header }}
 
-        </div>
+    </div>
 
-    </header>
+</header>
 
 @endisset
 
 
 
-<!-- Page Content -->
+<!-- Content -->
 
 <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
 
@@ -197,8 +239,6 @@
 </main>
 
 
-
-{{-- Bootstrap JS --}}
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
 
@@ -217,4 +257,3 @@
 </body>
 
 </html>
-

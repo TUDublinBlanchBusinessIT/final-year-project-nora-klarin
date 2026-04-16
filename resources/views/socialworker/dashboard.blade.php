@@ -416,13 +416,7 @@
 
                             >
 
-                                <a
-
-                                    href="{{ route('socialworker.case.show', $case->id) }}"
-
-                                    class="block h-full rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition p-6"
-
-                                >
+                                <div class="block h-full rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition p-6">
 
                                     <div class="flex items-start justify-between gap-3">
 
@@ -502,21 +496,39 @@
 
 
 
-                                    <div class="mt-5 flex items-center justify-between">
+                                    {{-- ACTION BUTTONS ADDED HERE --}}
 
-                                        <span class="text-sm text-indigo-600 font-semibold">
+                                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                                        <a
+
+                                            href="{{ route('socialworker.case.show', $case->id) }}"
+
+                                            class="block text-center rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 transition"
+
+                                        >
 
                                             Open case file
 
-                                        </span>
+                                        </a>
 
 
 
-                                        <span class="text-xl">→</span>
+                                        <a
+
+                                            href="{{ route('socialworker.messages.index', $case) }}"
+
+                                            class="block text-center rounded-2xl bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-bold py-3 transition"
+
+                                        >
+
+                                            Open messages 💬
+
+                                        </a>
 
                                     </div>
 
-                                </a>
+                                </div>
 
                             </div>
 
