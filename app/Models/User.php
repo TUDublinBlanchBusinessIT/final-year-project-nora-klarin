@@ -16,11 +16,16 @@ class User extends Authenticatable
         'password',
         'role',
         'username',
+        'dob',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+        protected $casts = [
+        'dob' => 'date',
     ];
 
     public function cases()
@@ -70,13 +75,27 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class, 'young_person_id');
     }
 
-    public function appointments()
-    {
-        return $this->belongsToMany(
-            Appointment::class,
-            'appointment_user',
-            'user_id',
-            'appointment_id'
-        );
-    }
+public function appointments()
+{
+    return $this->belongsToMany(
+        \App\Models\Appointment::class,  
+        'appointment_user',              
+        'user_id',                       
+        'appointment_id'                 
+    );
 }
+
+public function wellbeingChecks()
+{
+    return $this->hasMany(\App\Models\WellbeingCheck::class, 'young_person_id');
+}
+
+public function socialWorkerAppointments()
+{
+    return $this->hasMany(\App\Models\Appointment::class, 'created_by');
+}
+
+}
+
+
+

@@ -84,7 +84,22 @@
 
             {{-- TOP CARDS --}}
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {{-- Wellbeing Check --}}
+            <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100">
+                <h3 class="text-lg font-extrabold text-indigo-700">🧠 Wellbeing Check</h3>
+                <p class="text-gray-600 mt-2">
+                    Answer a few quick questions about how you're feeling.
+                </p>
 
+                <a href="{{ route('child.wellbeing.check') }}"
+                class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition">
+                    Start check ✨
+                </a>
+
+                <p class="text-xs text-gray-500 mt-3">
+                    Takes about 2–3 minutes
+                </p>
+            </div>
                 {{-- Check-in --}}
                 <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100">
                     <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>

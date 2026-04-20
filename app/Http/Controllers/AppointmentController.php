@@ -9,6 +9,8 @@ use Carbon\Carbon;
 
 class AppointmentController extends Controller
 {
+
+
     public function store(Request $request)
     {
         $request->validate([

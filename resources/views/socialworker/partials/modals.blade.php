@@ -80,7 +80,7 @@
 
 
 
-                    <form action="{{ route('case.addPlacement', $case) }}" method="POST">
+                    <form action="{{ route('socialworker.cases.placements.store', $case) }}" method="POST">
 
                         @csrf
 
@@ -152,7 +152,7 @@
 
             <div class="modal-content rounded-3xl border-0 shadow-lg">
 
-                <form action="{{ route('case.addMedical', $case) }}" method="POST">
+                <form action="{{ route('socialworker.cases.medical.store', $case) }}" method="POST">
 
                     @csrf
 
@@ -214,7 +214,7 @@
 
             <div class="modal-content rounded-3xl border-0 shadow-lg">
 
-                <form action="{{ route('case.addEducation', $case) }}" method="POST">
+                <form action="{{ route('socialworker.cases.education.store', $case) }}" method="POST">
 
                     @csrf
 
@@ -284,7 +284,7 @@
 
             <div class="modal-content rounded-3xl border-0 shadow-lg">
 
-                <form action="{{ route('case.addDocument', $case) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('socialworker.cases.documents.store', $case) }}" method="POST" enctype="multipart/form-data">
 
                     @csrf
 

@@ -25,8 +25,11 @@ use App\Http\Controllers\ChildWeekController;
 use App\Http\Controllers\SupportRequestController;
 
 use App\Http\Controllers\DiaryEntryController;
-use App\Http\Controllers\WellbeingCheckController;
+
 use App\Http\Controllers\ChildMessageController;
+use App\Http\Controllers\SocialWorkerMessagesController;
+
+use App\Http\Controllers\WellbeingCheckController;
 
 use App\Http\Controllers\ChildWellbeingController;
 
@@ -82,8 +85,25 @@ Route::middleware('auth')->group(function () {
 });
 
 
-
 Route::middleware(['auth', 'role:young_person'])->group(function () {
+    Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
+        ->name('child.dashboard');
+    Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'index'])
+        ->name('child.wellbeing.check');
+    Route::post('/child/wellbeing/start', [WellbeingCheckController::class, 'start'])
+        ->name('child.wellbeing.start');
+    Route::post('/child/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submitCheck'])
+        ->name('child.wellbeing.submit');
+});
+
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/admin/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
 
@@ -191,106 +211,63 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
         ->name('child.wellbeing.store');
 
-});
+        Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
+        ->name('child.dashboard');
 
+    Route::get('/child/mood/{mood}', [MoodCheckinController::class, 'store'])
+        ->name('child.mood.save');
 
+    Route::get('/child/goals', [ChildGoalsController::class, 'index'])
+        ->name('child.goals');
 
-Route::middleware(['auth', 'role:social_worker'])->group(function () {
+    Route::post('/child/goals', [ChildGoalsController::class, 'store'])
+        ->name('child.goals.store');
 
-    Route::get('/socialworker/dashboard', [SocialWorkerDashboardController::class, 'index'])
+    Route::get('/child/trusted-people', [TrustedPeopleController::class, 'index'])
+        ->name('child.trusted');
 
-        ->name('socialworker.dashboard');
+    Route::post('/child/trusted-people', [TrustedPeopleController::class, 'store'])
+        ->name('child.trusted.store');
 
+    Route::get('/child/week', [ChildWeekController::class, 'index'])
+        ->name('child.week');
 
+    Route::get('/child/support', [SupportRequestController::class, 'index'])
+        ->name('child.support');
 
-    Route::get('/socialworker/appointments', [SocialWorkerAppointmentController::class, 'index'])
+    Route::post('/child/support', [SupportRequestController::class, 'store'])
+        ->name('child.support.store');
 
-        ->name('socialworker.appointments.index');
+    
+    Route::post('/child/diary', [DiaryEntryController::class, 'store'])
+        ->name('child.diary.store');
 
+  
+    Route::get('/child/messages', [ChildMessageController::class, 'index'])
+        ->name('child.messages.index');
 
+    Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
+        ->name('child.messages.store');
 
-    Route::post('/socialworker/appointments', [SocialWorkerAppointmentController::class, 'store'])
+        //Route::post('/wellbeing/start', [WellbeingCheckController::class, 'start'])
+        //->middleware('role:young_person')
+        //->name('wellbeing.start');
 
-        ->name('socialworker.appointments.store');
+    //Route::post('/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submit'])
+        //->middleware('role:young_person')
+        //->name('wellbeing.submit');
 
+    Route::get('/wellbeing/{youngPerson}/history', [WellbeingCheckController::class, 'history'])
+        ->middleware('role:staff')
+        ->name('wellbeing.history');
 
+    Route::get('/wellbeing/{youngPerson}/goal-suggestions', [WellbeingCheckController::class, 'goalSuggestions'])
+        ->middleware('role:social_worker')
+        ->name('wellbeing.goal-suggestions');
 
-    Route::get('/socialworker/case-files', [CaseFileController::class, 'index'])
-
-        ->name('socialworker.casefiles.index');
-
-
-
-    Route::get('/social-worker/cases', [SocialWorkerDashboardController::class, 'list'])
-
-        ->name('socialworker.case.list');
-
-
-
-    Route::get('/social-worker/case/{case}/appointments/create', [SocialWorkerAppointmentController::class, 'create'])
-
-        ->name('social-worker.appointments.create');
-
-
-
-    Route::post('/social-worker/case/{case}/appointments', [SocialWorkerAppointmentController::class, 'store'])
-
-        ->name('social-worker.appointments.store');
-
-
-
-    Route::post('/socialworker/case/{case}/assign-carer', [CaseFileController::class, 'assignCarer'])
-
-        ->name('case.assignCarer');
-
-
-
-    Route::post('/socialworker/case/{case}/placement', [CaseFileController::class, 'storePlacement'])
-
-        ->name('case.addPlacement');
-
-
-
-    Route::post('/socialworker/case/{case}/medical', [CaseFileController::class, 'storeMedical'])
-
-        ->name('case.addMedical');
-
-
-
-    Route::post('/socialworker/case/{case}/education', [CaseFileController::class, 'storeEducation'])
-
-        ->name('case.addEducation');
-
-
-
-    Route::post('/socialworker/case/{case}/document', [CaseFileController::class, 'storeDocument'])
-
-        ->name('case.addDocument');
-
-
-
-    Route::get('/social-worker/wellbeing-alerts', [WellbeingCheckController::class, 'alerts'])
-
-        ->name('social-worker.wellbeing.alerts');
 
 });
 
-
-Route::middleware(['auth'])->group(function () {
-
-    Route::get('/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
-
-        ->name('wellbeing.result');
-});
-
-
-Route::middleware(['auth', 'role:admin'])->group(function () {
-
-    Route::get('/admin/users', [AdminUserController::class, 'index'])
-
-        ->name('admin.users.index');
-
-});
 
 
 
@@ -298,6 +275,32 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 
     ->name('logout');
 
+//Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'show'])
+  //  ->middleware('auth')
+   // ->name('wellbeing.check');
+
+Route::prefix('demo')->name('demo.')->group(function () {
+
+    Route::get('/', function () {
+        $accounts = \App\Models\User::whereIn('role', ['young_person', 'social_worker', 'carer'])
+            ->orderBy('role')->orderBy('name')
+            ->get(['id', 'name', 'role', 'email']);
+        return view('demo.switcher', compact('accounts'));
+    })->name('switcher');
+
+    Route::post('/login-as/{user}', function (\App\Models\User $user) {
+        Auth::login($user);
+        return match($user->role) {
+            'young_person'  => redirect()->route('child.wellbeing.check'),
+            default         => redirect()->route('dashboard'),
+        };
+    })->name('login-as');
+
+});
+
 require __DIR__.'/auth.php';
 require __DIR__.'/carer.php';
 require __DIR__.'/socialworker.php';
+
+
+

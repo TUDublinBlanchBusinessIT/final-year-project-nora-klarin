@@ -21,6 +21,15 @@ class UserSeeder extends Seeder
     public function run(): void
 
     {
+        User::updateOrCreate(
+            ['email' => 'carer@test.com'],
+            [
+                'name' => 'Test Carer',
+                'password' => Hash::make('password'),
+                'role' => 'carer',
+            ]
+        );
+        
 
         // Carer (your account)
 
