@@ -1,21 +1,9 @@
 <?php
-
-
-
 namespace App\Http\Controllers;
-
-
-
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\DB;
-
 use Carbon\Carbon;
-
 use App\Models\Message;
-
-
-
 class CarerDashboardController extends Controller
 
 {
@@ -25,18 +13,11 @@ class CarerDashboardController extends Controller
     {
 
         $user = $request->user();
-
-
-
         if (($user->role ?? null) !== 'carer') {
 
             abort(403);
 
         }
-
-
-
-        // Try to find the "carer" row in users by username OR email (safer)
 
         $carer = DB::table('users')
 

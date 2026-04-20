@@ -9,19 +9,39 @@ class CaseFile extends Model
 {
     protected $table = 'case_files';
 
-    protected $fillable = ['youngpersonid', 'risklevel', 'openedat', 'status'];
+    protected $fillable = [
+        'young_person_id',
+        'status',
+        'risk_level',
+        'placement_type',
+        'placement_location',
+        'opened_at',
+        'closed_at',
+        'last_reviewed_at',
+        'summary',
+];
 
- public function users()
-{
-    return $this->belongsToMany(
-        User::class,
-        'case_user',
-        'case_id',    
-        'user_id'    
-    )->withPivot('role', 'assigned_at');
-}
+    public function users()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'case_user',
+            'case_file_id',
+            'user_id'
+        )->withPivot('role', 'assigned_at')
+         ->withTimestamps();
+    }
 
+    // Carers only
+    public function carers()
+    {
+        return $this->belongsToMany(User::class, 'case_user', 'case_file_id', 'user_id')
+                    ->withPivot('role', 'assigned_at', 'created_at', 'updated_at')
+                    ->wherePivot('role', 'carer')
+                    ->withTimestamps();
+    }
 
+    // Social workers only
     public function socialWorkers()
     {
         return $this->users()->wherePivot('role', 'social_worker');
@@ -29,12 +49,7 @@ class CaseFile extends Model
 
     public function youngPerson()
     {
-        return $this->belongsTo(YoungPerson::class, 'young_person_id');
-    }
-
-    public function carers()
-    {
-        return $this->users()->wherePivot('role', 'carer');
+        return $this->belongsTo(User::class, 'young_person_id');
     }
 
     public function appointments()
@@ -42,28 +57,14 @@ class CaseFile extends Model
         return $this->hasMany(Appointment::class, 'case_file_id');
     }
 
-    public function placements()
-    {
-        return $this->hasMany(Placement::class, 'case_file_id');
-    }
 
-    // Wellbeing checks
-    public function wellbeingChecks()
-    {
-        return $this->hasMany(WellbeingCheck::class, 'youngpersonid', 'youngpersonid');
-    }
-
-    public function alerts()
-    {
-        return $this->hasMany(Alert::class, 'caseid');
-    }
 
     public function goals()
     {
         return $this->hasManyThrough(
             Goal::class,
             CaseGoal::class,
-            'caseid',   // Foreign key on case_goal table
+            'case_file_id',   // Foreign key on case_goal table
             'id',       // Foreign key on goals table
             'id',       // Local key on case table
             'goalid'    // Local key on case_goal table
@@ -81,7 +82,46 @@ class CaseFile extends Model
             'taskid'   // local key on taskgoal table
         );
         }
+
+        public function medicalInfos() { return $this->hasMany(MedicalInfo::class); }
+        
+        public function educationInfos() { return $this->hasMany(EducationInfo::class); }
+
+        public function documents() { return $this->hasMany(CaseDocument::class); }
+
+        public function placementsHistory()
+{
+    return $this->hasMany(CasePlacement::class);
 }
+
+public function placements()
+{
+    return $this->belongsToMany(
+        Placement::class,
+        'case_placements',
+        'case_file_id',    
+        'placement_id'    
+    )
+    ->withPivot(['start_date', 'end_date', 'notes'])
+    ->withTimestamps();
+}
+
+public function suggestedFollowUp()
+{
+    $riskIntervals = [
+        'High' => 7,   
+        'Medium' => 14, 
+        'Low' => 56     
+    ];
+
+    $lastAppointment = $this->appointments()->orderByDesc('start_time')->first();
+    $startDate = $lastAppointment ? $lastAppointment->start_time : $this->created_at;
+    $intervalDays = $riskIntervals[$this->risk_level] ?? 28;
+
+    return now()->parse($startDate)->addDays($intervalDays);
+}
+}
+
 
 
 

@@ -8,15 +8,27 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('appointments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('title');
-            $table->date('date');
-            $table->time('time')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
+Schema::create('appointments', function (Blueprint $table) {
+    $table->id();
+
+    $table->foreignId('case_file_id')
+          ->constrained()
+          ->cascadeOnDelete();
+
+    $table->foreignId('created_by')
+          ->constrained('users')
+          ->cascadeOnDelete();
+
+    $table->string('title');
+    $table->text('description')->nullable();
+    $table->string('location')->nullable();
+
+    $table->timestamp('start_time');
+    $table->timestamp('end_time');
+
+    $table->timestamps();
+});
+
     }
 
     public function down(): void

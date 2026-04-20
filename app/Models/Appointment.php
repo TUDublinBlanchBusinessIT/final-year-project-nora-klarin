@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Appointment extends Model
 {
@@ -17,6 +18,7 @@ class Appointment extends Model
         'title',
         'location',
         'notes',
+        'created_by',
     ];
 
     // Link to the case
@@ -26,10 +28,16 @@ class Appointment extends Model
     }
 
     // Carers assigned to this appointment
-    public function carers()
-    {
-        return $this->belongsToMany(User::class);
-    }
+public function carers()
+{
+    return $this->belongsToMany(
+        \App\Models\User::class,
+        'appointment_user',
+        'appointment_id',
+        'user_id'
+    );
+}
+
 
     public function youngPerson()
     {
@@ -49,4 +57,31 @@ class Appointment extends Model
                    ->orderBy('starttime', 'asc')
                    ->first();
     }
+
+public static function nextAvailableSlot($socialWorkerId, Carbon $desiredDate, $durationMinutes = 30)
+{
+    $start = $desiredDate->copy()->setHour(9)->setMinute(0);
+    $end   = $desiredDate->copy()->setHour(17)->setMinute(0);
+
+    $appointments = self::where('created_by', $socialWorkerId)
+                        ->whereDate('start_time', $desiredDate->toDateString())
+                        ->orderBy('start_time')
+                        ->get();
+
+    while ($start->lt($end)) {
+        $slotEnd = $start->copy()->addMinutes($durationMinutes);
+
+        $overlap = $appointments->first(function($a) use ($start, $slotEnd) {
+            return $a->start_time < $slotEnd && $a->end_time > $start;
+        });
+
+        if (!$overlap) {
+            return $start;
+        }
+
+        $start->addMinutes(30);
+    }
+
+    return null;
+}
 }

@@ -2,6 +2,7 @@
 
 
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CarerDashboardController;
 
 use App\Http\Controllers\CarerCalendarController;
@@ -12,18 +13,12 @@ use App\Http\Controllers\CarerDocumentController;
 
 use App\Http\Controllers\CarerCaseFileController;
 
-use Illuminate\Support\Facades\Route;
-
-
-
 Route::middleware(['auth', 'role:carer'])->group(function () {
-
 
 
     Route::get('/carer/dashboard', [CarerDashboardController::class, 'index'])
 
         ->name('carer.dashboard');
-
 
 
     Route::get('/carer/calendar', [CarerCalendarController::class, 'index'])

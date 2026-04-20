@@ -17,20 +17,25 @@ class User extends Authenticatable
     public function cases()
     {
         return $this->belongsToMany(CaseFile::class, 'case_user', 'user_id', 'case_file_id')
-                    ->withPivot('role', 'assigned_at');
+                    ->withPivot('role', 'assigned_at')
+                    ->withTimestamps();
     }
-
-    public function socialWorkerCases()
+public function caseFile()
 {
-    return $this->belongsToMany(
-        CaseFile::class,   
-        'case_user',       
-        'user_id',         
-        'case_file_id'         
-    )
-    ->withPivot('role', 'assigned_at')
-    ->wherePivot('role', 'social_worker');
+    return $this->hasOne(CaseFile::class, 'young_person_id');
 }
+
+
+public function socialWorkerCases()
+{
+    return $this->cases()->wherePivot('role', 'social_worker');
+}
+
+public function carerCases()
+{
+    return $this->cases()->wherePivot('role', 'carer');
+}
+
 
     public function createdAppointments()
     {
@@ -42,10 +47,15 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class, 'young_person_id');
     }
 
-    public function appointments()
-    {
-        return $this->belongsToMany(Appointment::class);
-    }
+public function appointments()
+{
+    return $this->belongsToMany(
+        \App\Models\Appointment::class,  
+        'appointment_user',              
+        'user_id',                       
+        'appointment_id'                 
+    );
+}
 
 
 

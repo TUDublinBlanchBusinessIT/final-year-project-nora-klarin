@@ -11,15 +11,22 @@ return new class extends Migration
 Schema::create('case_goals', function (Blueprint $table) {
     $table->id();
 
-    $table->foreignId('case_file_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('created_by')->constrained('users');
+    $table->foreignId('case_file_id')
+          ->constrained()
+          ->cascadeOnDelete();
 
-    $table->string('title');
-    $table->text('description')->nullable();
-    $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending');
+    $table->foreignId('goal_id')
+          ->constrained()
+          ->cascadeOnDelete();
+
+    $table->enum('status', ['pending', 'in_progress', 'completed'])
+          ->default('pending');
+
+    $table->date('due_date')->nullable();
 
     $table->timestamps();
 });
+
 
     }
 

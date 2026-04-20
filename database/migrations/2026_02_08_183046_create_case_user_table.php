@@ -8,6 +8,25 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::create('case_user', function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId('case_file_id')
+                  ->constrained('case_files')
+                  ->cascadeOnDelete();
+
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->cascadeOnDelete();
+
+            $table->enum('role', ['social_worker', 'carer']);
+
+            $table->timestamp('assigned_at')->nullable();
+
+            $table->timestamps();
+
+            $table->unique(['case_file_id', 'user_id']);
+        });
         // Create the pivot table core columns first if not exists
         if (! Schema::hasTable('case_user')) {
             Schema::create('case_user', function (Blueprint $table) {
@@ -67,21 +86,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (Schema::hasTable('case_user')) {
-            // try to drop foreign keys (silently ignore errors), then drop the table
-            try {
-                Schema::table('case_user', function (Blueprint $table) {
-                    $table->dropForeign(['case_id']);
-                });
-            } catch (\Throwable $e) { /* ignore */ }
-
-            try {
-                Schema::table('case_user', function (Blueprint $table) {
-                    $table->dropForeign(['user_id']);
-                });
-            } catch (\Throwable $e) { /* ignore */ }
-
-            Schema::dropIfExists('case_user');
-        }
+        Schema::dropIfExists('case_user');
     }
 };

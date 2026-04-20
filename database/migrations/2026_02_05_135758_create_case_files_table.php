@@ -11,10 +11,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('case_files', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+Schema::create('case_files', function (Blueprint $table) {
+    $table->id();
+
+    $table->foreignId('young_person_id')
+          ->constrained('users')
+          ->cascadeOnDelete();
+
+    $table->enum('status', ['open', 'closed', 'review'])
+          ->default('open');
+
+    $table->enum('risk_level', ['low', 'medium', 'high'])
+          ->default('low');
+
+    $table->string('placement_type')->nullable();
+    $table->string('placement_location')->nullable();
+
+    $table->timestamp('opened_at')->nullable();
+    $table->timestamp('closed_at')->nullable();
+    $table->timestamp('last_reviewed_at')->nullable();
+
+    $table->text('summary')->nullable();
+
+    $table->timestamps();
+});
+
     }
 
     /**
