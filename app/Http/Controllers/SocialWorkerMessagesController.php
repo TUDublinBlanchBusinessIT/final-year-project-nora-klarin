@@ -18,7 +18,6 @@ class SocialWorkerMessagesController extends Controller
 
         $withId = (int) $request->query('with', 0);
 
-        // People I've ever messaged or been messaged by
         $partnerIds = Message::query()
             ->where('sender_id', $user->id)
             ->orWhere('recipient_id', $user->id)
@@ -96,22 +95,39 @@ class SocialWorkerMessagesController extends Controller
         return view('socialworker.messages.index', compact('conversations', 'selectedUser', 'messages'));
     }
 
-    public function create(Request $request)
-    {
-        $user = $request->user();
+public function create(Request $request)
+{
+    $user = $request->user();
 
-        if (($user->role ?? null) !== 'social_worker') {
-            abort(403);
-        }
-
-        $recipients = User::query()
-            ->where('id', '!=', $user->id)
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'role']);
-
-        return view('socialworker.messages.create', compact('recipients'));
+    if (($user->role ?? null) !== 'social_worker') {
+        abort(403);
     }
 
+    $caseIds = \DB::table('case_user')
+        ->where('user_id', $user->id)
+        ->where('role', 'social_worker')
+        ->pluck('case_id');
+
+    $youngPeople = \DB::table('case_files')
+        ->whereIn('id', $caseIds)
+        ->pluck('young_person_id');
+
+    $carers = \DB::table('case_user')
+        ->whereIn('case_id', $caseIds)
+        ->where('role', 'carer')
+        ->pluck('user_id');
+
+    $recipientIds = $youngPeople
+        ->merge($carers)
+        ->unique()
+        ->filter();
+
+    $recipients = \App\Models\User::whereIn('id', $recipientIds)
+        ->orderBy('name')
+        ->get(['id', 'name', 'email', 'role']);
+
+    return view('socialworker.messages.create', compact('recipients'));
+}
     public function store(Request $request)
     {
         $user = $request->user();

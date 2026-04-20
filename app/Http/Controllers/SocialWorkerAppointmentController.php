@@ -10,6 +10,18 @@ use Carbon\Carbon;
 
 class SocialWorkerAppointmentController extends Controller
 {
+    public function index()
+    {
+        $user = auth()->user();
+
+        $appointments = $user->socialWorkerAppointments()->with([
+            'youngPerson',
+            'case'
+            
+            ])->orderBy('start_time')->get();
+
+        return view('socialworker.appointments.index', compact('appointments'));
+    }
     public function create(CaseFile $case)
     {
         abort_if(auth()->user()->role !== 'social_worker', 403);
@@ -60,7 +72,7 @@ public function store(Request $request)
     }
 
     return redirect()
-        ->route('socialworker.case.show', $data['case_file_id'])
+        ->route('socialworker.cases.show', $data['case_file_id'])
         ->with('success', 'Appointment created successfully');
 }
 }

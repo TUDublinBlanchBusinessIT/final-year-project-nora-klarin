@@ -107,7 +107,6 @@ class WellbeingCheckController extends Controller
 
         $result = DB::transaction(function () use ($request, $check) {
 
-            // Store raw responses
             foreach ($request->input('responses') as $r) {
                 $check->responses()->create([
                     'question_id'       => $r['question_id'],
@@ -121,7 +120,10 @@ class WellbeingCheckController extends Controller
 
             $alerts = $this->alertService->evaluate($check, $summary);
 
-            $check->update(['completed_at' => now()]);
+            $check->update([
+            'completed_at' => now(),
+            'risk_level'   => $summary['risk_classification'],
+]);
 
             return [$summary, $alerts];
         });

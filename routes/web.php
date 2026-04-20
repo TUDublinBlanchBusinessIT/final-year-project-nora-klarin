@@ -102,37 +102,6 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'role:social_worker'])->group(function () {
-    Route::get('/social-worker/dashboard', 
-        [SocialWorkerDashboardController::class, 'index']
-    )->name('socialworker.dashboard');
-
-        Route::get('/social-worker/case/{case}/show', [CaseFileController::class, 'show'])
-            ->name('socialworker.case.show');
-
-        Route::get('/social-worker/case/{case}/edit', [CaseFileController::class, 'edit'])
-            ->name('socialworker.case.edit');
-
-        Route::put('/social-worker/case/{case}/update', [CaseFileController::class, 'update'])
-            ->name('socialworker.case.update');
-
-        Route::post('/social-worker/case/{case}/placements', [PlacementController::class, 'store'])
-    ->name('placements.store');
-
-        Route::post('/social-worker/case/{case}/medical', [CaseFileController::class, 'storeMedical'])->name('cases.medical.store');
-        
-        Route::post('/social-worker/case/{case}/education', [CaseFileController::class, 'storeEducation'])->name('cases.education.store');
-    
-        Route::post('/social-worker/case/{case}/documents', [CaseFileController::class, 'storeDocument'])->name('cases.documents.store');
-
-        Route::post('/social-worker/case/{case}/placements', [CaseFileController::class, 'store'])
-        ->name('case.addPlacement');
-
-        Route::get('/social-worker/wellbeing-alerts', [WellbeingCheckController::class, 'alerts'])
-        ->name('social-worker.wellbeing.alerts');
-        
-});
-
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
     Route::get('/admin/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
@@ -305,94 +274,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-
-Route::middleware(['auth', 'role:social_worker'])->group(function () {
-
-    Route::get('/socialworker/dashboard', [SocialWorkerDashboardController::class, 'index'])
-
-        ->name('socialworker.dashboard');
-
-
-
-    Route::get('/socialworker/appointments', [SocialWorkerAppointmentController::class, 'index'])
-
-        ->name('socialworker.appointments.index');
-
-
-
-    Route::post('/socialworker/appointments', [SocialWorkerAppointmentController::class, 'store'])
-
-        ->name('socialworker.appointments.store');
-
-
-
-    Route::get('/socialworker/case-files', [CaseFileController::class, 'index'])
-
-        ->name('socialworker.casefiles.index');
-
-
-
-    Route::get('/social-worker/cases', [SocialWorkerDashboardController::class, 'list'])
-
-        ->name('socialworker.case.list');
-
-
-
-    Route::get('/social-worker/case/{case}/appointments/create', [SocialWorkerAppointmentController::class, 'create'])
-
-        ->name('social-worker.appointments.create');
-
-
-
-    Route::post('/social-worker/case/{case}/appointments', [SocialWorkerAppointmentController::class, 'store'])
-
-        ->name('social-worker.appointments.store');
-
-
-
-    Route::post('/socialworker/case/{case}/assign-carer', [CaseFileController::class, 'assignCarer'])
-
-        ->name('case.assignCarer');
-
-
-
-    Route::post('/socialworker/case/{case}/placement', [CaseFileController::class, 'storePlacement'])
-
-        ->name('case.addPlacement');
-
-
-
-    Route::post('/socialworker/case/{case}/medical', [CaseFileController::class, 'storeMedical'])
-
-        ->name('case.addMedical');
-
-
-
-    Route::post('/socialworker/case/{case}/education', [CaseFileController::class, 'storeEducation'])
-
-        ->name('case.addEducation');
-
-
-
-    Route::post('/socialworker/case/{case}/document', [CaseFileController::class, 'storeDocument'])
-
-        ->name('case.addDocument');
-
-
-
-    Route::get('/social-worker/wellbeing-alerts', [WellbeingCheckController::class, 'alerts'])
-
-        ->name('social-worker.wellbeing.alerts');
-
-});
-
-
-Route::middleware(['auth'])->group(function () {
-
-    Route::get('/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
-
-        ->name('wellbeing.result');
-});
 
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

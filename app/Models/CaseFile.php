@@ -246,10 +246,7 @@ class CaseFile extends Model
             }
 
 
-
             $year = now()->year;
-
-
 
             $lastCase = self::whereYear('created_at', $year)
 
@@ -258,7 +255,6 @@ class CaseFile extends Model
                 ->orderByDesc('id')
 
                 ->first();
-
 
 
             $number = 1;

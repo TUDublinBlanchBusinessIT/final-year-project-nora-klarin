@@ -148,7 +148,7 @@
 
                                     <div class="font-semibold text-gray-900">No conversations yet</div>
 
-                                    <div class="text-sm text-gray-500 mt-1">Start a chat with a social worker.</div>
+                                    <div class="text-sm text-gray-500 mt-1">Start a chat.</div>
 
 
 

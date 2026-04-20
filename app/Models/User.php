@@ -90,6 +90,11 @@ public function wellbeingChecks()
     return $this->hasMany(\App\Models\WellbeingCheck::class, 'young_person_id');
 }
 
+public function socialWorkerAppointments()
+{
+    return $this->hasMany(\App\Models\Appointment::class, 'created_by');
+}
+
 }
 
 
