@@ -27,65 +27,11 @@ return new class extends Migration
 
             $table->unique(['case_file_id', 'user_id']);
         });
-        // Create the pivot table core columns first if not exists
-        if (! Schema::hasTable('case_user')) {
-            Schema::create('case_user', function (Blueprint $table) {
-                $table->id();
-                $table->unsignedBigInteger('case_id')->nullable();
-                $table->unsignedBigInteger('user_id')->nullable();
-                $table->timestamp('assigned_at')->nullable();
-                $table->timestamps();
-            });
-        }
-
-<<<<<<< HEAD
-        // Attempt to add foreign key to cases (plural then singular). Use try/catch to avoid environment-specific errors.
-        try {
-            if (Schema::hasTable('cases')) {
-                Schema::table('case_user', function (Blueprint $table) {
-                    $table->foreign('case_id')->references('id')->on('cases')->cascadeOnDelete();
-                });
-            } elseif (Schema::hasTable('case')) {
-                Schema::table('case_user', function (Blueprint $table) {
-                    $table->foreign('case_id')->references('id')->on('case')->cascadeOnDelete();
-                });
-            }
-        } catch (\Throwable $e) {
-            // ignore: FK couldn't be created (missing table, already exists, permissions, etc.)
-        }
-=======
-    $table->foreignId('case_id')
-          ->constrained('case_files')
-          ->cascadeOnDelete();
-
-    $table->foreignId('user_id')
-          ->constrained()
-          ->cascadeOnDelete();
-
-    $table->enum('role', ['social_worker', 'carer']);
-
-    $table->timestamp('assigned_at')->nullable();
-
-    $table->timestamps();
-
-    $table->unique(['case_id', 'user_id']);
-});
->>>>>>> feature-carer-dashboard
-
-        // Attempt to add foreign key to users
-        try {
-            if (Schema::hasTable('users')) {
-                Schema::table('case_user', function (Blueprint $table) {
-                    $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
-                });
-            }
-        } catch (\Throwable $e) {
-            // ignore
-        }
     }
 
     public function down(): void
     {
         Schema::dropIfExists('case_user');
     }
+
 };
