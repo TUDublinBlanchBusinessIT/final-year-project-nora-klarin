@@ -26,14 +26,13 @@ class CaseFileController extends Controller
             'medicalInfos',
             'educationInfos',
             'documents',
+            'wellbeingChecks.domainScores.domain',
         ]);
 
         return view('socialworker.casefile', compact('case'));
     }
 
-    /**
-     * Show form to edit a case file.
-     */
+
     public function edit(CaseFile $case)
     {
         $children = User::where('role', 'young_person')->get();

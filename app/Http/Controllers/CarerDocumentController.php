@@ -50,7 +50,19 @@ class CarerDocumentController extends Controller
 
 
 
-        $docs = Document::where('uploaded_by', $user->id)
+        // Documents uploaded by this carer
+
+        $sentDocs = Document::where('uploaded_by', $user->id)
+
+            ->latest()
+
+            ->get();
+
+
+
+        // Documents uploaded by social worker
+
+        $receivedDocs = Document::where('uploaded_by', '!=', $user->id)
 
             ->latest()
 
@@ -60,9 +72,21 @@ class CarerDocumentController extends Controller
 
         $caseFiles = CaseFile::latest()->get();
 
+        $case = CaseFile::first();
 
 
-        return view('carer.documents.index', compact('docs', 'user', 'caseFiles'));
+
+        return view('carer.documents.index', compact(
+
+            'sentDocs',
+
+            'receivedDocs',
+
+            'caseFiles',
+
+            'case'
+
+        ));
 
     }
 
@@ -82,7 +106,7 @@ class CarerDocumentController extends Controller
 
             'title' => ['required', 'string', 'max:255'],
 
-            'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'file' => ['required', 'file', 'mimes:pdf', 'max:20480'],
 
         ]);
 
@@ -121,14 +145,6 @@ class CarerDocumentController extends Controller
     {
 
         $user = $this->ensureCarer($request);
-
-
-
-        if ($doc->uploaded_by !== $user->id) {
-
-            abort(403);
-
-        }
 
 
 

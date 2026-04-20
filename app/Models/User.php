@@ -5,37 +5,60 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'username'];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+        'username',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     public function cases()
     {
-        return $this->belongsToMany(CaseFile::class, 'case_user', 'user_id', 'case_file_id')
-                    ->withPivot('role', 'assigned_at')
-                    ->withTimestamps();
+        return $this->belongsToMany(
+            CaseFile::class,
+            'case_user',
+            'user_id',
+            'case_id'
+        )->withPivot('role', 'assigned_at');
     }
-public function caseFile()
-{
-    return $this->hasOne(CaseFile::class, 'young_person_id');
-}
 
+    public function caseFile()
+    {
+        return $this->hasOne(CaseFile::class, 'youngpersonid', 'id');
+    }
 
-public function socialWorkerCases()
-{
-    return $this->cases()->wherePivot('role', 'social_worker');
-}
+    public function socialWorkerCases()
+    {
+        return $this->belongsToMany(
+            CaseFile::class,
+            'case_user',
+            'user_id',
+            'case_id'
+        )->withPivot('role', 'assigned_at')
+         ->wherePivot('role', 'social_worker');
+    }
 
-public function carerCases()
-{
-    return $this->cases()->wherePivot('role', 'carer');
-}
-
+    public function carerCases()
+    {
+        return $this->belongsToMany(
+            CaseFile::class,
+            'case_user',
+            'user_id',
+            'case_id'
+        )->withPivot('role', 'assigned_at')
+         ->wherePivot('role', 'carer');
+    }
 
     public function createdAppointments()
     {
@@ -47,19 +70,13 @@ public function carerCases()
         return $this->hasMany(Appointment::class, 'young_person_id');
     }
 
-public function appointments()
-{
-    return $this->belongsToMany(
-        \App\Models\Appointment::class,  
-        'appointment_user',              
-        'user_id',                       
-        'appointment_id'                 
-    );
+    public function appointments()
+    {
+        return $this->belongsToMany(
+            Appointment::class,
+            'appointment_user',
+            'user_id',
+            'appointment_id'
+        );
+    }
 }
-
-
-
-}
-
-
-

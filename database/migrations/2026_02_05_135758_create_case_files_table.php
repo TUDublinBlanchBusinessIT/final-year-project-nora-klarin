@@ -6,41 +6,33 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-Schema::create('case_files', function (Blueprint $table) {
-    $table->id();
+        Schema::create('case_files', function (Blueprint $table) {
+            $table->id();
 
-    $table->foreignId('young_person_id')
-          ->constrained('users')
-          ->cascadeOnDelete();
+            $table->string('case_reference')->nullable()->unique();
 
-    $table->enum('status', ['open', 'closed', 'review'])
-          ->default('open');
+            $table->unsignedBigInteger('youngpersonid')->nullable();
 
-    $table->enum('risk_level', ['low', 'medium', 'high'])
-          ->default('low');
+            $table->string('risklevel')->nullable();
 
-    $table->string('placement_type')->nullable();
-    $table->string('placement_location')->nullable();
+            $table->timestamp('openedat')->nullable();
 
-    $table->timestamp('opened_at')->nullable();
-    $table->timestamp('closed_at')->nullable();
-    $table->timestamp('last_reviewed_at')->nullable();
+            $table->string('status')->nullable();
 
-    $table->text('summary')->nullable();
+            $table->string('placement_type')->nullable();
+            $table->string('placement_location')->nullable();
 
-    $table->timestamps();
-});
+            $table->timestamp('closed_at')->nullable();
+            $table->timestamp('last_reviewed_at')->nullable();
 
+            $table->text('summary')->nullable();
+
+            $table->timestamps();
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('case_files');
