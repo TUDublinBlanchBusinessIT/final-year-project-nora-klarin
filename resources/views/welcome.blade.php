@@ -6,7 +6,6 @@
 
     <title>CareHub</title>
 
-    {{-- Favicon --}}
     <link rel="icon" href="{{ asset('images/CareHub.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -15,11 +14,9 @@
 <body class="min-h-screen bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50 text-slate-800">
     <div class="min-h-screen flex flex-col">
 
-        {{-- HEADER --}}
         <header class="w-full border-b border-white/60 bg-white/80 backdrop-blur">
             <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
-                {{-- LOGO --}}
                 <div class="flex items-center gap-3">
                     <img src="{{ asset('images/CareHub.png') }}"
                          alt="CareHub Logo"
@@ -31,28 +28,18 @@
                     </div>
                 </div>
 
-                {{-- AUTH BUTTONS --}}
                 <div class="flex items-center gap-3">
                     <a href="{{ route('login') }}"
                        class="rounded-2xl px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition">
                         Log in
                     </a>
-
-                    <a href="{{ route('register') }}"
-                       class="rounded-2xl px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow transition">
-                        Register
-                    </a>
                 </div>
             </div>
         </header>
 
-        {{-- MAIN --}}
         <main class="flex-1">
-
-            {{-- HERO --}}
             <section class="max-w-7xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-10 items-center">
 
-                {{-- LEFT SIDE --}}
                 <div>
                     <div class="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-sm text-slate-600 shadow-sm">
                         🌟 Safe, simple, supportive
@@ -68,19 +55,17 @@
                     </p>
 
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}"
-                           class="rounded-2xl px-6 py-3 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow transition">
-                            Get Started
-                        </a>
-
                         <a href="{{ route('login') }}"
-                           class="rounded-2xl px-6 py-3 font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition">
+                           class="rounded-2xl px-6 py-3 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow transition">
                             Log In
                         </a>
                     </div>
+
+                    <p class="mt-4 text-sm text-slate-500 max-w-xl">
+                        Access is provided by an admin. Contact your carer or support worker if you need help logging in.
+                    </p>
                 </div>
 
-                {{-- RIGHT SIDE (FEATURE CARDS) --}}
                 <div class="rounded-[2rem] bg-white/90 border border-slate-200 shadow-xl p-8">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
@@ -122,7 +107,6 @@
             </section>
         </main>
 
-        {{-- FOOTER --}}
         <footer class="px-6 pb-8">
             <div class="max-w-7xl mx-auto text-sm text-slate-500 text-center">
                 Built for young people, carers, and support workers 💙
