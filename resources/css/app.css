@@ -1,3 +1,93 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =========================
+   THEME SYSTEM
+========================= */
+
+/* PAGE BACKGROUND + TEXT */
+
+.theme-calm .theme-page {
+    background: #f3f7fb;
+    color: #1f2937;
+}
+
+.theme-bright .theme-page {
+    background: #fff7ed;
+    color: #1f2937;
+}
+
+.theme-simple .theme-page {
+    background: #f9fafb;
+    color: #111827;
+}
+
+.theme-dark .theme-page {
+    background: #020617;
+    color: #ffffff;
+}
+
+/* HEADER */
+
+.theme-calm .theme-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.theme-bright .theme-header {
+    background: #fffaf0;
+    border-bottom: 1px solid #fed7aa;
+}
+
+.theme-simple .theme-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.theme-dark .theme-header {
+    background: #0f172a;
+    border-bottom: 1px solid #334155;
+}
+
+/* CARDS */
+
+.theme-calm .theme-card {
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    color: #1f2937;
+}
+
+.theme-bright .theme-card {
+    background: #fffaf0;
+    border: 1px solid #fed7aa;
+    color: #1f2937;
+}
+
+.theme-simple .theme-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #111827;
+}
+
+.theme-dark .theme-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #ffffff;
+}
+
+/* INPUTS + SELECTS */
+
+.theme-calm .theme-input,
+.theme-bright .theme-input,
+.theme-simple .theme-input {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #111827;
+}
+
+.theme-dark .theme-input {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #ffffff;
+}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -10,12 +11,13 @@ class ChildWeekController extends Controller
 {
     public function index()
     {
-        $userId = Auth::id();
+        $user = Auth::user();
 
-        // Safety: if user isn't logged in, send to login
-        if (!$userId) {
+        if (!$user) {
             return redirect()->route('login');
         }
+
+        $userId = $user->id;
 
         // Start from TODAY, not Monday
         $start = Carbon::today();
@@ -25,9 +27,9 @@ class ChildWeekController extends Controller
         $moods = DB::table('mood_checkins')
             ->where('user_id', $userId)
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-            ->pluck('mood', 'date'); // [ 'YYYY-MM-DD' => 'happy', ... ]
+            ->pluck('mood', 'date');
 
-        // Keep weekly goal logic based on real calendar week (Mon -> Sun)
+        // Weekly goal logic
         $weekStart = Carbon::today()->copy()->startOfWeek(Carbon::MONDAY)->toDateString();
 
         $weeklyGoal = DB::table('weekly_goals')
@@ -35,7 +37,6 @@ class ChildWeekController extends Controller
             ->where('week_start', $weekStart)
             ->first();
 
-        // Fallback: show latest saved goal if none for this exact week
         if (!$weeklyGoal) {
             $weeklyGoal = DB::table('weekly_goals')
                 ->where('user_id', $userId)
@@ -44,7 +45,6 @@ class ChildWeekController extends Controller
                 ->first();
         }
 
-        // Nice label mapping for UI
         $goalLabels = [
             'sleep' => 'Sleep on time',
             'talk'  => 'Talk to someone I trust',
@@ -56,7 +56,6 @@ class ChildWeekController extends Controller
             ? $goalLabels[$weeklyGoal->goal_key]
             : null;
 
-        // Build 7-day list starting from TODAY
         $days = collect(range(0, 6))->map(function ($i) use ($start, $moods) {
             $date = $start->copy()->addDays($i);
             $key = $date->toDateString();
@@ -71,12 +70,29 @@ class ChildWeekController extends Controller
             ];
         });
 
+        // Appointments for next 30 days
+        $appointments = Appointment::where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->orWhereHas('users', function ($q) use ($userId) {
+                        $q->where('users.id', $userId);
+                    });
+            })
+            ->whereBetween('date', [
+                Carbon::today()->toDateString(),
+                Carbon::today()->copy()->addDays(29)->toDateString(),
+            ])
+            ->orderBy('date')
+            ->orderBy('time')
+            ->distinct()
+            ->get();
+
         return view('child.week', [
             'start' => $start->toDateString(),
             'end' => $end->toDateString(),
             'days' => $days,
             'weeklyGoal' => $weeklyGoal,
             'goalLabel' => $goalLabel,
+            'appointments' => $appointments,
         ]);
     }
 }

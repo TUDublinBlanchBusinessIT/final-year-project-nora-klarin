@@ -2,36 +2,35 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="font-semibold text-2xl text-gray-800 leading-tight">🗺️ Find Help Nearby</h2>
-                <p class="text-sm text-gray-500 mt-1">Find nearby support services and helpful places</p>
+                <h2 class="font-semibold text-2xl leading-tight">🗺️ Find Help Nearby</h2>
+                <p class="text-sm opacity-70 mt-1">Find nearby support services and helpful places</p>
             </div>
 
             <a href="{{ route('child.dashboard') }}"
-               class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-sm shadow border border-gray-200">
+               class="px-4 py-2 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 text-sm shadow">
                 ← Back to dashboard
             </a>
         </div>
     </x-slot>
 
-    <div class="min-h-screen py-10 bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50">
+    <div class="theme-page min-h-screen py-10">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
-            <div class="rounded-3xl p-6 shadow-lg bg-white/95 border border-green-100">
+            <div class="theme-card rounded-3xl p-6 shadow-lg">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-lg font-bold text-green-700">Nearby Support Services</h3>
-                        <p class="text-sm text-gray-600 mt-1">
+                        <h3 class="text-lg font-bold text-green-600">Nearby Support Services</h3>
+                        <p class="text-sm opacity-70 mt-1">
                             Find counselling, Tusla, and family support services near you
                         </p>
                     </div>
                 </div>
 
-                {{-- Privacy + location action --}}
-                <div class="mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4">
+                <div class="mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-blue-900">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
                             <div class="font-semibold text-blue-800">Use your location</div>
-                            <p class="text-sm text-blue-900 mt-1">
+                            <p class="text-sm mt-1">
                                 Your location is only used to find nearby support services. It is not saved or shared.
                             </p>
                         </div>
@@ -41,8 +40,7 @@
                             onclick="enableLocation()"
                             class="inline-flex items-center justify-center rounded-2xl px-4 py-3
                                    font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm
-                                   hover:bg-slate-50 hover:border-slate-300
-                                   active:scale-[0.98] transition
+                                   hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition
                                    focus:outline-none focus:ring-2 focus:ring-indigo-200"
                         >
                             📍 Use my location
@@ -77,10 +75,10 @@
                         <div id="map" style="height: 420px; width: 100%; border-radius: 16px;"></div>
                     </div>
 
-                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                        <h4 class="font-bold text-gray-800">Service Details</h4>
-                        <div id="serviceDetails" class="mt-3 text-sm text-gray-600">
-                            <div class="rounded-xl border border-slate-200 bg-white p-4">
+                    <div class="theme-card rounded-2xl p-4">
+                        <h4 class="font-bold">Service Details</h4>
+                        <div id="serviceDetails" class="mt-3 text-sm opacity-80">
+                            <div class="theme-card rounded-xl p-4">
                                 Click <span class="font-semibold">Use my location</span> to search near you,
                                 or use one of the service buttons to search near Dublin city centre.
                             </div>
@@ -88,9 +86,9 @@
                     </div>
                 </div>
 
-                <div class="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4">
+                <div class="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-blue-900">
                     <div class="font-bold text-blue-800">Need urgent help?</div>
-                    <p class="text-sm text-blue-900 mt-1">
+                    <p class="text-sm mt-1">
                         If you are in immediate danger, contact emergency services or a trusted adult nearby.
                     </p>
                 </div>
@@ -103,7 +101,7 @@
         let map;
         let infoWindow;
         let placesService;
-        let currentLocation = { lat: 53.3498, lng: -6.2603 }; // Dublin fallback
+        let currentLocation = { lat: 53.3498, lng: -6.2603 };
         let markers = [];
         let userMarker = null;
 
@@ -168,9 +166,7 @@
         function handleLocationError(error) {
             let message = "Location access was denied. Showing services near Dublin city centre.";
 
-            if (error.code === error.PERMISSION_DENIED) {
-                message = "Location access was denied. Showing services near Dublin city centre.";
-            } else if (error.code === error.POSITION_UNAVAILABLE) {
+            if (error.code === error.POSITION_UNAVAILABLE) {
                 message = "Your location could not be determined. Showing services near Dublin city centre.";
             } else if (error.code === error.TIMEOUT) {
                 message = "Location request timed out. Showing services near Dublin city centre.";
@@ -266,10 +262,10 @@
 
             detailsDiv.innerHTML = `
                 <div class="space-y-2">
-                    <div class="font-semibold text-gray-900">${place.name ?? 'Unknown service'}</div>
-                    <div><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</div>
-                    <div><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not available'}</div>
-                    <div><span class="font-medium text-gray-700">Type:</span> ${niceType}</div>
+                    <div class="font-semibold">${place.name ?? 'Unknown service'}</div>
+                    <div><span class="font-medium">Address:</span> ${place.vicinity ?? 'Not available'}</div>
+                    <div><span class="font-medium">Rating:</span> ${place.rating ?? 'Not available'}</div>
+                    <div><span class="font-medium">Type:</span> ${niceType}</div>
 
                     <a href="${mapsUrl}" target="_blank"
                        class="inline-block mt-3 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300">

@@ -2,19 +2,18 @@
     <x-slot name="header">
         <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
-                {{-- Avatar --}}
                 <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-extrabold shadow">
                     {{ strtoupper(substr($carer->name ?? 'C', 0, 1)) }}
                 </div>
 
                 <div class="leading-tight">
-                    <div class="font-extrabold text-gray-900">
+                    <div class="font-extrabold">
                         Chat with {{ $carer->name ?? 'Your Carer' }}
                     </div>
-                    <div class="text-xs text-gray-500 flex items-center gap-2">
-                        <span class="opacity-80">Secure chat</span>
-                        <span class="opacity-50">•</span>
-                        <span class="opacity-80">Messages stay saved here</span>
+                    <div class="text-xs opacity-70 flex items-center gap-2">
+                        <span>Secure chat</span>
+                        <span>•</span>
+                        <span>Messages stay saved here</span>
                     </div>
                 </div>
             </div>
@@ -25,10 +24,10 @@
         </div>
     </x-slot>
 
-    <div class="min-h-[85vh] bg-gradient-to-br from-indigo-50 via-white to-pink-50">
+    <div class="theme-page min-h-[85vh]">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-            <div class="relative overflow-hidden rounded-[28px] border border-white/60 shadow-2xl bg-white/75 backdrop-blur">
+            <div class="theme-card relative overflow-hidden rounded-[28px] shadow-2xl">
 
                 <div class="h-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"></div>
 
@@ -45,10 +44,10 @@
                                 <div class="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-pink-600 text-white text-3xl shadow">
                                     💬
                                 </div>
-                                <div class="mt-4 text-xl font-extrabold text-gray-900">
+                                <div class="mt-4 text-xl font-extrabold">
                                     Start your chat
                                 </div>
-                                <div class="mt-1 text-sm text-gray-600">
+                                <div class="mt-1 text-sm opacity-70">
                                     Send a message to {{ $carer->name ?? 'your carer' }} 👋
                                 </div>
                             </div>
@@ -67,7 +66,7 @@
 
                             @if($lastDate !== $date)
                                 <div class="flex items-center justify-center py-2">
-                                    <span class="text-xs font-bold text-gray-500 bg-white/80 px-4 py-2 rounded-full border border-gray-100 shadow-sm">
+                                    <span class="theme-card text-xs font-bold px-4 py-2 rounded-full shadow-sm">
                                         {{ $prettyDate }}
                                     </span>
                                 </div>
@@ -79,28 +78,28 @@
                                     <div class="relative px-3.5 py-2.5 rounded-[18px] shadow
                                         {{ $mine
                                             ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white'
-                                            : 'bg-white text-gray-900 border border-gray-100' }}"
+                                            : 'theme-card' }}"
                                     >
                                         <div class="whitespace-pre-line text-[14px] leading-relaxed">
                                             {{ $msg->body }}
                                         </div>
 
                                         <div class="mt-1.5 flex items-center justify-end gap-2 text-[10px]
-                                            {{ $mine ? 'text-white/70' : 'text-gray-500' }}"
+                                            {{ $mine ? 'text-white/70' : 'opacity-60' }}"
                                         >
                                             <span>{{ $msg->created_at->format('H:i') }}</span>
 
-@if($mine)
-    @if(is_null($msg->read_at))
-        <span class="text-white/70">✓</span>
-    @else
-        <span class="text-white/90">✓✓</span>
-    @endif
-@endif
+                                            @if($mine)
+                                                @if(is_null($msg->read_at))
+                                                    <span class="text-white/70">✓</span>
+                                                @else
+                                                    <span class="text-white/90">✓✓</span>
+                                                @endif
+                                            @endif
                                         </div>
 
                                         <span class="absolute bottom-2 h-3 w-3 rotate-45
-                                            {{ $mine ? '-right-1.5 bg-purple-600' : '-left-1.5 bg-white border border-gray-100' }}">
+                                            {{ $mine ? '-right-1.5 bg-purple-600' : '-left-1.5 theme-card' }}">
                                         </span>
                                     </div>
                                 </div>
@@ -109,12 +108,12 @@
                     </div>
 
                     <div class="px-6 sm:px-8 pb-2">
-                        <div class="text-xs text-gray-500">
+                        <div class="text-xs opacity-60">
                             Replies may not be instant
                         </div>
                     </div>
 
-                    <div class="border-t bg-white/85 backdrop-blur px-4 sm:px-8 py-4">
+                    <div class="border-t border-slate-200 theme-card px-4 sm:px-8 py-4">
                         <form method="POST" action="{{ route('child.messages.store', $thread) }}" class="flex items-center gap-3">
                             @csrf
 
@@ -124,19 +123,17 @@
                                     type="text"
                                     name="body"
                                     placeholder="Type a message…"
-                                    class="w-full rounded-2xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3 pr-12 shadow-sm"
+                                    class="theme-input w-full rounded-2xl focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3 pr-12 shadow-sm"
                                     required
                                     autocomplete="off"
                                 />
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 select-none">😊</span>
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 opacity-50 select-none">😊</span>
                             </div>
 
                             <button
                                 type="submit"
-                                class="rounded-2xl px-6 py-3 font-semibold text-slate-700
-                                       bg-white border border-slate-200 shadow-sm
-                                       hover:bg-slate-50 hover:border-slate-300
-                                       active:scale-[0.98] transition
+                                class="rounded-2xl px-6 py-3 font-semibold bg-indigo-600 text-white shadow-sm
+                                       hover:bg-indigo-700 active:scale-[0.98] transition
                                        focus:outline-none focus:ring-2 focus:ring-indigo-200"
                             >
                                 Send ➤
@@ -153,7 +150,7 @@
                 </div>
             </div>
 
-            <div class="text-center text-xs text-gray-500 mt-4">
+            <div class="text-center text-xs opacity-60 mt-4">
                 Messages are private and stored securely in CareHub.
             </div>
         </div>
@@ -162,6 +159,7 @@
     <script>
         const chatBox = document.getElementById('chatBox');
         const msgInput = document.getElementById('msgInput');
+
         if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         if (msgInput) msgInput.focus();
     </script>

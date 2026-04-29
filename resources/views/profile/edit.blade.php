@@ -1,38 +1,28 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl leading-tight">
             {{ __('Profile') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="theme-page py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-            <!-- Profile Info -->
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+            <div class="theme-card p-4 sm:p-8 shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')
                 </div>
             </div>
 
-            <!-- Password -->
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+            <div class="theme-card p-4 sm:p-8 shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     @include('profile.partials.update-password-form')
                 </div>
             </div>
 
-            <!-- Delete Account -->
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+            <div class="theme-card p-4 sm:p-8 shadow sm:rounded-lg">
                 <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
-
-            <!-- ✅ Customization Section -->
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <h3 class="text-lg font-semibold mb-4">
                         Customize CareHub
                     </h3>
 
@@ -46,12 +36,11 @@
                         @csrf
                         @method('PATCH')
 
-                        <!-- Theme -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium mb-1">
                                 Dashboard Theme
                             </label>
-                            <select name="theme" class="w-full rounded-lg border-gray-300">
+                            <select name="theme" class="theme-input w-full rounded-lg">
                                 <option value="calm" {{ auth()->user()->theme === 'calm' ? 'selected' : '' }}>Calm</option>
                                 <option value="bright" {{ auth()->user()->theme === 'bright' ? 'selected' : '' }}>Bright</option>
                                 <option value="simple" {{ auth()->user()->theme === 'simple' ? 'selected' : '' }}>Simple</option>
@@ -59,26 +48,24 @@
                             </select>
                         </div>
 
-                        <!-- Chatbot Name -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium mb-1">
                                 Chatbot Name
                             </label>
                             <input
                                 type="text"
                                 name="chatbot_name"
                                 value="{{ old('chatbot_name', auth()->user()->chatbot_name) }}"
-                                class="w-full rounded-lg border-gray-300"
+                                class="theme-input w-full rounded-lg"
                                 placeholder="e.g. Support Buddy"
                             >
                         </div>
 
-                        <!-- ✅ NEW: Dashboard Layout -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium mb-1">
                                 Dashboard Layout
                             </label>
-                            <select name="dashboard_layout" class="w-full rounded-lg border-gray-300">
+                            <select name="dashboard_layout" class="theme-input w-full rounded-lg">
                                 <option value="standard" {{ auth()->user()->dashboard_layout === 'standard' ? 'selected' : '' }}>
                                     Standard (Full view)
                                 </option>
@@ -88,7 +75,6 @@
                             </select>
                         </div>
 
-                        <!-- Save Button -->
                         <div>
                             <button
                                 type="submit"
