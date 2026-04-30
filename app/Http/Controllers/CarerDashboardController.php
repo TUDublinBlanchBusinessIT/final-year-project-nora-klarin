@@ -107,11 +107,11 @@ class CarerDashboardController extends Controller
 
             // Alerts (defensive)
 
-            if ($schema->hasTable('alert')) {
+            if ($schema->hasTable('alerts')) {
 
                 try {
 
-                    $alerts = DB::table('alert')->orderByDesc('createdat')->limit(5)->get();
+                    $alerts = DB::table('alerts')->orderByDesc('created_at')->limit(5)->get();
 
                 } catch (\Exception $e) {
 
@@ -125,11 +125,11 @@ class CarerDashboardController extends Controller
 
             // no carer row; still show alerts if present
 
-            if ($schema->hasTable('alert')) {
+            if ($schema->hasTable('alerts')) {
 
                 try {
 
-                    $alerts = DB::table('alert')->orderByDesc('createdat')->limit(5)->get();
+                    $alerts = DB::table('alerts')->orderByDesc('created_at')->limit(5)->get();
 
                 } catch (\Exception $e) {
 
@@ -143,15 +143,16 @@ class CarerDashboardController extends Controller
 
 
 
-        // unread messages (defensive)
-
+        
         try {
-
-            $unreadCount = Message::where('recipient_id', $user->id)->whereNull('read_at')->count();
-
+            $unreadCount = Message::where('recipient_id', $user->id)
+                ->whereNull('read_at')
+                ->count();
         } catch (\Exception $e) {
-
             $unreadCount = 0;
+        }
+
+        // fallback appointments using relationship (cleaner)
         if (method_exists($user, 'appointments')) {
             $appointments = $user->appointments()
                 ->where('start_time', '>=', Carbon::now())
@@ -160,7 +161,8 @@ class CarerDashboardController extends Controller
                 ->get();
         }
 
-        if (Schema::hasTable('alerts')) {
+        // alerts
+        if ($schema->hasTable('alerts')) {
             $alerts = DB::table('alerts')
                 ->orderByDesc('created_at')
                 ->limit(5)
@@ -177,6 +179,5 @@ class CarerDashboardController extends Controller
             'unreadCount' => $unreadCount,
             'reminderCount' => $reminderCount,
         ]);
-    }
     }
 }

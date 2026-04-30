@@ -74,16 +74,6 @@
 
                 </div>
 
-
-
-                <div class="rounded-3xl bg-white/90 backdrop-blur shadow-sm border border-sky-100 p-5">
-
-                    <div class="text-sm text-gray-500">Status</div>
-
-                    <div class="text-base font-semibold text-sky-700 mt-2">Secure messaging enabled</div>
-
-                </div>
-
             </div>
 
 

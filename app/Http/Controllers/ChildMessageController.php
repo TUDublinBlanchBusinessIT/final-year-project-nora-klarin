@@ -10,46 +10,74 @@ use Illuminate\Support\Facades\Auth;
 
 class ChildMessageController extends Controller
 {
-    public function index()
-    {
-        $child = Auth::user();
+public function index()
+{
+    $child = Auth::user();
 
-        // ✅ Use the child’s assigned carer_id (NOT "first carer in DB")
-        $carerId = $child->carer_id;
+    $carers = User::where('role', 'carer')
+        ->where('id', $child->carer_id)
+        ->get();
 
-        abort_unless($carerId, 404, 'No carer assigned to this child.');
+    $socialWorkers = User::where('role', 'social_worker')
+        ->whereHas('socialWorkerCases', function ($q) use ($child) {
+            $q->where('young_person_id', $child->id);
+        })
+        ->get();
 
-        $thread = Thread::firstOrCreate([
+    $contacts = $carers->merge($socialWorkers)->unique('id');
+
+    $threads = collect();
+    $messages = collect();
+    $activeThread = null;
+
+    if ($contacts->isNotEmpty()) {
+
+        $firstContact = $contacts->first();
+
+        $activeThread = Thread::firstOrCreate([
             'child_id' => $child->id,
-            'carer_id' => $carerId,
+            'recipient_id' => $firstContact->id,
         ]);
 
-        $messages = $thread->messages()
+        $messages = $activeThread->messages()
             ->with('sender')
             ->orderBy('created_at')
             ->get();
+    
+        $threads = Thread::firstOrCreate([
+    'child_id' => $child->id,
+    'carer_id' => $firstContact?->id]);
+}
+    return view('child.messages', [
+        'contacts' => $contacts,
+        'threads' => $threads,
+        'messages' => $messages,
+        'activeThread' => $activeThread,
+    ]);
+}
 
-        $carer = User::find($carerId);
+public function store(Request $request, Thread $threads = null)
+{
+    $request->validate([
+        'body' => ['required', 'string', 'max:2000'],
+        'recipient_id' => ['required', 'exists:users,id'],
+    ]);
 
-        return view('child.messages', compact('thread', 'messages', 'carer'));
-    }
+    $child = Auth::user();
 
-    public function store(Request $request, Thread $thread)
-    {
-        $request->validate([
+        $data = $request->validate([
+            'recipient_id' => ['required', 'exists:users,id'],
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
-        // ✅ Security: child must own this thread
-        abort_unless($thread->child_id === Auth::id(), 403);
-
         Message::create([
-            'thread_id' => $thread->id,
-            'sender_id' => Auth::id(),
-            'body' => $request->body,
+            'sender_id' => $user->id,
+            'recipient_id' => $data['recipient_id'],
+            'body' => $data['body'],
         ]);
 
-        // ✅ IMPORTANT: redirect back to SAME thread chat screen
-        return redirect()->route('child.messages.index')->with('success', 'Message sent!');
+        return redirect()
+            ->route('child.messages.index', ['with' => $data['recipient_id']])
+            ->with('status', 'Message sent!');
     }
 }

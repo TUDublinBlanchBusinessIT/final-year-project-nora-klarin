@@ -9,28 +9,6 @@
                 {{ $cases->count() }} {{ Str::plural('case', $cases->count()) }} assigned to you
             </p>
         </div>
-
-        <div class="flex items-center gap-3">
-            {{-- Risk filter --}}
-            <select id="riskFilter"
-                    onchange="filterCases(this.value)"
-                    class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200">
-                <option value="all">All risk levels</option>
-                <option value="high">High risk</option>
-                <option value="medium">Medium risk</option>
-                <option value="low">Low risk</option>
-            </select>
-
-            {{-- Status filter --}}
-            <select id="statusFilter"
-                    onchange="filterCases()"
-                    class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200">
-                <option value="all">All statuses</option>
-                <option value="active">Active</option>
-                <option value="closed">Closed</option>
-                <option value="review">Under review</option>
-            </select>
-        </div>
     </div>
 </x-slot>
 

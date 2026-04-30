@@ -1,24 +1,16 @@
 <?php
 
-
-
 namespace App\Models;
-
-
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-use App\Models\User;
-
-use App\Models\CaseFile;
-
-
-
 class WellbeingCheck extends Model
-
 {
-    protected $table = 'wellbeing_checks'; 
+    use HasFactory;
+
+    protected $table = 'wellbeing_checks';
+
     protected $fillable = [
         'young_person_id',
         'case_file_id',
@@ -26,10 +18,17 @@ class WellbeingCheck extends Model
         'completed_at',
         'check_type',
         'game_mode',
+        'submitted_by',
+        'risk_level',
     ];
-protected $casts = ['completed_at' => 'datetime'];
-    public function caseFile()
 
+    protected $casts = [
+        'completed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function caseFile()
     {
         return $this->belongsTo(CaseFile::class, 'case_file_id');
     }
@@ -39,28 +38,17 @@ protected $casts = ['completed_at' => 'datetime'];
         return $this->belongsTo(User::class, 'young_person_id');
     }
 
-
     public function submittedBy()
-
     {
-
         return $this->belongsTo(User::class, 'submitted_by');
-
     }
-
-
 
     public function domainScores()
     {
-    return $this->hasMany(WellbeingDomainScore::class);
-
-        return $this->hasMany(DomainScore::class);
-
+        return $this->hasMany(DomainScore::class, 'wellbeing_check_id');
     }
 
-
     public function responses()
-
     {
         return $this->hasMany(WellbeingAnswer::class, 'wellbeing_check_id');
     }
@@ -70,32 +58,15 @@ protected $casts = ['completed_at' => 'datetime'];
         return $this->hasMany(Alert::class, 'wellbeing_check_id');
     }
 
+    public function getComputedRiskLevelAttribute(): string
+    {
         $score = $this->overall_score ?? 0;
 
-        if ($score >= 70) {
-
-            return 'low';
-
-        } elseif ($score >= 50) {
-
-            return 'medium';
-
-        } elseif ($score >= 30) {
-
-            return 'high';
-
-        }
-
-        return 'critical';
-
-     public function getRiskLevelAttribute(): string
-    {
-        return match(true) {
-            ($this->overall_risk_score ?? 0) >= 250 => 'critical',
-            ($this->overall_risk_score ?? 0) >= 150 => 'high',
-            ($this->overall_risk_score ?? 0) >= 80  => 'moderate',
-            default                                  => 'low',
+        return match (true) {
+            $score >= 70 => 'low',
+            $score >= 50 => 'medium',
+            $score >= 30 => 'high',
+            default => 'critical',
         };
     }
-
 }

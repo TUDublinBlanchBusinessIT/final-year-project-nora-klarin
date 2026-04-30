@@ -115,19 +115,10 @@
                         @endforeach
                     </div>
 
-                    {{-- Typing bar (fake visual only) --}}
-                    <div class="px-6 sm:px-8 pb-2">
-                        <div class="text-xs text-gray-500 flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1">
-                                <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                {{ $carer->name ?? 'Carer' }} is available
-                            </span>
-                        </div>
-                    </div>
 
                     {{-- Input pinned bottom --}}
                     <div class="border-t bg-white/85 backdrop-blur px-4 sm:px-8 py-4">
-                        <form method="POST" action="{{ route('child.messages.store', $thread) }}" class="flex items-center gap-3">
+                        <form method="POST" action="{{ route('child.messages.store', $threads) }}" class="flex items-center gap-3">
                             @csrf
 
                             <div class="flex-1 relative">

@@ -370,5 +370,11 @@ class CaseFile extends Model
         return $events->sortByDesc('date')->values();
 
     }
-
+    
+    public function markReviewed(\App\Models\CaseFile $case)
+    {
+     abort_if(!$case->users()->where('users.id', auth()->id())->exists(), 403);
+     $case->update(['last_reviewed_at' => now()]);
+     return redirect()->back()->with('success', 'Case marked as reviewed.');
+    }
 }

@@ -13,13 +13,18 @@ class DomainScore extends Model
         'risk_score'
     ];
 
+    protected $casts = [
+        'average_score' => 'float',
+        'risk_score' => 'float',
+    ]; 
     public function domain()
     {
-        return $this->belongsTo(Domain::class);
+        return $this->belongsTo(Domain::class, 'domain_id');
     }
 
     public function wellbeingCheck()
     {
-        return $this->belongsTo(WellbeingCheck::class);
+        return $this->belongsTo(WellbeingCheck::class, 'wellbeing_check_id');
     }
+
 }

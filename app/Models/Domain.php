@@ -12,4 +12,10 @@ class Domain extends Model
     {
         return $this->hasMany(Question::class);
     }
+
+    public function domainScores()
+    {
+        return $this->hasMany(DomainScore::class);
+    }
+
 }
