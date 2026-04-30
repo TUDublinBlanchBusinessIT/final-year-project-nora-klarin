@@ -4,23 +4,20 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('carer')->change();
+            $table->string('login_code', 6)->nullable()->after('remember_token');
+            $table->timestamp('login_code_expires_at')->nullable()->after('login_code');
         });
     }
 
     public function down(): void
     {
-        if (Schema::hasTable('users') && Schema::hasColumn('users', 'role')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('role');
-            });
-        }
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('role');
+            $table->dropColumn(['login_code', 'login_code_expires_at']);
         });
     }
 };

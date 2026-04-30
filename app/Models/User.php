@@ -12,11 +12,19 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
         'role',
-        'username',
         'dob',
+        'password',
+        'role',
+        'carer_id',
+        'login_code',
+        'login_code_expires_at',
+        'theme',
+        'chatbot_name',
+        'dashboard_layout',
     ];
 
     protected $hidden = [
@@ -96,6 +104,3 @@ public function socialWorkerAppointments()
 }
 
 }
-
-
-

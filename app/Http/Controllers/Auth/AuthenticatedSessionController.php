@@ -4,42 +4,59 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $request->authenticateCredentialsOnly();
 
-        $request->session()->regenerate();
+        $user = User::where('email', $request->email)->first();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if (!$user) {
+            return back()->withErrors([
+                'email' => 'We could not verify your login details.',
+            ])->onlyInput('email');
+        }
+
+        $code = (string) random_int(100000, 999999);
+
+        $user->update([
+            'login_code' => $code,
+            'login_code_expires_at' => now()->addMinutes(10),
+        ]);
+
+        Mail::raw(
+            "Your CareHub verification code is: {$code}\n\nThis code will expire in 10 minutes.",
+            function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Your CareHub verification code');
+            }
+        );
+
+        $request->session()->put('login_otp_user_id', $user->id);
+        $request->session()->put('remember_after_otp', $request->boolean('remember'));
+
+        return redirect()->route('login.code.show')
+            ->with('status', 'We sent a 6-digit verification code to your email.');
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/login');
@@ -61,3 +78,4 @@ class AuthenticatedSessionController extends Controller
 }
 
 }
+

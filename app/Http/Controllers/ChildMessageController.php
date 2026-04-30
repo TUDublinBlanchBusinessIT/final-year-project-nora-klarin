@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CaseFile;
 use App\Models\Message;
 use App\Models\Thread;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ChildMessageController extends Controller
 {

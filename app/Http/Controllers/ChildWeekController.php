@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -20,8 +21,8 @@ class ChildWeekController extends Controller
 
     $userId = $user->id;
 
-    $start = Carbon::now()->startOfWeek(Carbon::MONDAY)->toDateString();
-    $end   = Carbon::now()->endOfWeek(Carbon::SUNDAY)->toDateString();
+    $start = Carbon::today();
+    $end = Carbon::today()->copy()->addDays(6);
 
     $appointments = \App\Models\Appointment::whereHas('caseFile', function ($query) use ($userId) {
         $query->where('young_person_id', $userId);
@@ -33,13 +34,11 @@ class ChildWeekController extends Controller
     ->orderBy('start_time')
     ->get();
 
-    // Mood checkins for this week
     $moods = DB::table('mood_checkins')
         ->where('user_id', $userId)
         ->whereBetween('date', [$start, $end])
         ->pluck('mood', 'date');
 
-    // Weekly goal for THIS week
     $weeklyGoal = DB::table('weekly_goals')
         ->where('user_id', $userId)
         ->where('week_start', $start)
@@ -65,16 +64,18 @@ class ChildWeekController extends Controller
         : null;
 
     $days = collect(range(0, 6))->map(function ($i) use ($start, $moods) {
-        $date = Carbon::parse($start)->addDays($i);
+        $date = $start->copy()->addDays($i);
         $key = $date->toDateString();
 
         return [
-            'label' => $date->format('D'),
+            'label' => $i === 0 ? 'Today' : $date->format('D'),
             'full'  => $date->format('l'),
             'date'  => $key,
+            'display_date' => $date->format('j M'),
+            'is_today' => $date->isToday(),
             'mood'  => $moods[$key] ?? null,
-        ];
-    });
+            ];
+        });
 
     return view('child.week', [
         'start' => $start,
@@ -87,3 +88,26 @@ class ChildWeekController extends Controller
 }
 
 }
+    
+
+
+
+
+        // Appointments for next 30 days
+        //$appointments = Appointment::where(function ($query) use ($userId) {
+                //$query->where('user_id', $userId)
+                    //->orWhereHas('users', function ($q) use ($userId) {
+                        //$q->where('users.id', $userId);
+                    //});
+            //})
+            //->whereBetween('date', [
+                //Carbon::today()->toDateString(),
+                //Carbon::today()->copy()->addDays(29)->toDateString(),
+            //])
+            //->orderBy('date')
+            //->orderBy('time')
+            //->distinct()
+            //->get();
+
+
+

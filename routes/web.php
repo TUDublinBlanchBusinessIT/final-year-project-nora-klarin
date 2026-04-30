@@ -25,6 +25,9 @@ use App\Http\Controllers\ChildWellbeingController;
 
 
 
+// Chatbot controller
+use App\Http\Controllers\ChatController;
+
 Route::get('/', function () {
 
     return view('welcome');
@@ -36,7 +39,6 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
 
     $user = auth()->user();
-
 
     if (!$user) {
 
@@ -67,10 +69,12 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/customization', [ProfileController::class, 'updateCustomization'])
+        ->name('profile.customization.update');
 
 });
 
@@ -180,6 +184,16 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
         ->middleware('role:social_worker')
         ->name('wellbeing.goal-suggestions');
 
+    Route::get('/child/support-map', function () {
+        return view('child.support-map');
+        })->name('child.support.map');
+
+    Route::get('/chatbot', [ChatController::class, 'index'])
+        ->name('chatbot.index');
+
+    Route::post('/chatbot/send', [ChatController::class, 'send'])
+        ->name('chatbot.send');
+
 });
 
 
@@ -194,9 +208,6 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 
     ->name('logout');
 
-//Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'show'])
-  //  ->middleware('auth')
-   // ->name('wellbeing.check');
 
 Route::prefix('demo')->name('demo.')->group(function () {
 
@@ -220,6 +231,3 @@ Route::prefix('demo')->name('demo.')->group(function () {
 require __DIR__.'/auth.php';
 require __DIR__.'/carer.php';
 require __DIR__.'/socialworker.php';
-
-
-

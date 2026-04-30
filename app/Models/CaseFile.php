@@ -1,18 +1,11 @@
 <?php
-
-
-
 namespace App\Models;
-
-
-
 use Illuminate\Database\Eloquent\Model;
-
 use App\Models\User;
-
 use Carbon\Carbon;
-
-
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CaseFile extends Model
 
@@ -20,22 +13,16 @@ class CaseFile extends Model
 
     protected $table = 'case_files';
 
-
-
     protected $fillable = [
-
         'case_reference',
-
         'young_person_id',
-
+        'placement_type',
+        'placement_location',
         'risk_level',
-
         'opened_at',
-
+        'closed_at',
         'status',
-
         'summary',
-
         'last_reviewed_at',
 
     ];
@@ -49,75 +36,45 @@ class CaseFile extends Model
         return $this->belongsToMany(
 
             User::class,
-
             'case_user',
-
             'case_id',
-
             'user_id'
 
         )->withPivot('role', 'assigned_at');
 
     }
 
-
-
     public function socialWorkers()
-
     {
-
         return $this->users()->wherePivot('role', 'social_worker');
-
     }
 
-
-
     public function carers()
-
     {
-
         return $this->users()->wherePivot('role', 'carer');
 
     }
 
-
-
     public function youngPerson()
-
     {
-
-        return $this->belongsTo(User::class, 'youngpersonid', 'id');
-
+        return $this->belongsTo(User::class, 'young_person_id', 'id');
     }
-
-
 
     public function appointments()
-
     {
-
         return $this->hasMany(Appointment::class, 'case_file_id');
-
     }
 
-
-
     public function placements()
-
     {
-
         return $this->hasMany(Placement::class, 'case_file_id');
 
     }
 
-
-
     public function medicalInfos()
 
     {
-
         return $this->hasMany(MedicalInfo::class, 'case_file_id');
-
     }
 
 

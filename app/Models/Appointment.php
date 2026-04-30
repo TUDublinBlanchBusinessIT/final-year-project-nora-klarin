@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Appointment extends Model
 {
-    protected $table = 'appointments'; // match your table
-    public $timestamps = false;       // your table uses createdat
+    protected $table = 'appointments';
+    public $timestamps = false;      
 
     protected $fillable = [
         'case_file_id',
@@ -21,13 +23,11 @@ class Appointment extends Model
         'created_by',
     ];
 
-    // Link to the case
     public function caseFile()
     {
         return $this->belongsTo(CaseFile::class, 'case_file_id');
     }
 
-    // Carers assigned to this appointment
 public function carers()
 {
     return $this->belongsToMany(
@@ -49,14 +49,6 @@ public function carers()
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // Helper: next appointment for a case
-    public static function nextForCase($caseId)
-    {
-        return self::where('caseid', $caseId)
-                   ->where('starttime', '>=', now())
-                   ->orderBy('starttime', 'asc')
-                   ->first();
-    }
 
 public static function nextAvailableSlot($socialWorkerId, Carbon $desiredDate, $durationMinutes = 30)
 {
@@ -84,4 +76,18 @@ public static function nextAvailableSlot($socialWorkerId, Carbon $desiredDate, $
 
     return null;
 }
+    protected $casts = [
+        'date' => 'date',
+    ];
+
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'appointment_user',
+            'appointment_id',
+            'user_id'
+        );
+    }
 }

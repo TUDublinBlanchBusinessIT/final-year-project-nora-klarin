@@ -14,7 +14,8 @@ class TrustedPeopleController extends Controller
     public function index()
     {
         $people = DB::table('trusted_people')
-            ->where('user_id', Auth::id())
+            ->where('child_id', Auth::id())
+            ->orderByDesc('id')
             ->get();
 
         return view('child.trusted-people', [
@@ -27,19 +28,19 @@ class TrustedPeopleController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'relationship' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
+        $data = $request->validate([
+            'name' => ['required','string','max:255'],
+            'relationship' => ['required','string','max:255'],
+            'phone' => ['nullable','string','max:50'],
+            'email' => ['nullable','email','max:255'],
         ]);
 
         DB::table('trusted_people')->insert([
-            'user_id' => Auth::id(),
-            'name' => $request->name,
-            'relationship' => $request->relationship,
-            'phone' => $request->phone,
-            'email' => $request->email,
+            'child_id' => Auth::id(),
+            'name' => $data['name'],
+            'relationship' => $data['relationship'],
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
