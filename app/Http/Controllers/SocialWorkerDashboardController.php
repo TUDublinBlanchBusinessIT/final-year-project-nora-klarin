@@ -36,21 +36,21 @@ class SocialWorkerDashboardController extends Controller
 
         $wellbeingAlertCount = WellbeingCheck::whereHas('caseFile.users', function ($query) use ($user) {
 
-            $query->where('users.id', $user->id)
+                $query->where('users.id', $user->id)
 
-                  ->where('case_user.role', 'social_worker');
+                      ->where('case_user.role', 'social_worker');
 
-        })
+            })
 
-        ->where(function ($query) {
+            ->where(function ($query) {
 
-            $query->where('overall_score', '<', 50)
+                $query->where('overall_score', '<', 50)
 
-                  ->orWhere('safeguarding_flag', true);
+                      ->orWhere('safeguarding_flag', true);
 
-        })
+            })
 
-        ->count();
+            ->count();
 
 
 
@@ -65,6 +65,26 @@ class SocialWorkerDashboardController extends Controller
 
 
         $wellbeingData = [];
+
+
+
+        $allDomainNames = [
+
+            'Emotional',
+
+            'Behavioural',
+
+            'Social',
+
+            'Physical',
+
+            'Education',
+
+            'Safety',
+
+            'Life Satisfaction',
+
+        ];
 
 
 
@@ -88,11 +108,41 @@ class SocialWorkerDashboardController extends Controller
 
 
 
-            $domainScores = $latestCheck->domainScores->mapWithKeys(function ($ds) {
+            $domainScores = collect();
 
-                return [$ds->domain->name => $ds->average_score ?? 0];
 
-            });
+
+            foreach ($allDomainNames as $domainName) {
+
+                $score = null;
+
+
+
+                foreach ($checks as $check) {
+
+                    $match = $check->domainScores->first(function ($ds) use ($domainName) {
+
+                        return optional($ds->domain)->name === $domainName;
+
+                    });
+
+
+
+                    if ($match) {
+
+                        $score = round((float) ($match->average_score ?? 0), 1);
+
+                        break;
+
+                    }
+
+                }
+
+
+
+                $domainScores[$domainName] = $score ?? 0;
+
+            }
 
 
 
@@ -223,3 +273,4 @@ class SocialWorkerDashboardController extends Controller
     }
 
 }
+

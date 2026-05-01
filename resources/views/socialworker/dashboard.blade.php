@@ -560,163 +560,209 @@
 
             {{-- WELLBEING TAB --}}
 
-            @isset($wellbeingData)
+@isset($wellbeingData)
 
-                <div x-show="tab === 'wellbeing'" x-transition class="space-y-6">
+    <div x-show="tab === 'wellbeing'" x-transition class="space-y-6">
 
 
 
-                    <div>
+        <div>
 
-                        <h3 class="text-2xl font-bold text-gray-900">Wellbeing Overview</h3>
+            <h3 class="text-2xl font-bold text-gray-900">Wellbeing Overview</h3>
 
-                        <p class="text-sm text-gray-500 mt-1">
+            <p class="text-sm text-gray-500 mt-1">
 
-                            Latest wellbeing summaries for assigned young people.
+                Latest wellbeing summaries for assigned young people.
 
-                        </p>
+            </p>
+
+        </div>
+
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            @foreach($wellbeingData as $data)
+
+                @php
+
+                    $child = $data['child'] ?? null;
+
+                    $checks = $data['checks'] ?? collect();
+
+                    $latestCheck = $checks->first();
+
+                    $domainScores = $data['domainScores'] ?? [];
+
+
+
+                    $risk = strtolower($latestCheck->risk_level ?? 'unknown');
+
+
+
+                    $riskBadgeClass =
+
+                        $risk === 'critical' ? 'bg-red-600 text-white' :
+
+                        ($risk === 'high' ? 'bg-red-100 text-red-700' :
+
+                        (($risk === 'medium' || $risk === 'moderate') ? 'bg-yellow-100 text-yellow-700' :
+
+                        ($risk === 'low' ? 'bg-green-100 text-green-700' :
+
+                        'bg-gray-100 text-gray-700')));
+
+                @endphp
+
+
+
+                <div class="p-6 bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg transition">
+
+                    <div class="flex justify-between items-start gap-4 mb-5">
+
+                        <div>
+
+                            <h4 class="font-semibold text-gray-800 text-xl">
+
+                                {{ $child->name ?? 'Unknown Child' }}
+
+                            </h4>
+
+
+
+                            @if($latestCheck)
+
+                                <p class="text-sm text-gray-500 mt-1">
+
+                                    Last: {{ $latestCheck->created_at ? $latestCheck->created_at->format('d M Y') : '-' }}
+
+                                </p>
+
+                            @else
+
+                                <p class="text-sm text-gray-500 mt-1">No checks yet</p>
+
+                            @endif
+
+                        </div>
+
+
+
+                        @if($latestCheck)
+
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $riskBadgeClass }}">
+
+                                {{ ucfirst($latestCheck->risk_level ?? 'unknown') }}
+
+                            </span>
+
+                        @endif
 
                     </div>
 
 
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @if(!empty($domainScores))
 
-                        @foreach($wellbeingData as $data)
+                        <div class="space-y-4">
 
-                            @php
+                            @foreach($domainScores as $domainName => $score)
 
-                                $child = $data['child'] ?? null;
+                                @php
 
-                                $checks = $data['checks'] ?? collect();
+                                    $barColor =
 
-                                $latestCheck = $checks->first();
+                                        $score < 30 ? '#ef4444' :
 
-                            @endphp
+                                        ($score < 50 ? '#f87171' :
 
+                                        ($score < 70 ? '#f59e0b' : '#34d399'));
 
-
-                            <div class="p-6 bg-white rounded-3xl shadow-sm border border-gray-100">
-
-                                <div class="flex justify-between items-center mb-4">
-
-                                    <div>
-
-                                        <h4 class="font-semibold text-gray-800 text-lg">
-
-                                            {{ $child->name ?? 'Unknown Child' }}
-
-                                        </h4>
+                                @endphp
 
 
 
-                                        @if($latestCheck)
+                                <div>
 
-                                            <span class="text-sm text-gray-500">
+                                    <div class="flex justify-between items-center text-sm text-gray-600 mb-1">
 
-                                                Last: {{ $latestCheck->created_at ? $latestCheck->created_at->format('d M Y') : '-' }}
+                                        <span class="font-medium">{{ $domainName }}</span>
 
-                                            </span>
-
-                                        @else
-
-                                            <span class="text-sm text-gray-500">No checks yet</span>
-
-                                        @endif
+                                        <span>{{ round($score, 1) }}</span>
 
                                     </div>
 
 
 
-                                    @if($latestCheck)
+                                    <div class="h-2.5 bg-blue-50 rounded-full overflow-hidden">
 
-                                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                        <div
 
-                                            @if(($latestCheck->risk_level ?? null) === 'critical') bg-red-600 text-white
+                                            class="h-2.5 rounded-full transition-all duration-500"
 
-                                            @elseif(($latestCheck->risk_level ?? null) === 'high') bg-red-100 text-red-700
+                                            style="width: {{ max(0, min(100, $score)) }}%; background-color: {{ $barColor }};">
 
-                                            @elseif(($latestCheck->risk_level ?? null) === 'medium' || ($latestCheck->risk_level ?? null) === 'moderate') bg-yellow-100 text-yellow-700
-
-                                            @else bg-green-100 text-green-700
-
-                                            @endif">
-
-                                            {{ ucfirst($latestCheck->risk_level ?? 'unknown') }}
-
-                                        </span>
-
-                                    @endif
-
-                                </div>
-
-
-
-                                <div class="space-y-3">
-
-                                    @if(!empty($data['domainScores']))
-
-                                        @foreach($data['domainScores'] as $domainName => $score)
-
-                                            <div>
-
-                                                <div class="flex justify-between items-center text-sm text-gray-600">
-
-                                                    <span>{{ $domainName }}</span>
-
-                                                    <span>{{ round($score, 1) }}</span>
-
-                                                </div>
-
-                                                <div class="h-2 bg-gray-200 rounded-full mt-1">
-
-                                                    <div
-
-                                                        class="h-2 rounded-full"
-
-                                                        style="width: {{ $score }}%; background-color: {{ $score < 50 ? '#f87171' : '#34d399' }}">
-
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-
-                                        @endforeach
-
-                                    @else
-
-                                        <p class="text-gray-400 text-sm">No domain scores yet.</p>
-
-                                    @endif
-
-                                </div>
-
-
-
-                                @if($latestCheck)
-
-                                    <div class="mt-4 text-right">
-
-                                        <a href="{{ route('wellbeing.result', $latestCheck) }}" class="text-indigo-600 hover:underline text-sm font-medium">
-
-                                            View Details
-
-                                        </a>
+                                        </div>
 
                                     </div>
 
-                                @endif
+                                </div>
+
+                            @endforeach
+
+                        </div>
+
+                    @else
+
+                        <div class="rounded-2xl bg-gray-50 border border-dashed border-gray-200 px-4 py-4 text-sm text-gray-400">
+
+                            No domain scores yet.
+
+                        </div>
+
+                    @endif
+
+
+
+                    @if($latestCheck)
+
+                        <div class="mt-5 flex items-center justify-between">
+
+                            <div class="text-sm text-gray-500">
+
+                                Overall Score:
+
+                                <span class="font-semibold text-gray-800">
+
+                                    {{ round($latestCheck->overall_score ?? 0, 1) }}
+
+                                </span>
 
                             </div>
 
-                        @endforeach
 
-                    </div>
+
+                            <a href="{{ route('wellbeing.result', $latestCheck) }}"
+
+                               class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+
+                                View Details
+
+                            </a>
+
+                        </div>
+
+                    @endif
 
                 </div>
 
-            @endisset
+            @endforeach
+
+        </div>
+
+    </div>
+
+@endisset
 
 
 
