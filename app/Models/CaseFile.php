@@ -27,7 +27,16 @@ class CaseFile extends Model
 
     ];
 
-
+        protected static function boot()
+    {
+        parent::boot();
+ 
+        static::creating(function ($case) {
+            if (empty($case->case_reference)) {
+                $case->case_reference = self::generateCaseReference();
+            }
+        });
+    }
 
     public function users()
 
@@ -185,54 +194,25 @@ class CaseFile extends Model
 
     }
 
-
-    protected static function boot()
-
+       public static function generateCaseReference(): string
     {
-
-        parent::boot();
-
-
-
-        static::creating(function ($case) {
-
-            if (!empty($case->case_reference)) {
-
-                return;
-
-            }
-
-
-            $year = now()->year;
-
-            $lastCase = self::whereYear('created_at', $year)
-
-                ->whereNotNull('case_reference')
-
-                ->orderByDesc('id')
-
-                ->first();
-
-
-            $number = 1;
-
-
-
-            if ($lastCase && preg_match('/(\d{4})$/', $lastCase->case_reference, $matches)) {
-
-                $number = intval($matches[1]) + 1;
-
-            }
-
-
-
-            $case->case_reference = 'CF-' . $year . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
-
-        });
-
+        $year = now()->year;
+ 
+        $lastCase = self::whereYear('created_at', $year)
+            ->whereNotNull('case_reference')
+            ->where('case_reference', 'like', "CF-{$year}-%")
+            ->orderByDesc('id')
+            ->first();
+ 
+        $number = 1;
+ 
+        if ($lastCase && preg_match('/CF-\d{4}-(\d+)$/', $lastCase->case_reference, $matches)) {
+            $number = intval($matches[1]) + 1;
+        }
+ 
+        return 'CF-' . $year . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
     }
-
-
+ 
 
     public function timeline()
 

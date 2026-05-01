@@ -17,14 +17,13 @@ class User extends Authenticatable
         'password',
         'role',
         'dob',
-        'password',
-        'role',
         'carer_id',
         'login_code',
         'login_code_expires_at',
         'theme',
         'chatbot_name',
         'dashboard_layout',
+        'last_login_at',
     ];
 
     protected $hidden = [
@@ -34,7 +33,18 @@ class User extends Authenticatable
 
         protected $casts = [
         'dob' => 'date',
+        'last_login_at' => 'datetime',
     ];
+
+    public function age(): ?int
+    {
+        return $this->dob?->age;
+    }
+
+    public function isYoungChild(): bool
+    {
+        return $this->role === 'young_person' && $this->age() !== null && $this->age() < 10;
+    }
 
     public function cases()
     {
@@ -101,6 +111,20 @@ public function wellbeingChecks()
 public function socialWorkerAppointments()
 {
     return $this->hasMany(\App\Models\Appointment::class, 'created_by');
+}
+
+protected static function booted()
+{
+    static::created(function ($user) {
+        if ($user->role === 'young_person') {
+            \App\Models\CaseFile::create([
+                'young_person_id' => $user->id,
+                'status' => 'open',
+                'case_reference' => \App\Models\CaseFile::generateCaseReference(),
+                'opened_at' => now(),
+            ]);
+        }
+    });
 }
 
 }

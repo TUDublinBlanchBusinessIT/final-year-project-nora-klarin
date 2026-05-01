@@ -26,21 +26,39 @@ use App\Models\WellbeingCheck;
 class WellbeingPolicy
 {
     /**
-     * Only the authenticated young person can start their own check.
+     * Only the authenticated young person or an assigned worker/carer
+     * can start a wellbeing check for the child.
      */
     public function startWellbeingCheck(User $user, User $youngPerson): bool
     {
-        return $user->id === $youngPerson->id
-            && $user->role === 'young_person';
+        if ($user->id === $youngPerson->id && $user->role === 'young_person') {
+            return true;
+        }
+
+        if (! in_array($user->role, ['social_worker', 'carer'])) {
+            return false;
+        }
+
+        return $this->isAssignedToCase($user, $youngPerson);
     }
 
     /**
-     * Only the young person who owns the check can submit it.
+     * The young person can submit their own check, and assigned staff
+     * or carers can submit on behalf of their assigned child.
      */
     public function submitWellbeingCheck(User $user, WellbeingCheck $check): bool
     {
-        return $user->id === $check->young_person_id
-            && $user->role === 'young_person';
+        if ($user->id === $check->young_person_id && $user->role === 'young_person') {
+            return true;
+        }
+
+        if (! in_array($user->role, ['social_worker', 'carer'])) {
+            return false;
+        }
+
+        $youngPerson = User::find($check->young_person_id);
+
+        return $youngPerson && $this->isAssignedToCase($user, $youngPerson);
     }
 
     /**

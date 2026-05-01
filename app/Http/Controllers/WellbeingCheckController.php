@@ -16,11 +16,13 @@ use App\Models\CaseFile;
 use App\Models\User;
 use App\Models\Question;
 use App\Models\Domain;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 
 class WellbeingCheckController extends Controller
 
 {
+    use AuthorizesRequests;
     public function __construct(
         private readonly CheckQuestionSelector   $selector,
         private readonly WellbeingScoringService $scoringService,
@@ -40,6 +42,20 @@ class WellbeingCheckController extends Controller
         /** @var \App\Models\User $youngPerson */
         $youngPerson = Auth::user();
 
+        $this->authorize('startWellbeingCheck', $youngPerson);
+
+        return $this->beginCheckFor($youngPerson);
+    }
+
+    public function startForYoungPerson(Request $request, User $youngPerson): JsonResponse
+    {
+        $this->authorize('startWellbeingCheck', $youngPerson);
+
+        return $this->beginCheckFor($youngPerson);
+    }
+
+    protected function beginCheckFor(User $youngPerson): JsonResponse
+    {
         $caseFileId = DB::table('case_files')
             ->where('young_person_id', $youngPerson->id)
             ->where('status', 'open')
@@ -51,8 +67,6 @@ class WellbeingCheckController extends Controller
         $isIntake = !WellbeingCheck::where('young_person_id', $youngPerson->id)
             ->whereNotNull('completed_at')
             ->exists();
-
-
 
         $check = WellbeingCheck::create([
             'young_person_id' => $youngPerson->id,
@@ -69,9 +83,6 @@ class WellbeingCheckController extends Controller
                 'created_at'         => now(),
             ]);
         }
-
-        $scoring = new WellbeingScoringService();
-
 
         return response()->json([
             'check_id'   => $check->id,
@@ -91,9 +102,7 @@ class WellbeingCheckController extends Controller
 
     public function submitCheck(Request $request, WellbeingCheck $check): JsonResponse
     {
-        if ($check->young_person_id !== Auth::id()) {
-            abort(403);
-        }
+        $this->authorize('submitWellbeingCheck', $check);
 
         if ($check->completed_at !== null) {
             return response()->json(['message' => 'Already submitted.'], 409);

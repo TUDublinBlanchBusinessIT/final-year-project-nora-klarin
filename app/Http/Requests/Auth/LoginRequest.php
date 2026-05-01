@@ -21,22 +21,34 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
+    }
+
+    public function login(): string
+    {
+        return $this->string('login');
+    }
+
+    public function isEmailLogin(): bool
+    {
+        return filter_var($this->login(), FILTER_VALIDATE_EMAIL) !== false;
     }
 
     public function authenticateCredentialsOnly(): void
     {
         $this->ensureIsNotRateLimited();
 
-        $user = User::where('email', $this->string('email'))->first();
+        $user = User::where('email', $this->login())
+            ->orWhere('username', $this->login())
+            ->first();
 
         if (!$user || !Hash::check($this->string('password'), $user->password)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'), // error shows for username field
+                'login' => trans('auth.failed'),
             ]);
         }
 
@@ -54,7 +66,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'login' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -63,7 +75,7 @@ class LoginRequest extends FormRequest
 
     public function throttleKey(): string
     {
-        // Use username for throttle instead of email
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        // Use the login identifier for throttling rather than the old email field.
+        return Str::transliterate(Str::lower($this->login()).'|'.$this->ip());
     }
 }

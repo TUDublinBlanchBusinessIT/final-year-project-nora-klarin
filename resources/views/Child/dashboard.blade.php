@@ -98,7 +98,7 @@
                         x-show="open"
                         @click.outside="open = false"
                         x-transition
-                        class="absolute right-0 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden z-50"
+                        class="absolute right-0 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-visible z-50"
                     >
                         <div class="px-4 py-3 border-b bg-gray-50">
                             <div class="font-extrabold text-gray-800">Notifications</div>
@@ -189,8 +189,8 @@
                 </p>
             </div>
                 {{-- Check-in --}}
-                <div class="rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100">
-            <div class="{{ $topGridClass }}">
+                <div class="md:col-span-3 rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100">
+                    <div class="{{ $topGridClass }}">
 
                 <div class="{{ $cardClass }}">
                     <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>
@@ -268,6 +268,7 @@
                     </p>
                 </div>
             </div>
+        </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div id="diary" class="{{ $largeCardClass }}">

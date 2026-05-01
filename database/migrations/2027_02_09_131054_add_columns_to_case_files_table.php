@@ -1,5 +1,5 @@
 <?php
-
+     
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('case_files', function (Blueprint $table) {
 
             // Child in care
-            $table->unsignedBigInteger('young_person_id')->nullable()->after('id');
+           // $table->unsignedBigInteger('young_person_id')->nullable()->after('id');
 
             // Case state
             $table->string('status')->default('open')->after('young_person_id');
@@ -35,7 +35,7 @@ return new class extends Migration
     {
         Schema::table('case_files', function (Blueprint $table) {
             $table->dropColumn([
-                'young_person_id',
+               // 'young_person_id',
                 'status',
                 'risk_level',
                 'placement_type',

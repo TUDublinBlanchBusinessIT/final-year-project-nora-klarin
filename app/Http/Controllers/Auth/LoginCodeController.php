@@ -52,6 +52,7 @@ class LoginCodeController extends Controller
         $user->update([
             'login_code' => null,
             'login_code_expires_at' => null,
+            'last_login_at' => now(),
         ]);
 
         $request->session()->forget('login_otp_user_id');

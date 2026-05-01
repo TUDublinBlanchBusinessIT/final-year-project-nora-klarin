@@ -9,6 +9,7 @@ use App\Http\Controllers\CarerMessageController;
 use App\Http\Controllers\CarerDocumentController;
 use App\Http\Controllers\CarerCaseFileController;
 use App\Http\Controllers\WellbeingController;
+use App\Http\Controllers\WellbeingCheckController;
 
 Route::middleware(['auth', 'role:carer'])->group(function () {
     Route::get('/carer/dashboard', [CarerDashboardController::class, 'index'])
@@ -51,4 +52,10 @@ Route::middleware(['auth', 'role:carer'])->group(function () {
 
     Route::post('/wellbeing', [WellbeingController::class, 'store'])
         ->name('carer.wellbeing.store');
+
+    Route::post('/carer/young-person/{youngPerson}/wellbeing/start', [WellbeingCheckController::class, 'startForYoungPerson'])
+        ->name('carer.wellbeing.start');
+
+    Route::post('/carer/wellbeing/{check}/submit', [WellbeingCheckController::class, 'submitCheck'])
+        ->name('carer.wellbeing.submit');
 });
