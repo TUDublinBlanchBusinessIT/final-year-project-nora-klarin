@@ -100,14 +100,9 @@ class CarerMessageController extends Controller
     {
         $user = $request->user();
 
-        if (($user->role ?? null) !== 'carer') {
-            abort(403);
-        }
+        abort_unless($user->role === 'carer', 403);
 
-        $recipients = User::query()
-            ->where('id', '!=', $user->id)
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'role']);
+        $recipients = User::messageableUsers($user);
 
         return view('carer.messages.create', compact('recipients'));
     }
@@ -116,23 +111,27 @@ class CarerMessageController extends Controller
     {
         $user = $request->user();
 
-        if (($user->role ?? null) !== 'carer') {
-            abort(403);
-        }
+        abort_unless($user->role === 'carer', 403);
 
         $data = $request->validate([
             'recipient_id' => ['required', 'exists:users,id'],
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
+        $recipient = User::findOrFail($data['recipient_id']);
+
+        if (!User::canMessage($user, $recipient)) {
+            abort(403, 'You cannot message this user.');
+        }
+
         Message::create([
             'sender_id' => $user->id,
-            'recipient_id' => $data['recipient_id'],
+            'recipient_id' => $recipient->id,
             'body' => $data['body'],
         ]);
 
         return redirect()
-            ->route('carer.messages.index', ['with' => $data['recipient_id']])
+            ->route('carer.messages.index', ['with' => $recipient->id])
             ->with('status', 'Message sent!');
     }
 }

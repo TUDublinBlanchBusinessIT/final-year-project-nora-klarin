@@ -70,7 +70,6 @@ class SocialWorkerMessagesController extends Controller
         $messages = collect();
 
         if ($selectedUser) {
-            // Pull messages between me and selected user
             $messages = Message::query()
                 ->with(['sender:id,name', 'recipient:id,name'])
                 ->where(function ($q) use ($user, $withId) {
@@ -84,7 +83,6 @@ class SocialWorkerMessagesController extends Controller
                 ->orderBy('created_at')
                 ->get();
 
-            // Mark received messages as read
             Message::query()
                 ->where('sender_id', $withId)
                 ->where('recipient_id', $user->id)
@@ -95,39 +93,17 @@ class SocialWorkerMessagesController extends Controller
         return view('socialworker.messages.index', compact('conversations', 'selectedUser', 'messages'));
     }
 
-public function create(Request $request)
-{
-    $user = $request->user();
+    public function create(Request $request)
+    {
+        $user = $request->user();
 
-    if (($user->role ?? null) !== 'social_worker') {
-        abort(403);
+        abort_unless($user->role === 'social_worker', 403);
+
+        $recipients = User::messageableUsers($user);
+
+        return view('socialworker.messages.create', compact('recipients'));
     }
-
-    $caseIds = \DB::table('case_user')
-        ->where('user_id', $user->id)
-        ->where('role', 'social_worker')
-        ->pluck('case_id');
-
-    $youngPeople = \DB::table('case_files')
-        ->whereIn('id', $caseIds)
-        ->pluck('young_person_id');
-
-    $carers = \DB::table('case_user')
-        ->whereIn('case_id', $caseIds)
-        ->where('role', 'carer')
-        ->pluck('user_id');
-
-    $recipientIds = $youngPeople
-        ->merge($carers)
-        ->unique()
-        ->filter();
-
-    $recipients = \App\Models\User::whereIn('id', $recipientIds)
-        ->orderBy('name')
-        ->get(['id', 'name', 'email', 'role']);
-
-    return view('socialworker.messages.create', compact('recipients'));
-}
+    
     public function store(Request $request)
     {
         $user = $request->user();

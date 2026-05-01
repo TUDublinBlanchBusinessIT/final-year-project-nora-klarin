@@ -46,7 +46,7 @@ class CaseFile extends Model
 
             User::class,
             'case_user',
-            'case_id',
+            'case_file_id',
             'user_id'
 
         )->withPivot('role', 'assigned_at');

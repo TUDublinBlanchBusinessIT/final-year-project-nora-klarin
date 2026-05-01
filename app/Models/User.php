@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+
 
 class User extends Authenticatable
 {
@@ -52,13 +54,13 @@ class User extends Authenticatable
             CaseFile::class,
             'case_user',
             'user_id',
-            'case_id'
+            'case_file_id'
         )->withPivot('role', 'assigned_at');
     }
 
     public function caseFile()
     {
-        return $this->hasOne(CaseFile::class, 'youngpersonid', 'id');
+        return $this->hasOne(CaseFile::class, 'young_person_id', 'id');
     }
 
     public function socialWorkerCases()
@@ -67,7 +69,7 @@ class User extends Authenticatable
             CaseFile::class,
             'case_user',
             'user_id',
-            'case_id'
+            'case_file_id'
         )->withPivot('role', 'assigned_at')
          ->wherePivot('role', 'social_worker');
     }
@@ -78,7 +80,7 @@ class User extends Authenticatable
             CaseFile::class,
             'case_user',
             'user_id',
-            'case_id'
+            'case_file_id'
         )->withPivot('role', 'assigned_at')
          ->wherePivot('role', 'carer');
     }
@@ -127,4 +129,45 @@ protected static function booted()
     });
 }
 
+    public static function canMessage(User $sender, User $recipient): bool
+    {
+        if ($sender->id === $recipient->id) return false;
+
+        if ($sender->role === 'social_worker') {
+            if ($recipient->role === 'social_worker') {
+                return true; // can message other social workers
+            }
+            return in_array($recipient->role, ['carer', 'young_person'])
+                && self::sharesCase($sender->id, $recipient->id);
+        }
+
+        if ($sender->role === 'carer') {
+            return $recipient->role === 'social_worker'
+                && self::sharesCase($sender->id, $recipient->id);
+        }
+
+        if ($sender->role === 'young_person') {
+            return in_array($recipient->role, ['carer', 'social_worker'])
+                && self::sharesCase($sender->id, $recipient->id);
+        }
+
+        return false;
+    }
+
+    private static function sharesCase(int $userA, int $userB): bool
+    {
+        return DB::table('case_user as cu1')
+            ->join('case_user as cu2', 'cu1.case_file_id', '=', 'cu2.case_file_id')
+            ->where('cu1.user_id', $userA)
+            ->where('cu2.user_id', $userB)
+            ->exists();
+    }
+
+    public static function messageableUsers(User $user)
+    {
+        return User::query()
+            ->get()
+            ->filter(fn ($other) => self::canMessage($user, $other))
+            ->values();
+    }
 }
