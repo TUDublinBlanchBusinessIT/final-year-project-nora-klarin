@@ -17,6 +17,7 @@ class WellbeingAnswer extends Model
         'raw_value',
         'normalised_score',
         'risk_contribution',
+        'respondent_type',
     ];
 
     public function wellbeingCheck()

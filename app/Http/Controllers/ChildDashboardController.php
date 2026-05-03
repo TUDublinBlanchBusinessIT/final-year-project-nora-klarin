@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\CaseFile;
 
 class ChildDashboardController extends Controller
 {
@@ -44,11 +45,24 @@ class ChildDashboardController extends Controller
             ->whereNull('messages.read_at')
             ->count();
 
+        // Get case and goals
+        $case = CaseFile::where('young_person_id', $userId)->first();
+        $goals = $case
+            ? $case->goals()->with('goal.sourceDomain')->get()
+            : collect();
+        // Latest mood
+        $latestMood = DB::table('mood_checkins')
+            ->where('user_id', $userId)
+            ->orderByDesc('date')
+            ->value('mood');
+
         return view('child.dashboard', [
             'recentEntries' => $recentEntries,
             'reminderCount' => $reminderCount,
             'unreadMessageCount' => $unreadMessageCount,
             'carer' => $carer,
+            'goals' => $goals,
+            'latestMood' => $latestMood,
         ]);
     }
 }

@@ -136,9 +136,7 @@
                     }
 
                     $appointmentsByDate = collect($appointments ?? [])->groupBy(function ($appt) {
-                        return !empty($appt->date)
-                            ? \Carbon\Carbon::parse($appt->date)->toDateString()
-                            : null;
+                        return \Carbon\Carbon::parse($appt->start_time)->toDateString();
                     });
 
                     $startMonthLabel = $calendarStart->format('F');

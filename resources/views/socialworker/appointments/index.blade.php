@@ -15,6 +15,44 @@
 
 <div class="space-y-6">
 
+    {{-- Calendar --}}
+    @php
+        $month = now()->month;
+        $year = now()->year;
+        $daysInMonth = now()->daysInMonth;
+        $firstDay = now()->firstOfMonth()->dayOfWeekIso; // 1=Monday, 7=Sunday
+        $appointmentsByDate = $appointments->groupBy(function($appt) {
+            return \Carbon\Carbon::parse($appt->start_time)->format('Y-m-d');
+        });
+    @endphp
+
+    <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">{{ now()->format('F Y') }} Calendar</h2>
+        <div class="grid grid-cols-7 gap-1">
+            @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                    {{ $dayName }}
+                </div>
+            @endforeach
+            @for ($i = 1; $i < $firstDay; $i++)
+                <div class="min-h-[80px] border border-gray-200 p-1"></div>
+            @endfor
+            @for ($day = 1; $day <= $daysInMonth; $day++)
+                @php
+                    $date = \Carbon\Carbon::create($year, $month, $day)->format('Y-m-d');
+                    $dayAppointments = $appointmentsByDate->get($date, collect());
+                    $isToday = $date == now()->format('Y-m-d');
+                @endphp
+                <div class="min-h-[80px] border border-gray-200 p-1 {{ $isToday ? 'bg-indigo-50' : '' }}">
+                    <div class="text-sm font-medium text-gray-900">{{ $day }}</div>
+                    @foreach($dayAppointments as $appt)
+                        <div class="text-xs text-gray-600 truncate">{{ $appt->title }}</div>
+                    @endforeach
+                </div>
+            @endfor
+        </div>
+    </div>
+
     {{-- Upcoming --}}
     <div class="bg-white border border-gray-100 rounded-xl divide-y">
 

@@ -16,7 +16,7 @@ class SocialWorkerAppointmentController extends Controller
 
         $appointments = $user->socialWorkerAppointments()->with([
             'youngPerson',
-            'case'
+            'caseFile'
             
             ])->orderBy('start_time')->get();
 
@@ -47,28 +47,45 @@ public function store(Request $request)
 
     $data = $request->validate([
         'case_file_id' => 'required|exists:case_files,id',
-        'start_time'   => 'required|date',
-        'end_time'     => 'required|date|after:start_time',
-        'location'     => 'nullable|string',
-        'title'        => 'required|string',
-        'description'  => 'nullable|string',
-        'carers'       => 'nullable|array',
-        'carers.*'     => 'exists:users,id',
+        'date' => 'required|date',
+        'time' => 'required|date_format:H:i',
+        'end_time' => 'nullable|date_format:H:i',
+        'location' => 'nullable|string',
+        'title' => 'required|string',
+        'description' => 'nullable|string',
+        'invite_child' => 'nullable|boolean',
+        'carers' => 'nullable|array',
+        'carers.*' => 'exists:users,id',
     ]);
+
+    $case = CaseFile::findOrFail($data['case_file_id']);
+
+    $startTime = Carbon::parse($data['date'] . ' ' . $data['time']);
+
+    $endTime = $request->filled('end_time')
+        ? Carbon::parse($data['date'] . ' ' . $data['end_time'])
+        : $startTime->copy()->addMinutes(30);
 
     $appointment = Appointment::create([
         'case_file_id' => $data['case_file_id'],
         'created_by'   => auth()->id(),
-        'start_time'   => $data['start_time'],
-        'end_time'     => $data['end_time'],
+        'start_time'   => $startTime,
+        'end_time'     => $endTime,
         'location'     => $data['location'] ?? null,
         'title'        => $data['title'],
         'description'  => $data['description'] ?? null,
     ]);
 
-    // Attach carers via pivot
+    // Attach attendees via pivot
+    $attendees = [];
+    if ($data['invite_child']) {
+        $attendees[] = $case->young_person_id;
+    }
     if (!empty($data['carers'])) {
-        $appointment->carers()->attach($data['carers']);
+        $attendees = array_merge($attendees, $data['carers']);
+    }
+    if (!empty($attendees)) {
+        $appointment->users()->attach($attendees);
     }
 
     return redirect()

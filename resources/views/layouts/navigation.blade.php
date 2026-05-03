@@ -12,6 +12,14 @@
         ['route' => 'carer.dashboard', 'label' => 'Dashboard'],
     ];
 
+    $childLinks = [
+        ['route' => 'child.dashboard', 'label' => 'Home'],
+        ['route' => 'child.week', 'label' => 'Calendar'],
+        ['route' => 'child.messages.index', 'label' => 'Messages'],
+        ['route' => 'child.diary.index', 'label' => 'Diary'],
+        ['route' => 'profile.edit', 'label' => 'Me'],
+    ];
+
     $isDark = $user?->theme === 'dark';
 @endphp
 
@@ -45,6 +53,15 @@
                             @foreach($carerLinks as $link)
                                 <a href="{{ route($link['route']) }}"
                                    class="px-3 py-1.5 rounded-md text-sm font-medium transition {{ request()->routeIs($link['route']) ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
+                                    {{ $link['label'] }}
+                                </a>
+                            @endforeach
+                        @endif
+
+                        @if($user->role === 'young_person')
+                            @foreach($childLinks as $link)
+                                <a href="{{ route($link['route']) }}"
+                                   class="px-3 py-1.5 rounded-md text-sm font-medium transition {{ request()->routeIs($link['route']) || request()->routeIs($link['route'].'*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
                                     {{ $link['label'] }}
                                 </a>
                             @endforeach
@@ -101,6 +118,12 @@
 
             @if($user->role === 'carer')
                 @foreach($carerLinks as $link)
+                    <a href="{{ route($link['route']) }}" class="block px-3 py-2 text-sm rounded-md hover:bg-gray-50">{{ $link['label'] }}</a>
+                @endforeach
+            @endif
+
+            @if($user->role === 'young_person')
+                @foreach($childLinks as $link)
                     <a href="{{ route($link['route']) }}" class="block px-3 py-2 text-sm rounded-md hover:bg-gray-50">{{ $link['label'] }}</a>
                 @endforeach
             @endif

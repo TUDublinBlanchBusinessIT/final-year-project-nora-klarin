@@ -58,15 +58,4 @@ class WellbeingCheck extends Model
         return $this->hasMany(Alert::class, 'wellbeing_check_id');
     }
 
-    public function getComputedRiskLevelAttribute(): string
-    {
-        $score = $this->overall_score ?? 0;
-
-        return match (true) {
-            $score >= 70 => 'low',
-            $score >= 50 => 'medium',
-            $score >= 30 => 'high',
-            default => 'critical',
-        };
-    }
 }

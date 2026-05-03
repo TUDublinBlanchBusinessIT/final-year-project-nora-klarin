@@ -142,7 +142,17 @@
 
             <h2 class="font-semibold text-xl leading-tight {{ $headerTextClass }}">
 
-                👋 Hi {{ Auth::user()->name ?? 'there' }}!
+                @php
+
+                    $hour = now()->hour;
+
+                    $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+
+                    $messageText = $unreadMessageCount > 0 ? ' (You have unread messages)' : '';
+
+                @endphp
+
+                {{ $greeting }}, {{ Auth::user()->name ?? 'there' }}! {{ $messageText }}
 
             </h2>
 
@@ -346,6 +356,36 @@
 
 
 
+                <div class="{{ $cardClass }}">
+
+                    <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>
+
+                    <p class="mt-2 {{ $subtleTextClass }}">How are you feeling today?</p>
+
+
+
+                    <div class="mt-4 grid grid-cols-5 gap-2 text-xl">
+
+                        <a href="{{ route('child.mood.save', 'happy') }}" class="text-center rounded-2xl bg-yellow-100 hover:bg-yellow-200 py-3 transition">😊</a>
+
+                        <a href="{{ route('child.mood.save', 'calm') }}" class="text-center rounded-2xl bg-green-100 hover:bg-green-200 py-3 transition">😌</a>
+
+                        <a href="{{ route('child.mood.save', 'okay') }}" class="text-center rounded-2xl bg-blue-100 hover:bg-blue-200 py-3 transition">😐</a>
+
+                        <a href="{{ route('child.mood.save', 'worried') }}" class="text-center rounded-2xl bg-purple-100 hover:bg-purple-200 py-3 transition">😟</a>
+
+                        <a href="{{ route('child.mood.save', 'sad') }}" class="text-center rounded-2xl bg-red-100 hover:bg-red-200 py-3 transition">😢</a>
+
+                    </div>
+
+
+
+                    <p class="text-xs mt-3 {{ $smallTextClass }}">Pick one to start your day 🌈</p>
+
+                </div>
+
+
+
                 <div class="{{ $cardClassPink }}">
 
                     <h3 class="text-lg font-extrabold text-pink-700">🩷 Wellbeing Check</h3>
@@ -377,36 +417,6 @@
                         Takes about 2–3 minutes
 
                     </p>
-
-                </div>
-
-
-
-                <div class="{{ $cardClass }}">
-
-                    <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>
-
-                    <p class="mt-2 {{ $subtleTextClass }}">How are you feeling today?</p>
-
-
-
-                    <div class="mt-4 grid grid-cols-5 gap-2 text-xl">
-
-                        <a href="{{ route('child.mood.save', 'happy') }}" class="text-center rounded-2xl bg-yellow-100 hover:bg-yellow-200 py-3 transition">😊</a>
-
-                        <a href="{{ route('child.mood.save', 'calm') }}" class="text-center rounded-2xl bg-green-100 hover:bg-green-200 py-3 transition">😌</a>
-
-                        <a href="{{ route('child.mood.save', 'okay') }}" class="text-center rounded-2xl bg-blue-100 hover:bg-blue-200 py-3 transition">😐</a>
-
-                        <a href="{{ route('child.mood.save', 'worried') }}" class="text-center rounded-2xl bg-purple-100 hover:bg-purple-200 py-3 transition">😟</a>
-
-                        <a href="{{ route('child.mood.save', 'sad') }}" class="text-center rounded-2xl bg-red-100 hover:bg-red-200 py-3 transition">😢</a>
-
-                    </div>
-
-
-
-                    <p class="text-xs mt-3 {{ $smallTextClass }}">Pick one to start your day 🌈</p>
 
                 </div>
 
@@ -808,39 +818,43 @@
 
             @if($layout !== 'minimal')
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-6">
 
                     <div class="{{ $bottomLeftCardClass }}">
 
-                        <h3 class="text-lg font-extrabold text-green-700">🎯 My Goal This Week</h3>
+                        <h3 class="text-lg font-extrabold text-green-700">🎯 My Goals</h3>
 
-                        <p class="mt-2 {{ $subtleTextClass }}">Pick one small thing to work on.</p>
+                        <p class="mt-2 {{ $subtleTextClass }}">Goals generated from your wellbeing checks.</p>
 
                         <ul class="mt-4 space-y-2 {{ $theme === 'dark' ? 'text-gray-200' : 'text-gray-700' }}">
 
-                            <li>✅ Sleep on time</li>
+                            @forelse($goals as $goal)
 
-                            <li>✅ Talk to someone I trust</li>
+                                <li class="flex items-start gap-2">
 
-                            <li>✅ Do something fun</li>
+                                    <span class="text-green-600">✅</span>
+
+                                    <div>
+
+                                        <div>{{ $goal->title }}</div>
+
+                                        @if($goal->sourceDomain)
+
+                                            <div class="text-xs text-gray-500">From: {{ $goal->sourceDomain->name }}</div>
+
+                                        @endif
+
+                                    </div>
+
+                                </li>
+
+                            @empty
+
+                                <li>No goals yet — complete a wellbeing check to get personalized goals.</li>
+
+                            @endforelse
 
                         </ul>
-
-                    </div>
-
-
-
-                    <div class="{{ $bottomRightCardClass }}">
-
-                        <h3 class="text-lg font-extrabold text-pink-700">🌈 Something Positive</h3>
-
-                        <p class="mt-2 {{ $subtleTextClass }}">
-
-                            “You don’t have to do everything. Just one small step.”
-
-                        </p>
-
-                        <div class="mt-4 text-3xl">💛✨</div>
 
                     </div>
 

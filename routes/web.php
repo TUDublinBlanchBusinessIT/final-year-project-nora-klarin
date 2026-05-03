@@ -83,6 +83,9 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
         ->name('child.dashboard');
 
+    Route::get('/child/wellbeing', [WellbeingCheckController::class, 'create'])
+        ->name('child.wellbeing.form');
+
     Route::get('/child/wellbeing/check', [WellbeingCheckController::class, 'index'])
         ->name('child.wellbeing.check');
 
@@ -97,7 +100,13 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
     Route::get('/child/mood/{mood}', [MoodCheckinController::class, 'store'])
         ->name('child.mood.save');
+    Route::get('/child/goals', [ChildGoalsController::class, 'index'])->name('child.goals');
 
+    Route::post('/child/goals/{caseGoalId}/accept', [ChildGoalsController::class, 'accept'])->name('child.goals.accept');
+
+    Route::post('/child/tasks/{taskId}/complete', [ChildGoalsController::class, 'completeTask'])->name('child.tasks.complete');
+    
+    Route::post('/child/tasks/{taskId}/uncomplete', [ChildGoalsController::class, 'uncompleteTask'])->name('child.tasks.uncomplete');
     Route::get('/child/goals', [ChildGoalsController::class, 'index'])
         ->name('child.goals');
 
@@ -131,50 +140,11 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::post('/child/messages/{thread?}', [ChildMessageController::class, 'store'])
         ->name('child.messages.store');
 
-    Route::get('/child/wellbeing', [WellbeingCheckController::class, 'create'])
-        ->name('child.wellbeing.form');
-
-    Route::post('/child/wellbeing', [WellbeingCheckController::class, 'submit'])
-        ->name('child.wellbeing.submit');
-
     Route::get('/child/wellbeing/{check}/result', [WellbeingCheckController::class, 'result'])
         ->name('child.wellbeing.result');
 
     Route::post('/child/wellbeing/store', [ChildWellbeingController::class, 'store'])
         ->name('child.wellbeing.store');
-
-    Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
-        ->name('child.dashboard');
-
-    Route::get('/child/mood/{mood}', [MoodCheckinController::class, 'store'])
-        ->name('child.mood.save');
-
-    Route::get('/child/goals', [ChildGoalsController::class, 'index'])
-        ->name('child.goals');
-
-    Route::post('/child/goals', [ChildGoalsController::class, 'store'])
-        ->name('child.goals.store');
-
-    Route::get('/child/trusted-people', [TrustedPeopleController::class, 'index'])
-        ->name('child.trusted');
-
-    Route::post('/child/trusted-people', [TrustedPeopleController::class, 'store'])
-        ->name('child.trusted.store');
-
-    Route::get('/child/week', [ChildWeekController::class, 'index'])
-        ->name('child.week');
-
-    Route::get('/child/support', [SupportRequestController::class, 'index'])
-        ->name('child.support');
-
-    Route::post('/child/support', [SupportRequestController::class, 'store'])
-        ->name('child.support.store');
-    
-    Route::post('/child/diary', [DiaryEntryController::class, 'store'])
-        ->name('child.diary.store');
-
-    Route::post('/child/messages/{thread}', [ChildMessageController::class, 'store'])
-        ->name('child.messages.store');
 
     Route::get('/wellbeing/{youngPerson}/history', [WellbeingCheckController::class, 'history'])
         ->middleware('role:social_worker')

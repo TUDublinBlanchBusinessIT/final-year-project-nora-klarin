@@ -6,40 +6,40 @@ use App\Models\Alert;
 use App\Models\User;
 use App\Models\WellbeingCheck;
 
-/**
- * WellbeingPolicy
- *
- * Defines authorization rules for wellbeing check and alert actions.
- *
- * Register in AuthServiceProvider:
- *
- *   protected $policies = [
- *       WellbeingCheck::class => WellbeingPolicy::class,
- *       Alert::class          => WellbeingPolicy::class,
- *   ];
- *
- * Role assumptions (matching your users.role column):
- *   'young_person' — the child/young person in care
- *   'social_worker'— assigned social worker
- *   'carer'        — foster carer
- */
 class WellbeingPolicy
 {
-    /**
-     * Only the authenticated young person or an assigned worker/carer
-     * can start a wellbeing check for the child.
-     */
+    private const MIN_SELF_REPORTING_AGE = 12;
+
+    
     public function startWellbeingCheck(User $user, User $youngPerson): bool
     {
+        \Log::info('WellbeingPolicy::startWellbeingCheck', [
+            'user_id' => $user->id,
+            'user_role' => $user->role,
+            'youngPerson_id' => $youngPerson->id,
+            'youngPerson_role' => $youngPerson->role,
+            'check1_same_id' => $user->id === $youngPerson->id,
+            'check2_role_match' => $user->role === 'young_person',
+            'combined' => $user->id === $youngPerson->id && $user->role === 'young_person',
+        ]);
+        
         if ($user->id === $youngPerson->id && $user->role === 'young_person') {
-            return true;
+            $selfReportAllowed = $this->canSelfReport($youngPerson);
+            \Log::info('Self-report check: ' . ($selfReportAllowed ? 'ALLOWED' : 'DENIED'), [
+                'age' => $youngPerson->age(),
+                'min_age' => self::MIN_SELF_REPORTING_AGE,
+            ]);
+            return $selfReportAllowed;
         }
 
         if (! in_array($user->role, ['social_worker', 'carer'])) {
+            \Log::info('Role not in allowed list');
             return false;
         }
 
-        return $this->isAssignedToCase($user, $youngPerson);
+        $assigned = $this->isAssignedToCase($user, $youngPerson);
+        \Log::info('isAssignedToCase: ' . ($assigned ? 'YES' : 'NO'));
+        return $assigned;
     }
 
     /**
@@ -49,7 +49,7 @@ class WellbeingPolicy
     public function submitWellbeingCheck(User $user, WellbeingCheck $check): bool
     {
         if ($user->id === $check->young_person_id && $user->role === 'young_person') {
-            return true;
+            return $this->canSelfReport($user);
         }
 
         if (! in_array($user->role, ['social_worker', 'carer'])) {
@@ -59,6 +59,11 @@ class WellbeingPolicy
         $youngPerson = User::find($check->young_person_id);
 
         return $youngPerson && $this->isAssignedToCase($user, $youngPerson);
+    }
+
+    private function canSelfReport(User $youngPerson): bool
+    {
+        return $youngPerson->age() !== null && $youngPerson->age() >= self::MIN_SELF_REPORTING_AGE;
     }
 
     /**

@@ -10,16 +10,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Appointment extends Model
 {
     protected $table = 'appointments';
-    public $timestamps = false;      
+    public $timestamps = true;      
 
     protected $fillable = [
         'case_file_id',
-        'young_person_id',
         'start_time',
         'end_time',
         'title',
         'location',
-        'notes',
+        'description',
         'created_by',
     ];
 

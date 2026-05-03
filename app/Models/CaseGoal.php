@@ -17,10 +17,16 @@ class CaseGoal extends Model
 
     public function caseFile()
     {
-        return $this->belongsTo(CaseFile::class, 'case_id');
+        return $this->belongsTo(CaseFile::class, 'case_file_id');
     }
-    public function goals()
-{
-    return $this->hasMany(CaseGoal::class, 'case_id');
-}
+
+    public function goal()
+    {
+        return $this->belongsTo(\App\Models\Goal::class);
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(CaseTask::class, 'case_goal_id');
+    }
 }

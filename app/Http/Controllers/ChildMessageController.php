@@ -113,18 +113,36 @@ public function store(Request $request)
 
     $recipient = User::findOrFail($data['recipient_id']);
 
-    if (!User::canMessage($child, $recipient)) {
+    $allowed = match($recipient->role) {
+    'social_worker' => DB::table('case_user')
+        ->join('case_files', 'case_user.case_file_id', '=', 'case_files.id')
+        ->where('case_files.young_person_id', $child->id)
+        ->where('case_user.user_id', $recipient->id)
+        ->where('case_user.role', 'social_worker')
+        ->exists(),
+
+    'carer' => DB::table('case_user')
+        ->join('case_files', 'case_user.case_file_id', '=', 'case_files.id')
+        ->where('case_files.young_person_id', $child->id)
+        ->where('case_user.user_id', $recipient->id)
+        ->where('case_user.role', 'carer')
+        ->exists(),
+
+    default => false,
+};
+
+    if (!$allowed) {
         abort(403, 'Not allowed to message this user.');
     }
 
-    Message::create([
-        'sender_id' => $child->id,
-        'recipient_id' => $recipient->id,
-        'body' => $data['body'],
-    ]);
+        Message::create([
+            'sender_id' => $child->id,
+            'recipient_id' => $recipient->id,
+            'body' => $data['body'],
+        ]);
 
-    return redirect()
-        ->route('child.messages.index', ['with' => $recipient->id])
-        ->with('status', 'Message sent!');
-}
+        return redirect()
+            ->route('child.messages.index', ['with' => $recipient->id])
+            ->with('status', 'Message sent!');
+    }
 }

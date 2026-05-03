@@ -127,16 +127,10 @@ class CaseFile extends Model
     }
 
 
-
     public function goals()
-
     {
-
-        return $this->hasMany(CaseGoal::class, 'caseid');
-
+        return $this->hasMany(CaseGoal::class)->with('goal.sourceDomain');
     }
-
-
 
     public function tasks()
 
@@ -148,13 +142,12 @@ class CaseFile extends Model
 
             CaseGoal::class,
 
-            'caseid',
+            'case_file_id',
 
-            'goalid',
+            'goal_id',
 
             'id',
-
-            'goalid'
+           
 
         );
 

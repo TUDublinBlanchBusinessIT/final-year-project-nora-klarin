@@ -21,31 +21,43 @@ class CaseFileController extends Controller
         return view('socialworker.cases.index', compact('cases'));
     }
 
-    public function show(CaseFile $case)
-    {
-        $user = auth()->user();
+public function show(CaseFile $case)
+{
+    $user = auth()->user();
 
-        abort_if(! $case->users()->where('users.id', $user->id)->exists(), 403);
+    abort_if(! $case->users()->where('users.id', $user->id)->exists(), 403);
 
+    $case->load([
+        'youngPerson',
+        'carers',
+        'appointments'      => fn ($q) => $q->orderBy('start_time', 'desc'),
+        'placements.carer',
+        'medicalInfos',
+        'educationInfos',
+        'documents',
+        'wellbeingChecks.domainScores.domain',
+    ]);
 
-        $case->load([
-            'youngPerson',
-            'carers',
-            'appointments'      => fn ($q) => $q->orderBy('start_time', 'desc'),
-            'placements.carer',
-            'medicalInfos',
-            'educationInfos',
-            'documents',
-            'wellbeingChecks.domainScores.domain',
-        ]);
-    $tab = request('tab', 'child');
-        $checkId = request('check');
+    // Map domain scores onto each check as virtual attributes for the blade/chart
+    $case->wellbeingChecks->each(function ($check) {
+        $scoresByDomain = $check->domainScores
+            ->keyBy(fn($s) => strtolower(trim($s->domain->name ?? '')));
 
-        // Available carers for the assign form
-        $availableCarers = User::where('role', 'carer')->orderBy('name')->get(['id', 'name']);
+        $check->emotional_score         = round($scoresByDomain['emotional']?->average_score ?? 0, 1);
+        $check->behavioural_score       = round($scoresByDomain['behavioural']?->average_score ?? 0, 1);
+        $check->social_score            = round($scoresByDomain['social']?->average_score ?? 0, 1);
+        $check->physical_score          = round($scoresByDomain['physical']?->average_score ?? 0, 1);
+        $check->education_score         = round($scoresByDomain['education']?->average_score ?? 0, 1);
+        $check->safety_score            = round($scoresByDomain['safety']?->average_score ?? 0, 1);
+        $check->life_satisfaction_score = round($scoresByDomain['life satisfaction']?->average_score ?? 0, 1);
+    });
 
-        return view('socialworker.cases.show', compact('case', 'availableCarers','tab', 'checkId'));
-    }
+    $tab             = request('tab', 'personal');
+    $checkId         = request('check');
+    $availableCarers = User::where('role', 'carer')->orderBy('name')->get(['id', 'name']);
+
+    return view('socialworker.cases.show', compact('case', 'availableCarers', 'tab', 'checkId'));
+}
 
     public function edit(CaseFile $case)
     {

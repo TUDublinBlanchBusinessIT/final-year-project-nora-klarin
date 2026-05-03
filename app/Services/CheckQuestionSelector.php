@@ -84,14 +84,10 @@ class CheckQuestionSelector
             $safetyDomainId
         );
 
-        Log::debug('CheckQuestionSelector slot map', [
-            'young_person_id' => $youngPerson->id,
-            'slot_map'        => $slotMap,
-            'excluded_ids'    => $excludedIds->toArray(),
-        ]);
-
         // Select questions to fill each domain's slot allocation
         $selected = $this->fillSlots($slotMap, $excludedIds, $age, $lastCheck);
+
+        \Log::info('CheckQuestionSelector selected count: ' . $selected->count());
 
         // Resolve age-appropriate wording for each selected question
         return $this->resolveWordings($selected, $age);
@@ -177,6 +173,8 @@ class CheckQuestionSelector
         // ── Rules 5 & 6: Base coverage already applied (MIN_PER_DOMAIN = 1)
         // Fill remaining budget up to TARGET_QUESTION_COUNT
         $slots = $this->fillRemainingBudget($slots, $domainIds);
+
+        \Log::info('CheckQuestionSelector buildSlotMap result', ['slots' => $slots]);
 
         return $slots;
     }
@@ -482,6 +480,6 @@ class CheckQuestionSelector
             return 13;
         }
 
-        return (int) now()->diffInYears($youngPerson->dob);
+        return (int) $youngPerson->dob->age;
     }
 }

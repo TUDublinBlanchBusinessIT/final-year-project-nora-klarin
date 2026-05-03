@@ -12,10 +12,6 @@ class WellbeingAlertService
     // wb_score below this on a critical-risk-level question fires an alert
     private const CRITICAL_QUESTION_THRESHOLD = 25;
 
-    public function __construct(
-        private readonly WellbeingScoringService $scoringService
-    ) {}
-
     /**
      * Main entry point. Evaluates all alert conditions for a processed check.
      * Returns a collection of Alert models that were created.

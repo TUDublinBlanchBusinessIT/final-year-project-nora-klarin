@@ -6,14 +6,14 @@ namespace App\Http\Controllers;
 
 use App\Models\WellbeingCheck;
 use App\Services\CheckQuestionSelector;
-use App\Services\WellbeingAlertService;
-use App\Services\WellbeingScoringService;
+use App\Services\WellbeingCheckProcessor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\CaseFile;
 use App\Models\User;
+use App\Models\Alert;
 use App\Models\Question;
 use App\Models\Domain;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -23,10 +23,10 @@ class WellbeingCheckController extends Controller
 
 {
     use AuthorizesRequests;
+
     public function __construct(
         private readonly CheckQuestionSelector   $selector,
-        private readonly WellbeingScoringService $scoringService,
-        private readonly WellbeingAlertService   $alertService,
+        private readonly WellbeingCheckProcessor  $processor,
     ) {}
 
 
@@ -43,7 +43,6 @@ class WellbeingCheckController extends Controller
         $youngPerson = Auth::user();
 
         $this->authorize('startWellbeingCheck', $youngPerson);
-
         return $this->beginCheckFor($youngPerson);
     }
 
@@ -54,15 +53,17 @@ class WellbeingCheckController extends Controller
         return $this->beginCheckFor($youngPerson);
     }
 
+    public function create()
+    {
+        return $this->index();
+    }
+
     protected function beginCheckFor(User $youngPerson): JsonResponse
     {
-        $caseFileId = DB::table('case_files')
-            ->where('young_person_id', $youngPerson->id)
+        $caseFileId = CaseFile::where('young_person_id', $youngPerson->id)
             ->where('status', 'open')
-            ->orderByDesc('created_at')
+            ->latest()
             ->value('id');
-
-        abort_if(!$caseFileId, 404, 'No active case file found.');
 
         $isIntake = !WellbeingCheck::where('young_person_id', $youngPerson->id)
             ->whereNotNull('completed_at')
@@ -82,6 +83,7 @@ class WellbeingCheckController extends Controller
                 'question_id'        => $question->id,
                 'created_at'         => now(),
             ]);
+            
         }
 
         return response()->json([
@@ -107,37 +109,20 @@ class WellbeingCheckController extends Controller
         if ($check->completed_at !== null) {
             return response()->json(['message' => 'Already submitted.'], 409);
         }
-
+        
         $request->validate([
             'responses'                => ['required', 'array', 'min:1'],
             'responses.*.question_id'  => ['required', 'integer'],
             'responses.*.raw_value'    => ['required', 'integer'],
         ]);
 
-        $result = DB::transaction(function () use ($request, $check) {
-
-            foreach ($request->input('responses') as $r) {
-                $check->responses()->create([
-                    'question_id'       => $r['question_id'],
-                    'raw_value'         => $r['raw_value'],
-                    'normalised_score'  => 0,
-                    'risk_contribution' => 0,
-                ]);
-            }
-
-            $summary = $this->scoringService->process($check);
-
-            $alerts = $this->alertService->evaluate($check, $summary);
-
-            $check->update([
-            'completed_at' => now(),
-            'risk_level'   => $summary['risk_classification'],
-]);
-
-            return [$summary, $alerts];
-        });
-
-        [$summary, $alerts] = $result;
+        $summary = $this->processor->submitResponses(
+            $check,
+            $request->input('responses'),
+            $request->user(),
+        );
+        app(\App\Services\GoalSuggestionService::class)
+        ->suggestFromCheck($check);
 
         return response()->json([
             'message'             => 'Check submitted successfully.',
@@ -149,8 +134,8 @@ class WellbeingCheckController extends Controller
                 'wb_score'   => $ds->average_score,
                 'risk_score' => $ds->risk_score,
             ]),
-            'alerts_generated'  => $alerts->count(),
-            'safeguarding_flag' => $summary['safeguarding_triggered'],
+            'alerts_generated'    => null,
+            'safeguarding_flag'   => $summary['safeguarding_triggered'],
         ]);
     }
     public function result(WellbeingCheck $check)
@@ -171,6 +156,79 @@ class WellbeingCheckController extends Controller
             ->groupBy('young_person_id');
 
         return view('socialworker.wellbeing.alerts', compact('checks'));
+    }
+
+    public function getDetails(WellbeingCheck $check): JsonResponse
+    {
+        $user = auth()->user();
+        abort_if($user->role !== 'social_worker', 403);
+
+        // Check if user has access to this check via case assignment
+        abort_if(!$check->caseFile->users()->where('users.id', $user->id)->exists(), 403);
+        
+        $check->load(['domainScores.domain', 'submittedBy', 'alerts']);
+
+        // Calculate domain changes compared to previous check
+        $previousCheck = WellbeingCheck::where('young_person_id', $check->young_person_id)
+            ->where('id', '<', $check->id)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $domainChanges = [];
+        if ($previousCheck) {
+            $previousCheck->load('domainScores.domain');
+
+            $currentDomains = $check->domainScores->keyBy('domain.name');
+            $previousDomains = $previousCheck->domainScores->keyBy('domain.name');
+
+            foreach ($currentDomains as $domainName => $currentScore) {
+                if (isset($previousDomains[$domainName])) {
+                    $change = round($currentScore->average_score - $previousDomains[$domainName]->average_score, 1);
+                    if ($change !== 0) {
+                        $domainChanges[] = [
+                            'domain' => $domainName,
+                            'change' => $change,
+                            'current' => $currentScore->average_score,
+                            'previous' => $previousDomains[$domainName]->average_score,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'id' => $check->id,
+            'created_at_formatted' => $check->created_at->format('d M Y H:i'),
+            'overall_score' => round($check->overall_score, 1),
+            'risk_level' => $check->risk_level,
+            'risk_level_capitalized' => ucfirst($check->risk_level),
+            'submitted_by_name' => $check->submittedBy?->name,
+            'emotional_score' => $check->emotional_score ? round($check->emotional_score, 1) : null,
+            'behavioural_score' => $check->behavioural_score ? round($check->behavioural_score, 1) : null,
+            'social_score' => $check->social_score ? round($check->social_score, 1) : null,
+            'physical_score' => $check->physical_score ? round($check->physical_score, 1) : null,
+            'education_score' => $check->education_score ? round($check->education_score, 1) : null,
+            'safety_score' => $check->safety_score ? round($check->safety_score, 1) : null,
+            'life_satisfaction_score' => $check->life_satisfaction_score ? round($check->life_satisfaction_score, 1) : null,
+            'domain_changes' => $domainChanges,
+            'alerts' => $check->alerts->map(function ($alert) {
+                $title = match($alert->alert_type) {
+                    'tag_override' => 'Safeguarding Alert',
+                    'critical_response' => 'Critical Response',
+                    'domain_drop' => 'Domain Score Alert',
+                    'domain_decline' => 'Domain Decline Alert',
+                    default => 'Alert'
+                };
+
+                return [
+                    'id' => $alert->id,
+                    'title' => $title,
+                    'description' => $alert->message,
+                    'severity' => $alert->severity,
+                    'type' => $alert->alert_type,
+                ];
+            }),
+        ]);
     }
 }
 

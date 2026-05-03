@@ -41,11 +41,21 @@ class AppointmentController extends Controller
             'created_by' => Auth::id(),
         ]);
 
-        if ($request->filled('user_ids')) {
-            $appointment->users()->sync($request->user_ids);
-        }
+        $caseFile        = \App\Models\CaseFile::find($request->case_file_id);
+        $youngPersonId   = $caseFile->young_person_id;
+        $manualAttendees = $request->input('user_ids', []);
+
+        $allAttendees = collect($manualAttendees)
+            ->push($youngPersonId)
+            ->push(Auth::id())       // include the creating social worker too
+            ->unique()
+            ->values()
+            ->all();
+
+        $appointment->users()->sync($allAttendees);
 
         return back()->with('success', 'Appointment saved ✅');
+        
     }
 
     public function destroy(Appointment $appointment)

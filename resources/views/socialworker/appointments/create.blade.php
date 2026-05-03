@@ -1,8 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Create Appointment for Case #{{ $case->id }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-semibold text-gray-900">
+                    Schedule Appointment
+                </h1>
+                <p class="text-sm text-gray-500">
+                    For {{ $youngPerson->name }} (Case {{ $case->case_reference }})
+                </p>
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-6">
@@ -13,26 +20,33 @@
                     No young person assigned to this case. Appointment cannot be created.
                 </p>
             @else
-            <form method="POST" action="{{ route('social-worker.appointments.store', $case) }}">
+            <form method="POST" action="{{ route('socialworker.appointments.store') }}">
                 @csrf
                 <input type="hidden" name="case_file_id" value="{{ $case->id }}">
-                <input type="hidden" name="young_person_id" value="{{ $youngPerson->id }}">
 
                 {{-- Date & Time --}}
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-medium mb-1">Date & Time</label>
-                    <input type="datetime-local" name="start_time"
-                           class="border border-gray-300 rounded px-3 py-2 w-full"
-                           value="{{ $availableSlot ? $availableSlot->format('Y-m-d\TH:i') : '' }}"
-                           required>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Date</label>
+                        <input type="date" name="date"
+                               class="border border-gray-300 rounded px-3 py-2 w-full"
+                               value="{{ $availableSlot ? $availableSlot->format('Y-m-d') : '' }}"
+                               required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Time</label>
+                        <input type="time" name="time"
+                               class="border border-gray-300 rounded px-3 py-2 w-full"
+                               value="{{ $availableSlot ? $availableSlot->format('H:i') : '' }}"
+                               required>
+                    </div>
                 </div>
 
                 {{-- End Time --}}
                 <div class="mb-4">
-                    <label class="block text-gray-700 font-medium mb-1">End Time</label>
-                    <input type="datetime-local" name="end_time"
-                           class="border border-gray-300 rounded px-3 py-2 w-full"
-                           value="{{ $availableSlot ? $availableSlot->copy()->addMinutes(30)->format('Y-m-d\TH:i') : '' }}">
+                    <label class="block text-gray-700 font-medium mb-1">End Time (optional)</label>
+                    <input type="time" name="end_time"
+                           class="border border-gray-300 rounded px-3 py-2 w-full">
                 </div>
 
                 {{-- Location --}}
@@ -57,20 +71,33 @@
                               class="border border-gray-300 rounded px-3 py-2 w-full"></textarea>
                 </div>
 
-                {{-- Carers --}}
+                {{-- Attendees --}}
                 <div class="mb-4">
-                    <label class="block text-gray-700 font-medium mb-2">Assign Carers</label>
+                    <label class="block text-gray-700 font-medium mb-2">Attendees</label>
                     <div class="space-y-2">
-                        @foreach($carers as $carer)
-                            <div class="flex items-center">
-                                <input type="checkbox" name="carers[]" value="{{ $carer->id }}"
-                                       id="carer_{{ $carer->id }}"
-                                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                <label for="carer_{{ $carer->id }}" class="ml-2 text-gray-700">
-                                    {{ $carer->name }}
-                                </label>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="invite_child" value="1" checked
+                                   id="invite_child"
+                                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="invite_child" class="ml-2 text-gray-700">
+                                Invite child ({{ $youngPerson->name }})
+                            </label>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 mb-1">Invite carers:</p>
+                            <div class="space-y-2">
+                                @foreach($carers as $carer)
+                                    <div class="flex items-center">
+                                        <input type="checkbox" name="carers[]" value="{{ $carer->id }}"
+                                               id="carer_{{ $carer->id }}"
+                                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                        <label for="carer_{{ $carer->id }}" class="ml-2 text-gray-700">
+                                            {{ $carer->name }}
+                                        </label>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endforeach
+                        </div>
                     </div>
                 </div>
 

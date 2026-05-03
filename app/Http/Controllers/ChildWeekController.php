@@ -23,14 +23,17 @@ class ChildWeekController extends Controller
 
     $start = Carbon::today();
     $end = Carbon::today()->copy()->addDays(6);
-
-    $appointments = \App\Models\Appointment::whereHas('caseFile', function ($query) use ($userId) {
-        $query->where('young_person_id', $userId);
+    $appointments = \App\Models\Appointment::query()
+    ->where(function($q) use ($userId) {
+        $q->whereHas('users', function ($query) use ($userId) {
+                $query->where('users.id', $userId);
+            })
+            ->orWhereHas('caseFile', function ($query) use ($userId) {
+                $query->where('young_person_id', $userId);
+            });
     })
-    ->whereBetween('start_time', [
-        Carbon::parse($start)->startOfDay(),
-        Carbon::parse($end)->endOfDay()
-    ])
+    ->where('start_time', '>=', Carbon::today())
+    ->where('start_time', '<=', Carbon::today()->copy()->addDays(29))
     ->orderBy('start_time')
     ->get();
 
@@ -88,26 +91,5 @@ class ChildWeekController extends Controller
 }
 
 }
-    
-
-
-
-
-        // Appointments for next 30 days
-        //$appointments = Appointment::where(function ($query) use ($userId) {
-                //$query->where('user_id', $userId)
-                    //->orWhereHas('users', function ($q) use ($userId) {
-                        //$q->where('users.id', $userId);
-                    //});
-            //})
-            //->whereBetween('date', [
-                //Carbon::today()->toDateString(),
-                //Carbon::today()->copy()->addDays(29)->toDateString(),
-            //])
-            //->orderBy('date')
-            //->orderBy('time')
-            //->distinct()
-            //->get();
-
 
 

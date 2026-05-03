@@ -26,7 +26,7 @@
 </x-slot>
 
 {{-- SINGLE ALPINE ROOT --}}
-<div x-data="caseShow()" x-init="initChart()" class="space-y-4">
+<div x-data="caseShow()" x-init="init()" class="space-y-4">
 
     {{-- ================= TABS ================= --}}
     <div class="flex flex-wrap border-b border-gray-200">
@@ -346,51 +346,253 @@
 
     <h2 class="font-semibold text-gray-900">Wellbeing Trend</h2>
 
-    {{-- Table --}}
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="text-left text-gray-500 border-b">
-                <tr>
-                    <th class="py-2">Date</th>
-                    <th class="py-2 text-center">Score</th>
-                    <th class="py-2 text-center">Risk</th>
-                </tr>
-            </thead>
+    {{-- Chart Controls --}}
+    <div class="flex flex-wrap gap-2 items-center justify-between">
+        <div class="flex gap-2 flex-wrap">
+            <button
+                @click="toggleDomain('overall')"
+                :class="visibleDomains.includes('overall') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Overall
+            </button>
+            <button
+                @click="toggleDomain('emotional')"
+                :class="visibleDomains.includes('emotional') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Emotional
+            </button>
+            <button
+                @click="toggleDomain('behavioural')"
+                :class="visibleDomains.includes('behavioural') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Behavioural
+            </button>
+            <button
+                @click="toggleDomain('social')"
+                :class="visibleDomains.includes('social') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Social
+            </button>
+            <button
+                @click="toggleDomain('physical')"
+                :class="visibleDomains.includes('physical') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Physical
+            </button>
+            <button
+                @click="toggleDomain('education')"
+                :class="visibleDomains.includes('education') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Education
+            </button>
+            <button
+                @click="toggleDomain('safety')"
+                :class="visibleDomains.includes('safety') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Safety
+            </button>
+            <button
+                @click="toggleDomain('life_satisfaction')"
+                :class="visibleDomains.includes('life_satisfaction') ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+            >
+                Life Satisfaction
+            </button>
+        </div>
 
-            <tbody>
-                @foreach($case->wellbeingChecks->sortBy('created_at') as $check)
-                <tr class="border-b">
-                    <td class="py-2">{{ $check->created_at->format('d M Y') }}</td>
-                    <td class="py-2 text-center">{{ round($check->overall_score, 1) }}</td>
-                    <td class="py-2 text-center">
-                        <span class="px-2 py-1 text-xs rounded-full
-                            @if($check->risk_level === 'high') bg-red-100 text-red-700
-                            @elseif($check->risk_level === 'medium') bg-yellow-100 text-yellow-700
-                            @else bg-green-100 text-green-700 @endif">
-                            {{ ucfirst($check->risk_level) }}
-                        </span>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="text-sm text-gray-500">
+            @if($case->wellbeingChecks->isNotEmpty())
+                Last check: {{ $case->wellbeingChecks->sortBy('created_at')->last()->created_at->format('d M Y') }}
+            @endif
+        </div>
     </div>
 
-    {{-- Controls --}}
-    <div class="flex justify-between items-center">
-        <p class="font-medium text-sm text-gray-900">Trend</p>
-
-        <select
-            class="border rounded-lg px-3 py-1 text-sm"
-            @change="updateChart($event.target.value)"
-        >
-            <option value="overall">Overall</option>
-            <option value="domains">Domains</option>
-        </select>
-    </div>
-
-    <div class="h-64">
+    {{-- Chart --}}
+    <div class="h-80">
         <canvas id="wellbeingTrend"></canvas>
+    </div>
+
+    {{-- Recent Checks Table --}}
+    @if($case->wellbeingChecks->isNotEmpty())
+    <div class="mt-6">
+        <h3 class="font-medium text-gray-900 mb-3">Wellbeing Check History</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="text-left text-gray-500 border-b">
+                    <tr>
+                        <th class="py-2">Date</th>
+                        <th class="py-2 text-center">Overall</th>
+                        <th class="py-2 text-center">Risk</th>
+                        <th class="py-2 text-center">Emotional</th>
+                        <th class="py-2 text-center">Behavioural</th>
+                        <th class="py-2 text-center">Social</th>
+                        <th class="py-2 text-center">Physical</th>
+                        <th class="py-2 text-center">Education</th>
+                        <th class="py-2 text-center">Safety</th>
+                        <th class="py-2 text-center">Life Sat.</th>
+                        <th class="py-2 text-center">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($case->wellbeingChecks->sortByDesc('created_at') as $check)
+                    <tr class="border-b hover:bg-gray-50 {{ $loop->first ? 'bg-blue-50' : '' }}">
+                        <td class="py-2 font-medium">
+                            {{ $check->created_at->format('d M Y') }}
+                            @if($loop->first) <span class="text-blue-600 text-xs">(Latest)</span> @endif
+                        </td>
+                        <td class="py-2 text-center font-medium">{{ round($check->overall_score, 1) }}</td>
+                        <td class="py-2 text-center">
+                            <span class="px-2 py-1 text-xs rounded-full
+                                @if($check->risk_level === 'high') bg-red-100 text-red-700
+                                @elseif($check->risk_level === 'medium') bg-yellow-100 text-yellow-700
+                                @else bg-green-100 text-green-700 @endif">
+                                {{ ucfirst($check->risk_level) }}
+                            </span>
+                        </td>
+                        <td class="py-2 text-center">{{ $check->emotional_score ?? '—' }}</td>
+                        <td class="py-2 text-center">{{ $check->behavioural_score ?? '—' }}</td>
+                        <td class="py-2 text-center">{{ $check->social_score ?? '—' }}</td>
+                        <td class="py-2 text-center">{{ $check->physical_score ?? '—' }}</td>
+                        <td class="py-2 text-center">{{ $check->education_score ?? '—' }}</td>
+                        <td class="py-2 text-center">{{ $check->safety_score ?? '—' }}</td>
+                        <td class="py-2 text-center">{{ $check->life_satisfaction_score ?? '—' }}</td>
+                        <td class="py-2 text-center">
+                            <button
+                                @click="showCheckDetails({{ $check->id }})"
+                                class="text-indigo-600 hover:text-indigo-800 text-sm underline"
+                            >
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+    {{-- Check Details Modal --}}
+    <div
+        x-show="selectedCheck !== null"
+        x-transition
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        @click.away="selectedCheck = null"
+    >
+        <div class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 rounded-xl" @click.stop>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Wellbeing Check Details</h3>
+                <button @click="selectedCheck = null" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <template x-if="checkDetails">
+                <div class="space-y-4">
+                    {{-- Check Info --}}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-500">Date</p>
+                                <p class="font-medium" x-text="checkDetails.created_at_formatted"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Overall Score</p>
+                                <p class="font-medium" x-text="checkDetails.overall_score"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Risk Level</p>
+                                <span class="px-2 py-1 text-xs rounded-full"
+                                      :class="checkDetails.risk_level === 'high' ? 'bg-red-100 text-red-700' :
+                                             checkDetails.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                             'bg-green-100 text-green-700'"
+                                      x-text="checkDetails.risk_level_capitalized"></span>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Submitted By</p>
+                                <p class="font-medium" x-text="checkDetails.submitted_by_name || '—'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Domain Scores --}}
+                    <div>
+                        <h4 class="font-medium mb-2">Domain Scores</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white border p-3 rounded text-center">
+                                <p class="text-gray-500 text-sm">Emotional</p>
+                                <p class="font-semibold" x-text="checkDetails.emotional_score || '—'"></p>
+                            </div>
+                            <div class="bg-white border p-3 rounded text-center">
+                                <p class="text-gray-500 text-sm">Behavioural</p>
+                                <p class="font-semibold" x-text="checkDetails.behavioural_score || '—'"></p>
+                            </div>
+                            <div class="bg-white border p-3 rounded text-center">
+                                <p class="text-gray-500 text-sm">Social</p>
+                                <p class="font-semibold" x-text="checkDetails.social_score || '—'"></p>
+                            </div>
+                            <div class="bg-white border p-3 rounded text-center">
+                                <p class="text-gray-500 text-sm">Physical</p>
+                                <p class="font-semibold" x-text="checkDetails.physical_score || '—'"></p>
+                            </div>
+                            <div class="bg-white border p-3 rounded text-center">
+                                <p class="text-gray-500 text-sm">Education</p>
+                                <p class="font-semibold" x-text="checkDetails.education_score || '—'"></p>
+                            </div>
+                            <div class="bg-white border p-3 rounded text-center">
+                                <p class="text-gray-500 text-sm">Safety</p>
+                                <p class="font-semibold" x-text="checkDetails.safety_score || '—'"></p>
+                            </div>
+                            <div class="bg-white border p-3 rounded text-center">
+                                <p class="text-gray-500 text-sm">Life Satisfaction</p>
+                                <p class="font-semibold" x-text="checkDetails.life_satisfaction_score || '—'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Domain Changes --}}
+                    <div x-show="checkDetails.domain_changes && checkDetails.domain_changes.length > 0">
+                        <h4 class="font-medium mb-2">Domain Changes (vs Previous Check)</h4>
+                        <div class="space-y-2">
+                            <template x-for="change in checkDetails.domain_changes" :key="change.domain">
+                                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                    <span class="capitalize" x-text="change.domain"></span>
+                                    <span :class="change.change < 0 ? 'text-red-600' : 'text-green-600'"
+                                          x-text="change.change > 0 ? '+' + change.change : change.change"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Alerts/Triggers --}}
+                    <div x-show="checkDetails.alerts && checkDetails.alerts.length > 0">
+                        <h4 class="font-medium mb-2">Alerts Triggered</h4>
+                        <div class="space-y-2">
+                            <template x-for="alert in checkDetails.alerts" :key="alert.id">
+                                <div class="border-l-4 border-red-500 bg-red-50 p-3">
+                                    <p class="font-medium text-red-800" x-text="alert.title"></p>
+                                    <p class="text-red-700 text-sm" x-text="alert.description"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <div x-show="!checkDetails" class="text-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                <p class="text-gray-500 mt-2">Loading check details...</p>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -423,57 +625,206 @@ function caseShow() {
         life_satisfaction: sorted.map(c => c.life_satisfaction_score),
     };
 
-    return {
-        tab: 'personal',
-        chart: null,
+    const domainColors = {
+        overall: '#4F46E5', // indigo-600
+        emotional: '#EF4444', // red-500
+        behavioural: '#F59E0B', // amber-500
+        social: '#10B981', // emerald-500
+        physical: '#3B82F6', // blue-500
+        education: '#8B5CF6', // violet-500
+        safety: '#F97316', // orange-500
+        life_satisfaction: '#06B6D4', // cyan-500
+    };
 
-        initChart() {
+    const domainLabels = {
+        overall: 'Overall wellbeing',
+        emotional: 'Emotional',
+        behavioural: 'Behavioural',
+        social: 'Social',
+        physical: 'Physical',
+        education: 'Education',
+        safety: 'Safety',
+        life_satisfaction: 'Life Satisfaction',
+    };
+
+    return {
+        tab: '{{ $tab }}',
+        chart: null,
+        visibleDomains: ['overall'], // Start with overall visible
+        selectedCheck: null,
+        checkDetails: null,
+
+    init() {
+        // Initialize chart if starting on wellbeing tab
+        if (this.tab === 'wellbeing') {
+            this.$nextTick(() => this.createChart());
+        }
+
+        this.$watch('tab', val => {
+            if (val === 'wellbeing' && !this.chart) {
+                this.$nextTick(() => this.createChart());
+            } else if (val !== 'wellbeing' && this.chart) {
+                // Destroy chart when leaving wellbeing tab
+                this.chart.destroy();
+                this.chart = null;
+            }
+        });
+    },
+
+        createChart() {
             const ctx = document.getElementById('wellbeingTrend');
-            if (!ctx) return;
+            if (!ctx || this.chart) return;
+
+            // Check if the canvas is actually visible (in case tab changed)
+            const isVisible = ctx.offsetParent !== null;
+            if (!isVisible) {
+                // Try again after a short delay
+                setTimeout(() => this.createChart(), 100);
+                return;
+            }
 
             this.chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Overall wellbeing',
-                        data: overall,
-                        borderWidth: 2,
-                        tension: 0.3
-                    }]
+                    datasets: this.buildDatasets()
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        }
+                    },
                     scales: {
-                        y: { min: 0, max: 100 }
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Wellbeing Score'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
                     }
                 }
             });
         },
 
-        updateChart(type) {
-            if (!this.chart) return;
+        buildDatasets() {
+            const datasets = [];
 
-            if (type === 'overall') {
-                this.chart.data.datasets = [{
-                    label: 'Overall wellbeing',
+            // Always include overall if visible
+            if (this.visibleDomains.includes('overall')) {
+                datasets.push({
+                    label: domainLabels.overall,
                     data: overall,
-                    borderWidth: 2,
-                    tension: 0.3
-                }];
+                    borderColor: domainColors.overall,
+                    backgroundColor: domainColors.overall + '20',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    pointRadius: sorted.map((_, index) => index === sorted.length - 1 ? 6 : 3),
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: domainColors.overall,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                });
             }
 
-            if (type === 'domains') {
-                this.chart.data.datasets = Object.entries(domains).map(([key, data]) => ({
-                    label: key.replace('_', ' '),
-                    data: data,
-                    borderWidth: 2,
-                    tension: 0.3
-                }));
+            // Add domain datasets
+            Object.entries(domains).forEach(([key, data]) => {
+                if (this.visibleDomains.includes(key)) {
+                    datasets.push({
+                        label: domainLabels[key],
+                        data: data,
+                        borderColor: domainColors[key],
+                        backgroundColor: domainColors[key] + '20',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: sorted.map((_, index) => index === sorted.length - 1 ? 5 : 2),
+                        pointHoverRadius: 4,
+                        pointBackgroundColor: domainColors[key],
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 1,
+                    });
+                }
+            });
+
+            return datasets;
+        },
+
+        toggleDomain(domain) {
+            if (domain === 'overall') {
+                // Overall is always visible when toggled on, but can be toggled off
+                if (this.visibleDomains.includes('overall')) {
+                    this.visibleDomains = this.visibleDomains.filter(d => d !== 'overall');
+                } else {
+                    this.visibleDomains.push('overall');
+                }
+            } else {
+                // For domains, toggle on/off
+                if (this.visibleDomains.includes(domain)) {
+                    this.visibleDomains = this.visibleDomains.filter(d => d !== domain);
+                } else {
+                    this.visibleDomains.push(domain);
+                }
             }
 
-            this.chart.update();
+            // Ensure at least overall is visible
+            if (this.visibleDomains.length === 0) {
+                this.visibleDomains = ['overall'];
+            }
+
+            this.updateChart();
+        },
+
+        updateChart() {
+            if (!this.chart) {
+                this.createChart();
+                return;
+            }
+
+            // Destroy and recreate the chart to ensure immediate visual update
+            this.chart.destroy();
+            this.chart = null;
+            
+            this.$nextTick(() => {
+                this.createChart();
+            });
+        },
+
+        async showCheckDetails(checkId) {
+            this.selectedCheck = checkId;
+            this.checkDetails = null;
+
+            try {
+                const response = await fetch(`/social-worker/wellbeing-check/${checkId}/details`);
+                if (response.ok) {
+                    this.checkDetails = await response.json();
+                } else {
+                    console.error('Failed to load check details');
+                }
+            } catch (error) {
+                console.error('Error loading check details:', error);
+            }
         }
     }
 }

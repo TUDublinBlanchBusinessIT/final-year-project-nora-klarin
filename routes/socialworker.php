@@ -46,6 +46,10 @@ Route::middleware(['auth', 'role:social_worker'])->prefix('social-worker')->name
     Route::get('/placements', [PlacementController::class, 'map'])
         ->name('placements.map');
 
+    // Wellbeing check details
+    Route::get('/wellbeing-check/{check}/details', [WellbeingCheckController::class, 'getDetails'])
+        ->name('wellbeing.details');
+
     // ── Reports ────────────────────────────────────────────────────────────────
    // Route::get('/reports', fn () => view('socialworker.reports.index'))
    //     ->name('reports.index');
@@ -62,4 +66,9 @@ Route::patch('/alerts/{alert}/dismiss', [AlertController::class, 'dismiss'])
     Route::patch('/alerts/{alert}/acknowledge', [AlertController::class, 'acknowledge'])
     ->name('alerts.acknowledge');
 
+    Route::get('/cases/{case}/goals', [GoalController::class, 'index']);
+    Route::post('/cases/{case}/goals', [GoalController::class, 'store']);
+    Route::post('/goals/{caseGoalId}/approve', [GoalController::class, 'approve']);
+    Route::post('/goals/{caseGoalId}/tasks', [GoalController::class, 'addTask']);
+    Route::post('/goals/{caseGoalId}/complete', [GoalController::class, 'complete']);
 });
