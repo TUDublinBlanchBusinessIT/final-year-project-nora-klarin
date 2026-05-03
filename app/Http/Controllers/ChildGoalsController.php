@@ -64,6 +64,7 @@ class ChildGoalsController extends Controller
 
         $tasksByCaseGoal = DB::table('tasks')
             ->whereIn('case_goal_id', $caseGoalIds)
+            ->where('child_visible', true)  
             ->select('id', 'case_goal_id', 'title', 'description', 'completed_at')
             ->get()
             ->groupBy('case_goal_id');
@@ -103,7 +104,6 @@ class ChildGoalsController extends Controller
     {
         $userId = auth()->id();
 
-        // Verify this task belongs to a goal assigned to this child
         $valid = DB::table('tasks')
             ->join('case_goals', 'tasks.case_goal_id', '=', 'case_goals.id')
             ->join('case_files', 'case_goals.case_file_id', '=', 'case_files.id')
@@ -113,15 +113,23 @@ class ChildGoalsController extends Controller
 
         abort_if(!$valid, 403);
 
-        DB::table('tasks')
-            ->where('id', $taskId)
-            ->update([
-                'completed_at' => now(),
-                'completed_by' => $userId,
-                'updated_at'   => now(),
-            ]);
+        DB::table('tasks')->where('id', $taskId)->update([
+            'completed_at' => now(),
+            'completed_by' => $userId,
+            'updated_at'   => now(),
+        ]);
 
-        return back()->with('success', 'Task done!');
+        $messages = [
+            'Nice one! Keep going 👏',
+            'You\'re on a roll! 🔥',
+            'That\'s 1 more mission done! 💪',
+            'Building great habits! 🧠',
+            'One step closer to your goal! 🌟',
+        ];
+
+        return back()
+            ->with('task_completed', true)
+            ->with('toast_message', $messages[array_rand($messages)]);
     }
 
     public function uncompleteTask(int $taskId)

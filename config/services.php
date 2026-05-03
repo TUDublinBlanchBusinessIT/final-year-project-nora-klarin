@@ -38,5 +38,7 @@ return [
     'google_maps' => [
     'key' => env('AIzaSyBL27PHlE8BXezvLu2_FNlkPdFwfMATSC0'),
     ],
-
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
 ];

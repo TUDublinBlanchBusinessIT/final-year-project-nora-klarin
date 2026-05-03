@@ -8,10 +8,14 @@ use App\Http\Controllers\SocialWorkerAppointmentController;
 use App\Http\Controllers\SocialWorkerMessagesController;
 use App\Http\Controllers\WellbeingCheckController;
 use App\Http\Controllers\PlacementController;
+use App\Http\Controllers\GoalController;
+use App\Http\Controllers\CaseReportController;
 
 
 Route::middleware(['auth', 'role:social_worker'])->prefix('social-worker')->name('socialworker.')->group(function () {
-
+    Route::get('cases/{case}/report', [CaseReportController::class, 'show'])
+        ->name('cases.report');
+        
     Route::get('/dashboard', [SocialWorkerDashboardController::class, 'index'])
         ->name('dashboard');
 
@@ -50,10 +54,6 @@ Route::middleware(['auth', 'role:social_worker'])->prefix('social-worker')->name
     Route::get('/wellbeing-check/{check}/details', [WellbeingCheckController::class, 'getDetails'])
         ->name('wellbeing.details');
 
-    // ── Reports ────────────────────────────────────────────────────────────────
-   // Route::get('/reports', fn () => view('socialworker.reports.index'))
-   //     ->name('reports.index');
-
     Route::get('/wellbeing-alerts', [WellbeingCheckController::class, 'alerts'])
         ->name('wellbeing.alerts');
 
@@ -66,9 +66,39 @@ Route::patch('/alerts/{alert}/dismiss', [AlertController::class, 'dismiss'])
     Route::patch('/alerts/{alert}/acknowledge', [AlertController::class, 'acknowledge'])
     ->name('alerts.acknowledge');
 
-    Route::get('/cases/{case}/goals', [GoalController::class, 'index']);
-    Route::post('/cases/{case}/goals', [GoalController::class, 'store']);
-    Route::post('/goals/{caseGoalId}/approve', [GoalController::class, 'approve']);
-    Route::post('/goals/{caseGoalId}/tasks', [GoalController::class, 'addTask']);
-    Route::post('/goals/{caseGoalId}/complete', [GoalController::class, 'complete']);
-});
+    Route::get('/cases/{case}/goals', [GoalController::class, 'index'])
+        ->name('goals.index');
+
+    Route::post('/cases/{case}/goals', [GoalController::class, 'store'])
+        ->name('goals.store');
+
+    Route::post('/goals/{caseGoalId}/approve', [GoalController::class, 'approve'])
+        ->name('goals.approve');
+
+    Route::post('/goals/{caseGoalId}/tasks', [GoalController::class, 'addTask'])
+        ->name('goals.tasks.store');
+
+    Route::post('/goals/{caseGoalId}/complete', [GoalController::class, 'complete'])
+        ->name('goals.complete');
+
+    Route::delete('/goals/{caseGoalId}', [GoalController::class, 'dismiss'])
+    ->name('goals.dismiss');
+
+    Route::post('goals/tasks/{task}/publish', [GoalController::class, 'publishTask'])
+    ->name('goals.tasks.publish');
+
+    Route::delete('goals/tasks/{task}', [GoalController::class, 'deleteTask'])
+    ->name('goals.tasks.delete');
+
+    Route::post('tasks/{task}/complete', [GoalController::class, 'completeTask'])
+    ->name('tasks.complete');
+
+    Route::post('tasks/{task}/uncomplete', [GoalController::class, 'uncompleteTask'])
+    ->name('tasks.uncomplete');
+
+    Route::get('cases/{case}/report', [CaseReportController::class, 'show'])
+        ->name('cases.report');
+
+    Route::post('goals/{caseGoalId}/approve', [GoalController::class, 'approve'])
+        ->name('goals.approve');
+    });

@@ -6,7 +6,12 @@ class Goal extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['caseid', 'title', 'description', 'status', 'origin'];
+    protected $fillable = ['title',
+        'description',
+        'source_domain_id',
+        'approved_by',
+        'approved_at',
+        'suggested_at',];
 
     public function caseFile()
     {

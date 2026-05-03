@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 
 class GoalController extends Controller
 {
-    // List all goals for a case — pending suggestions + active + completed
     public function index(CaseFile $case)
     {
         abort_if(!$case->users()->where('users.id', auth()->id())->exists(), 403);
@@ -38,19 +37,23 @@ class GoalController extends Controller
         return view('socialworker.goals.index', compact('case', 'goals'));
     }
 
-    // Approve a suggested goal — makes it visible to child
     public function approve(Request $request, int $caseGoalId)
     {
         $caseGoal = DB::table('case_goals')->find($caseGoalId);
         abort_if(!$caseGoal, 404);
 
         $validated = $request->validate([
-            'due_date' => 'nullable|date|after:today',
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date'    => 'nullable|date|after:today',
         ]);
 
+        // Update the goal with the SW's reframed wording
         DB::table('goals')
             ->where('id', $caseGoal->goal_id)
             ->update([
+                'title'       => $validated['title'],
+                'description' => $validated['description'] ?? null,
                 'approved_by' => auth()->id(),
                 'approved_at' => now(),
                 'updated_at'  => now(),
@@ -64,13 +67,14 @@ class GoalController extends Controller
                 'due_date'      => $validated['due_date'] ?? null,
                 'updated_at'    => now(),
             ]);
-        if (config('services.anthropic.key')) {
-        dispatch(new \App\Jobs\SuggestTasksForGoal($caseGoalId, $caseGoal->goal_id));
-    }
+
+        if (config('services.gemini.key')) {
+            dispatch(new \App\Jobs\SuggestTasksForGoal($caseGoalId, $caseGoal->goal_id));
+        }
+
         return back()->with('success', 'Goal approved and sent to child.');
     }
 
-    // Social worker creates a goal manually (not from a suggestion)
     public function store(Request $request, CaseFile $case)
     {
         $validated = $request->validate([
@@ -105,7 +109,6 @@ class GoalController extends Controller
         return back()->with('success', 'Goal created.');
     }
 
-    // Add a task to a goal
     public function addTask(Request $request, int $caseGoalId)
     {
         $validated = $request->validate([
@@ -117,6 +120,8 @@ class GoalController extends Controller
             'title'        => $validated['title'],
             'description'  => $validated['description'] ?? null,
             'case_goal_id' => $caseGoalId,
+            'ai_suggested'  => false,
+            'child_visible' => true,
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
@@ -132,7 +137,6 @@ class GoalController extends Controller
         return back()->with('success', 'Task added.');
     }
 
-    // Mark a goal complete
     public function complete(int $caseGoalId)
     {
         DB::table('case_goals')
@@ -140,5 +144,53 @@ class GoalController extends Controller
             ->update(['status' => 'completed', 'updated_at' => now()]);
 
         return back()->with('success', 'Goal marked complete.');
+    }
+
+    public function dismiss(int $caseGoalId)
+    {
+        $caseGoal = DB::table('case_goals')->find($caseGoalId);
+        abort_if(!$caseGoal, 404);
+        
+        // Delete the goal instance too since it was system-suggested and never approved
+        DB::table('case_goals')->where('id', $caseGoalId)->delete();
+        DB::table('goals')->where('id', $caseGoal->goal_id)->delete();
+
+        return back()->with('success', 'Suggestion dismissed.');
+    }
+
+    public function completeTask(int $taskId)
+    {
+        DB::table('tasks')
+            ->where('id', $taskId)
+            ->update(['completed_at' => now(), 'completed_by' => auth()->id(), 'updated_at' => now()]);
+
+        return back();
+    }
+
+    // Add to GoalController
+
+public function publishTask(Request $request, int $taskId)
+{
+    $validated = $request->validate([
+        'title'       => 'required|string|max:255',
+        'description' => 'nullable|string',
+    ]);
+
+    DB::table('tasks')->where('id', $taskId)->update([
+        'title'         => $validated['title'],
+        'description'   => $validated['description'] ?? null,
+        'child_visible' => true,
+        'updated_at'    => now(),
+    ]);
+
+    return back()->with('success', 'Task sent to child.');
+}
+
+    public function deleteTask(int $taskId)
+    {
+        DB::table('task_goal')->where('task_id', $taskId)->delete();
+        DB::table('tasks')->where('id', $taskId)->delete();
+
+        return back()->with('success', 'Task removed.');
     }
 }

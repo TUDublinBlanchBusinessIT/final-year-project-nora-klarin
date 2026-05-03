@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\CaseFile;
 use App\Models\User;
@@ -38,7 +38,6 @@ public function show(CaseFile $case)
         'wellbeingChecks.domainScores.domain',
     ]);
 
-    // Map domain scores onto each check as virtual attributes for the blade/chart
     $case->wellbeingChecks->each(function ($check) {
         $scoresByDomain = $check->domainScores
             ->keyBy(fn($s) => strtolower(trim($s->domain->name ?? '')));
@@ -56,7 +55,83 @@ public function show(CaseFile $case)
     $checkId         = request('check');
     $availableCarers = User::where('role', 'carer')->orderBy('name')->get(['id', 'name']);
 
-    return view('socialworker.cases.show', compact('case', 'availableCarers', 'tab', 'checkId'));
+    $pendingGoals = DB::table('case_goals')
+        ->join('goals', 'case_goals.goal_id', '=', 'goals.id')
+        ->leftJoin('domains', 'goals.source_domain_id', '=', 'domains.id')
+        ->where('case_goals.case_file_id', $case->id)
+        ->where('case_goals.status', 'pending')
+        ->select(
+            'case_goals.id as case_goal_id',
+            'case_goals.source_check_id',
+            'goals.title',
+            'goals.description',
+            'goals.suggested_at',
+            'goals.template_id',
+            'domains.name as domain_name',
+        )
+        ->get();
+
+    $pendingGoals->transform(function ($goal) {
+        if (!$goal->template_id) return $goal;
+        $tags = DB::table('tag_goal_templates')
+            ->join('tags', 'tag_goal_templates.tag_id', '=', 'tags.id')
+            ->where('tag_goal_templates.goal_template_id', $goal->template_id)
+            ->pluck('tags.name');
+        $goal->triggered_by_tags = $tags->join(', ');
+        return $goal;
+    });
+
+    $activeGoals = DB::table('case_goals')
+        ->join('goals', 'case_goals.goal_id', '=', 'goals.id')
+        ->leftJoin('domains', 'goals.source_domain_id', '=', 'domains.id')
+        ->where('case_goals.case_file_id', $case->id)
+        ->where('case_goals.status', 'in_progress')
+        ->select(
+            'case_goals.id as case_goal_id',
+            'case_goals.due_date',
+            'case_goals.child_accepted_at',
+            'goals.title',
+            'goals.description',
+            'domains.name as domain_name',
+        )
+        ->get();
+
+    $completedGoals = DB::table('case_goals')
+        ->join('goals', 'case_goals.goal_id', '=', 'goals.id')
+        ->leftJoin('domains', 'goals.source_domain_id', '=', 'domains.id')
+        ->where('case_goals.case_file_id', $case->id)
+        ->where('case_goals.status', 'completed')
+        ->select(
+            'case_goals.id as case_goal_id',
+            'case_goals.updated_at as completed_at',
+            'goals.title',
+            'domains.name as domain_name',
+        )
+        ->orderByDesc('case_goals.updated_at')
+        ->get();
+
+    $caseGoalIds = $activeGoals->pluck('case_goal_id');
+
+    $tasksByCaseGoal = DB::table('tasks')
+        ->whereIn('case_goal_id', $caseGoalIds)
+        ->where('child_visible', true)
+        ->select('id', 'case_goal_id', 'title', 'description', 'completed_at', 'ai_suggested', 'child_visible')
+        ->get()
+        ->groupBy('case_goal_id');
+
+    $pendingTasksByCaseGoal = DB::table('tasks')
+        ->whereIn('case_goal_id', $caseGoalIds)
+        ->where('child_visible', false)
+        ->select('id', 'case_goal_id', 'title', 'description', 'ai_suggested')
+        ->get()
+        ->groupBy('case_goal_id');
+    $domains = DB::table('domains')->orderBy('name')->get();
+
+    return view('socialworker.cases.show', compact(
+        'case', 'availableCarers', 'tab', 'checkId',
+        'pendingGoals', 'activeGoals', 'completedGoals',
+        'tasksByCaseGoal', 'pendingTasksByCaseGoal', 'domains'
+    ));
 }
 
     public function edit(CaseFile $case)

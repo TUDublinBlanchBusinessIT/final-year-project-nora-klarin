@@ -9,10 +9,14 @@ class CaseGoal extends Model
     protected $table = 'case_goals';
 
     protected $fillable = [
-        'case_id',
-        'title',
-        'description',
+        'case_file_id',
+        'goal_id',
         'status',
+        'child_visible',
+        'child_accepted_at',
+        'due_date',
+        'suggested_by',
+        'source_check_id',
     ];
 
     public function caseFile()

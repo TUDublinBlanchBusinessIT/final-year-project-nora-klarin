@@ -14,6 +14,11 @@
             <h1 class="text-xl font-semibold text-gray-900">
                 {{ $case->youngPerson->name ?? 'Unassigned' }}
             </h1>
+                        <a href="{{ route('socialworker.cases.report', $case) }}"
+            target="_blank"
+            class="bg-slate-100 text-slate-700 text-sm px-3 py-1.5 rounded-lg hover:bg-slate-200 flex items-left gap-1.5">
+                Generate report
+            </a>
         </div>
 
         @if(auth()->user()->role === 'social_worker')
@@ -39,6 +44,7 @@
             'documents' => 'Documents',
             'appointments' => 'Appointments',
             'wellbeing' => 'Wellbeing',
+            'goals' => 'Goals'
         ] as $key => $label)
             <button
                 @click="tab='{{ $key }}'"
@@ -596,6 +602,333 @@
     </div>
 
 </div>
+{{-- ================= GOALS ================= --}}
+<div x-show="tab==='goals'" class="space-y-6">
+
+    {{-- Pending suggestions from wellbeing checks --}}
+    @if($pendingGoals->isNotEmpty())
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+        <h3 class="font-medium text-amber-900 mb-3">
+            Suggested goals — awaiting approval
+            <span class="ml-2 bg-amber-200 text-amber-800 text-xs px-2 py-0.5 rounded-full">{{ $pendingGoals->count() }}</span>
+        </h3>
+        <div class="space-y-3">
+            @foreach($pendingGoals as $suggestion)
+            <div class="bg-white border border-amber-100 rounded-lg p-4 flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <p class="font-medium text-gray-900 text-sm">{{ $suggestion->title }}</p>
+                    @if($suggestion->description)
+                        <p class="text-gray-500 text-xs mt-1">{{ $suggestion->description }}</p>
+                    @endif
+                    <div class="flex items-center gap-3 mt-2">
+                        @if($suggestion->domain_name)
+                            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">{{ $suggestion->domain_name }}</span>
+                        @endif
+                        @if($suggestion->triggered_by_tags)
+                            <span class="text-xs text-gray-400">triggered by: {{ $suggestion->triggered_by_tags }}</span>
+                        @endif
+                        <span class="text-xs text-gray-400">from check {{ \Carbon\Carbon::parse($suggestion->suggested_at)->format('d M Y') }}</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button @click="$dispatch('open-approve', {
+                            id: {{ $suggestion->case_goal_id }},
+                            title: '{{ addslashes($suggestion->title) }}',
+                            desc: '{{ addslashes($suggestion->description ?? '') }}'
+                        })"
+                        class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-indigo-700">
+                        Review & approve
+                    </button>
+                    <form method="POST" action="{{ route('socialworker.goals.dismiss', $suggestion->case_goal_id) }}">
+                        @csrf @method('DELETE')
+                        <button class="text-gray-400 text-xs px-2 py-1.5 hover:text-gray-600">Dismiss</button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Active goals --}}
+    <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-medium text-gray-900">Active goals</h3>
+            <button @click="showNewGoal=true" class="bg-indigo-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-indigo-700">
+                + New goal
+            </button>
+        </div>
+
+        @forelse($activeGoals as $goal)
+        <div class="border border-gray-100 rounded-lg p-4 mb-3" x-data="{ expanded: false }">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                        <p class="font-medium text-sm text-gray-900">{{ $goal->title }}</p>
+                        @if($goal->domain_name)
+                            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">{{ $goal->domain_name }}</span>
+                        @endif
+                        @if($goal->child_accepted_at)
+                            <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full">accepted by child</span>
+                        @else
+                            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">not yet accepted</span>
+                        @endif
+                    </div>
+                    @if($goal->description)
+                        <p class="text-xs text-gray-500 mt-1">{{ $goal->description }}</p>
+                    @endif
+                    @php
+                        $tasks = $tasksByCaseGoal[$goal->case_goal_id] ?? collect();
+                        $done  = $tasks->whereNotNull('completed_at')->count();
+                        $total = $tasks->count();
+                    @endphp
+                    @if($total > 0)
+                    <div class="mt-2 flex items-center gap-2">
+                        <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+                            <div class="bg-indigo-500 h-1.5 rounded-full" style="width: {{ $total > 0 ? round(($done/$total)*100) : 0 }}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-400">{{ $done }}/{{ $total }} tasks</span>
+                    </div>
+                    @endif
+                </div>
+                <div class="flex items-center gap-2">
+                    @if($goal->due_date)
+                        <span class="text-xs text-gray-400">Due {{ \Carbon\Carbon::parse($goal->due_date)->format('d M') }}</span>
+                    @endif
+                    <button @click="expanded=!expanded" class="text-indigo-600 text-xs hover:underline">
+                        <span x-text="expanded ? 'Hide tasks' : 'Tasks (' + {{ $total }} + ')'"></span>
+                    </button>
+                    <form method="POST" action="{{ route('socialworker.goals.complete', $goal->case_goal_id) }}">
+                        @csrf
+                        <button class="text-xs text-green-600 hover:text-green-800">Mark complete</button>
+                    </form>
+                </div>
+
+                {{-- Goal approval/reframe modal --}}
+<div x-data="{
+        open: false,
+        caseGoalId: null,
+        title: '',
+        desc: '',
+    }"
+    @open-approve.window="
+        open = true;
+        caseGoalId = $event.detail.id;
+        title = $event.detail.title;
+        desc  = $event.detail.desc;
+    "
+    x-show="open"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+    @click.away="open=false">
+
+    <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-2xl" @click.stop>
+        <h3 class="font-semibold text-gray-900 mb-1">Approve & personalise goal</h3>
+        <p class="text-xs text-gray-500 mb-4">
+            Rewrite the goal title and description in child-friendly language before sending.
+            The template wording is pre-filled — please edit it.
+        </p>
+
+        <form method="POST" :action="`/social-worker/goals/${caseGoalId}/approve`" class="space-y-3">
+            @csrf
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">
+                    Goal title <span class="text-red-500">*</span>
+                </label>
+                <input name="title" x-model="title" required
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300"
+                    placeholder="e.g. Making friends at school">
+                <p class="text-xs text-gray-400 mt-1">Write this as the child will see it — warm, personal, achievable.</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                <textarea name="description" x-model="desc" rows="3"
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300"
+                    placeholder="A short encouraging sentence about what this journey is about."></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Due date (optional)</label>
+                <input type="date" name="due_date"
+                    class="w-full border rounded-lg px-3 py-2 text-sm">
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" @click="open=false" class="text-sm text-gray-500 px-3 py-2">Cancel</button>
+                <button class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">
+                    ✅ Approve & send to child
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+            </div>
+            {{-- Tasks panel --}}
+<div x-show="expanded" x-transition class="mt-3 border-t pt-3 space-y-3">
+
+    {{-- AI-suggested tasks awaiting SW review --}}
+    @php $pendingTasks = $pendingTasksByCaseGoal[$goal->case_goal_id] ?? collect(); @endphp
+    @if($pendingTasks->isNotEmpty())
+    <div class="rounded-lg bg-violet-50 border border-violet-200 p-3">
+        <p class="text-xs font-semibold text-violet-800 mb-2">
+            ✨ AI-suggested tasks — review before sending to child
+        </p>
+        <div class="space-y-2">
+            @foreach($pendingTasks as $pt)
+            <div class="bg-white border border-violet-100 rounded-lg p-3"
+                 x-data="{ editing: false, title: '{{ addslashes($pt->title) }}', desc: '{{ addslashes($pt->description ?? '') }}' }">
+
+                {{-- View mode --}}
+                <div x-show="!editing">
+                    <p class="text-xs font-medium text-gray-800">{{ $pt->title }}</p>
+                    @if($pt->description)
+                        <p class="text-xs text-gray-500 mt-0.5">{{ $pt->description }}</p>
+                    @endif
+                    <div class="flex gap-2 mt-2">
+                        {{-- Edit then publish --}}
+                        <button @click="editing=true"
+                            class="text-xs text-violet-700 border border-violet-300 px-2 py-1 rounded hover:bg-violet-50">
+                            ✏️ Edit
+                        </button>
+                        {{-- Publish as-is --}}
+                        <form method="POST" action="{{ route('socialworker.goals.tasks.publish', $pt->id) }}">
+                            @csrf
+                            <input type="hidden" name="title" :value="title">
+                            <input type="hidden" name="description" :value="desc">
+                            <button class="text-xs text-green-700 border border-green-300 px-2 py-1 rounded hover:bg-green-50">
+                                ✅ Send to child
+                            </button>
+                        </form>
+                        {{-- Discard --}}
+                        <form method="POST" action="{{ route('socialworker.goals.tasks.delete', $pt->id) }}">
+                            @csrf @method('DELETE')
+                            <button class="text-xs text-red-400 border border-red-200 px-2 py-1 rounded hover:bg-red-50">
+                                🗑 Discard
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- Edit mode --}}
+                <div x-show="editing">
+                    <form method="POST" action="{{ route('socialworker.goals.tasks.publish', $pt->id) }}" class="space-y-2">
+                        @csrf
+                        <input name="title" x-model="title"
+                            class="w-full text-xs border rounded px-2 py-1.5" placeholder="Task title">
+                        <textarea name="description" x-model="desc" rows="2"
+                            class="w-full text-xs border rounded px-2 py-1.5" placeholder="Description (optional)"></textarea>
+                        <div class="flex gap-2">
+                            <button class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                ✅ Save & send to child
+                            </button>
+                            <button type="button" @click="editing=false"
+                                class="text-xs text-gray-500 px-2 py-1 hover:underline">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Published tasks (child can see these) --}}
+    @if($tasks->isEmpty() && $pendingTasks->isEmpty())
+        <p class="text-xs text-gray-400 mb-2">No tasks yet.</p>
+    @elseif($tasks->isNotEmpty())
+        <p class="text-xs font-medium text-gray-500 mb-1">Sent to child:</p>
+        <ul class="space-y-1.5 mb-3">
+            @foreach($tasks as $task)
+            <li class="flex items-start gap-2">
+                <form method="POST" action="{{ $task->completed_at
+                    ? route('child.tasks.uncomplete', $task->id)
+                    : route('socialworker.tasks.complete', $task->id) }}">
+                    @csrf
+                    <button class="mt-0.5 w-4 h-4 rounded border flex-shrink-0
+                        {{ $task->completed_at ? 'bg-green-100 border-green-400' : 'border-gray-300' }}">
+                    </button>
+                </form>
+                <div class="flex-1">
+                    <p class="text-xs {{ $task->completed_at ? 'line-through text-gray-400' : 'text-gray-700' }}">
+                        {{ $task->title }}
+                        @if($task->ai_suggested)
+                            <span class="text-violet-400 ml-1">✨</span>
+                        @endif
+                    </p>
+                    @if($task->description)
+                        <p class="text-xs text-gray-400">{{ $task->description }}</p>
+                    @endif
+                </div>
+                <form method="POST" action="{{ route('socialworker.goals.tasks.delete', $task->id) }}">
+                    @csrf @method('DELETE')
+                    <button class="text-gray-300 hover:text-red-400 text-xs">✕</button>
+                </form>
+            </li>
+            @endforeach
+        </ul>
+    @endif
+
+    {{-- Manual task add --}}
+    <form method="POST" action="{{ route('socialworker.goals.tasks.store', $goal->case_goal_id) }}"
+          class="flex gap-2 pt-2 border-t">
+        @csrf
+        <input name="title" class="flex-1 text-xs border rounded px-2 py-1" placeholder="Add a task manually...">
+        <button class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded hover:bg-gray-200">Add</button>
+    </form>
+</div>
+            {{-- Tasks panel --}}
+            <div x-show="expanded" x-transition class="mt-3 border-t pt-3">
+            </div>
+        </div>
+        @empty
+            <p class="text-sm text-gray-400">No active goals. Approve a suggestion above or create one.</p>
+        @endforelse
+    </div>
+
+    {{-- Completed goals --}}
+    @if($completedGoals->isNotEmpty())
+    <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <h3 class="font-medium text-gray-900 mb-3">Completed goals</h3>
+        <div class="space-y-2">
+            @foreach($completedGoals as $goal)
+            <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <div>
+                    <p class="text-sm text-gray-700">{{ $goal->title }}</p>
+                    @if($goal->domain_name)
+                        <span class="text-xs text-gray-400">{{ $goal->domain_name }}</span>
+                    @endif
+                </div>
+                <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($goal->completed_at)->format('d M Y') }}</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- New goal modal --}}
+    <div x-show="showNewGoal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.away="showNewGoal=false">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl" @click.stop>
+            <h3 class="font-semibold mb-4">Create goal</h3>
+            <form method="POST" action="{{ route('socialworker.goals.store', $case) }}" class="space-y-3">
+                @csrf
+                <input name="title" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Goal title" required>
+                <textarea name="description" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Description (optional)" rows="2"></textarea>
+                <select name="domain_id" class="w-full border rounded-lg px-3 py-2 text-sm">
+                    <option value="">No domain</option>
+                    @foreach($domains as $domain)
+                        <option value="{{ $domain->id }}">{{ $domain->name }}</option>
+                    @endforeach
+                </select>
+                <input type="date" name="due_date" class="w-full border rounded-lg px-3 py-2 text-sm">
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="showNewGoal=false" class="text-sm text-gray-500">Cancel</button>
+                    <button class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {{-- ================= CHART ================= --}}
 @if($case->wellbeingChecks->isNotEmpty())
@@ -650,9 +983,11 @@ function caseShow() {
     return {
         tab: '{{ $tab }}',
         chart: null,
-        visibleDomains: ['overall'], // Start with overall visible
+        visibleDomains: ['overall'], 
         selectedCheck: null,
         checkDetails: null,
+        showNewGoal: false,
+
 
     init() {
         // Initialize chart if starting on wellbeing tab

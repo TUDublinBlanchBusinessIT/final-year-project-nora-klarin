@@ -21,6 +21,12 @@ class Placement extends Model
         'latitude',
         'longitude',
     ];
+      protected $casts = [
+        'latitude'   => 'float',
+        'longitude'  => 'float',
+        'start_date' => 'date',
+        'end_date'   => 'date',
+    ];
 
     public function caseFile()
     {

@@ -476,42 +476,6 @@
 
                 @endif
 
-
-
-                <div class="{{ $cardClassIndigo }}">
-
-                    <h3 class="text-lg font-extrabold text-indigo-700">💬 Messages</h3>
-
-
-
-                    <p class="mt-2 {{ $subtleTextClass }}">
-
-                        Chat with your social worker securely inside the app.
-
-                    </p>
-
-
-
-                    <a href="{{ route('child.messages.index') }}"
-
-                       class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition">
-
-                        Open messages
-
-                    </a>
-
-
-
-                    <p class="text-xs mt-3 {{ $smallTextClass }}">
-
-                        Safe chat ✨
-
-                    </p>
-
-                </div>
-
-
-
                 <div class="{{ $cardClassYellow }}">
 
                     <h3 class="text-lg font-extrabold text-yellow-700">🆘 Need Help?</h3>
@@ -556,7 +520,7 @@
 
                             <h3 class="text-2xl font-extrabold text-indigo-700">📖 My Diary</h3>
 
-                            <p class="mt-1 {{ $subtleTextClass }}">Write anything you want — this is your space.</p>
+                            <p class="mt-1 {{ $subtleTextClass }}">Write anything you want, this is your space.</p>
 
                         </div>
 
@@ -681,33 +645,6 @@
                             </div>
 
 
-
-                            <div>
-
-                                <label class="block font-semibold mb-2 {{ $theme === 'dark' ? 'text-gray-200' : 'text-gray-700' }}">Private?</label>
-
-                                <label class="{{ $checkboxWrapClass }}">
-
-                                    <input
-
-                                        type="checkbox"
-
-                                        name="private"
-
-                                        value="1"
-
-                                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-
-                                        @checked(old('private'))
-
-                                    >
-
-                                    <span class="{{ $subtleTextClass }}">Keep this entry private (later feature)</span>
-
-                                </label>
-
-                            </div>
-
                         </div>
 
 
@@ -718,7 +655,7 @@
 
                             class="w-full rounded-2xl px-6 py-3 font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition focus:outline-none focus:ring-2 focus:ring-indigo-200">
 
-                            Save Diary Entry ✨
+                            Save
 
                         </button>
 
@@ -794,7 +731,7 @@
 
                             <div class="{{ $innerBoxClass }} {{ $subtleTextClass }}">
 
-                                No entries yet — write your first one on the left ✨
+                                No entries yet, write your first one on the left
 
                             </div>
 
@@ -811,64 +748,7 @@
                     </div>
 
                 </div>
-
-            </div>
-
-
-
-            @if($layout !== 'minimal')
-
-                <div class="grid grid-cols-1 gap-6">
-
-                    <div class="{{ $bottomLeftCardClass }}">
-
-                        <h3 class="text-lg font-extrabold text-green-700">🎯 My Goals</h3>
-
-                        <p class="mt-2 {{ $subtleTextClass }}">Goals generated from your wellbeing checks.</p>
-
-                        <ul class="mt-4 space-y-2 {{ $theme === 'dark' ? 'text-gray-200' : 'text-gray-700' }}">
-
-                            @forelse($goals as $goal)
-
-                                <li class="flex items-start gap-2">
-
-                                    <span class="text-green-600">✅</span>
-
-                                    <div>
-
-                                        <div>{{ $goal->title }}</div>
-
-                                        @if($goal->sourceDomain)
-
-                                            <div class="text-xs text-gray-500">From: {{ $goal->sourceDomain->name }}</div>
-
-                                        @endif
-
-                                    </div>
-
-                                </li>
-
-                            @empty
-
-                                <li>No goals yet — complete a wellbeing check to get personalized goals.</li>
-
-                            @endforelse
-
-                        </ul>
-
-                    </div>
-
-                </div>
-
-            @endif
-
-        </div>
-
-    </div>
-
-
-
-    <a href="{{ route('chatbot.index') }}"
+                    <a href="{{ route('chatbot.index') }}"
 
        class="fixed bottom-6 right-6 z-50 flex items-center justify-center w-16 h-16 rounded-full bg-blue-700 hover:bg-blue-800 text-white shadow-2xl transition transform hover:scale-105"
 
@@ -877,5 +757,6 @@
         <span class="text-2xl">💬</span>
 
     </a>
+            </div>
 
 </x-app-layout>
