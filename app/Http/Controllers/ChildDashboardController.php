@@ -12,7 +12,7 @@ class ChildDashboardController extends Controller
 {
     public function index()
     {
-        $child = Auth::user();
+        $child  = Auth::user();
         $userId = $child->id;
 
         // Linked carer (if assigned)
@@ -21,23 +21,22 @@ class ChildDashboardController extends Controller
             $carer = User::find($child->carer_id);
         }
 
-        // Get latest diary entries (max 3)
+        // Recent diary entries (max 3)
         $recentEntries = DB::table('diary_entries')
             ->where('user_id', $userId)
             ->orderByDesc('created_at')
             ->limit(3)
             ->get();
 
-        // Check if diary entry exists today
+        // Reminder if no diary entry today
         $hasEntryToday = DB::table('diary_entries')
             ->where('user_id', $userId)
             ->whereDate('created_at', Carbon::today())
             ->exists();
 
-        // Reminder count
         $reminderCount = $hasEntryToday ? 0 : 1;
 
-        // Unread messages count
+        // Unread messages
         $unreadMessageCount = DB::table('messages')
             ->join('threads', 'messages.thread_id', '=', 'threads.id')
             ->where('threads.child_id', $userId)
@@ -45,24 +44,54 @@ class ChildDashboardController extends Controller
             ->whereNull('messages.read_at')
             ->count();
 
-        // Get case and goals
-        $case = CaseFile::where('young_person_id', $userId)->first();
-        $goals = $case
-            ? $case->goals()->with('goal.sourceDomain')->get()
-            : collect();
-        // Latest mood
+        // Latest mood check-in
         $latestMood = DB::table('mood_checkins')
             ->where('user_id', $userId)
             ->orderByDesc('date')
             ->value('mood');
 
+        // Today's mood (for highlighting the mood strip)
+        $todayMood = DB::table('mood_checkins')
+            ->where('user_id', $userId)
+            ->whereDate('date', Carbon::today())
+            ->value('mood');
+
+        // ── Goals (same query as ChildGoalsController) ────────────────────
+        $activeGoals = DB::table('case_goals')
+            ->join('goals', 'case_goals.goal_id', '=', 'goals.id')
+            ->join('case_files', 'case_goals.case_file_id', '=', 'case_files.id')
+            ->leftJoin('domains', 'goals.source_domain_id', '=', 'domains.id')
+            ->where('case_files.young_person_id', $userId)
+            ->where('case_goals.child_visible', 1)
+            ->where('case_goals.status', 'in_progress')
+            ->select(
+                'case_goals.id as case_goal_id',
+                'case_goals.due_date',
+                'case_goals.child_accepted_at',
+                'goals.title',
+                'goals.description',
+                'domains.name as domain_name',
+            )
+            ->get();
+
+        $caseGoalIds = $activeGoals->pluck('case_goal_id');
+
+        $tasksByGoal = DB::table('tasks')
+            ->whereIn('case_goal_id', $caseGoalIds)
+            ->where('child_visible', true)
+            ->select('id', 'case_goal_id', 'title', 'description', 'completed_at')
+            ->get()
+            ->groupBy('case_goal_id');
+
         return view('child.dashboard', [
-            'recentEntries' => $recentEntries,
-            'reminderCount' => $reminderCount,
+            'recentEntries'      => $recentEntries,
+            'reminderCount'      => $reminderCount,
             'unreadMessageCount' => $unreadMessageCount,
-            'carer' => $carer,
-            'goals' => $goals,
-            'latestMood' => $latestMood,
+            'carer'              => $carer,
+            'latestMood'         => $latestMood,
+            'todayMood'          => $todayMood,
+            'activeGoals'        => $activeGoals,
+            'tasksByGoal'        => $tasksByGoal,
         ]);
     }
 }

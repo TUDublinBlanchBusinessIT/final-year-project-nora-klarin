@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CaseFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
 
 class CarerCaseFileController extends Controller
 {
@@ -30,7 +30,6 @@ class CarerCaseFileController extends Controller
     {
         $user = Auth::user();
 
-        // Ensure carer is assigned to this case
         abort_if(
             !$case->users()->where('users.id', $user->id)->where('case_user.role', 'carer')->exists(),
             403
@@ -47,7 +46,62 @@ class CarerCaseFileController extends Controller
             'wellbeingChecks.domainScores.domain',
         ]);
 
-        return view('carer.cases.show', compact('case'));
+        // ── Goals visible to the child ────────────────────────────────────────
+        // Only in_progress goals that have been published (child_visible = 1)
+        $activeGoals = DB::table('case_goals')
+            ->join('goals', 'case_goals.goal_id', '=', 'goals.id')
+            ->leftJoin('domains', 'goals.source_domain_id', '=', 'domains.id')
+            ->where('case_goals.case_file_id', $case->id)
+            ->where('case_goals.status', 'in_progress')
+            ->where('case_goals.child_visible', 1)
+            ->select(
+                'case_goals.id as case_goal_id',
+                'case_goals.due_date',
+                'case_goals.child_accepted_at',
+                'case_goals.status',
+                'goals.title',
+                'goals.description',
+                'domains.name as domain_name',
+            )
+            ->get();
+
+        $completedGoals = DB::table('case_goals')
+            ->join('goals', 'case_goals.goal_id', '=', 'goals.id')
+            ->leftJoin('domains', 'goals.source_domain_id', '=', 'domains.id')
+            ->where('case_goals.case_file_id', $case->id)
+            ->where('case_goals.status', 'completed')
+            ->select(
+                'case_goals.id as case_goal_id',
+                'case_goals.updated_at as completed_at',
+                'goals.title',
+                'domains.name as domain_name',
+            )
+            ->orderByDesc('case_goals.updated_at')
+            ->get();
+
+        // ── Tasks: only published (child_visible = true) ──────────────────────
+        $caseGoalIds = $activeGoals->pluck('case_goal_id');
+
+        $tasksByCaseGoal = DB::table('tasks')
+            ->whereIn('case_goal_id', $caseGoalIds)
+            ->where('child_visible', true)
+            ->select('id', 'case_goal_id', 'title', 'description', 'completed_at', 'ai_suggested')
+            ->get()
+            ->groupBy('case_goal_id');
+
+        // ── Latest wellbeing check summary ────────────────────────────────────
+        $latestCheck = $case->wellbeingChecks
+            ->filter(fn($c) => $c->completed_at !== null)
+            ->sortByDesc('completed_at')
+            ->first();
+
+        return view('carer.cases.show', compact(
+            'case',
+            'activeGoals',
+            'completedGoals',
+            'tasksByCaseGoal',
+            'latestCheck',
+        ));
     }
 
     public function storeDocument(Request $request, CaseFile $case)
@@ -72,17 +126,16 @@ class CarerCaseFileController extends Controller
             'uploaded_by' => $user->id,
         ]);
 
-        // Notify the assigned social worker(s)
         $uploaderName = $user->name;
         \App\Models\User::whereIn('id',
-            \Illuminate\Support\Facades\DB::table('case_user')
+            DB::table('case_user')
                 ->where('case_file_id', $case->id)
                 ->where('role', 'social_worker')
                 ->pluck('user_id')
         )->get()->each(fn($sw) => $sw->notify(new \App\Notifications\CareHubNotification(
-            type: 'document_uploaded',
+            type:    'document_uploaded',
             summary: $uploaderName . ' uploaded "' . $request->name . '"',
-            data: ['case_file_id' => $case->id],
+            data:    ['case_file_id' => $case->id],
         )));
 
         return back()->with('success', 'Document uploaded.');

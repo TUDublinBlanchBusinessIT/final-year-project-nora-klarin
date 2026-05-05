@@ -5,17 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\DiaryEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Collection;
 
 class DiaryEntryController extends Controller
 {
-    public function index()
-    {
-        $entries = DiaryEntry::where('user_id', Auth::id())
-            ->latest()
-            ->get();
+  
+public function index()
+{
+    $entries = DiaryEntry::where('user_id', auth()->id())
+        ->latest()
+        ->paginate(20);
 
-        return view('diary.index', compact('entries'));
-    }
+    return view('child.diary.index', compact('entries'));
+}
+
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -34,5 +39,12 @@ class DiaryEntryController extends Controller
         ]);
 
         return back()->with('success', 'Diary entry saved!');
+    }
+
+    public function destroy(DiaryEntry $diaryEntry)
+    {
+        abort_if($diaryEntry->user_id !== auth()->id(), 403);
+        $diaryEntry->delete();
+        return back()->with('success', 'Entry deleted.');
     }
 }

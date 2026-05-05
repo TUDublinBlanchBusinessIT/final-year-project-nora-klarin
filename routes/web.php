@@ -75,11 +75,24 @@ Route::middleware('auth')->group(function () {
 
 });
 
-    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('socialworker.notifications.markRead');
-Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('socialworker.notifications.markAllRead');
-Route::middleware(['auth', 'role:young_person'])->group(function () {
-    Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
-        ->name('child.dashboard');
+    Route::patch('/social-worker/notifications/{id}/read',
+        [NotificationController::class, 'markRead'])
+        ->name('socialworker.notifications.markRead');
+
+    Route::post('/social-worker/notifications/mark-all-read',
+        [NotificationController::class, 'markAllRead'])
+        ->name('socialworker.notifications.markAllRead');
+
+    Route::patch('/carer/notifications/{id}/read',
+        [NotificationController::class, 'markRead'])
+        ->name('carer.notifications.markRead');
+
+    Route::post('/carer/notifications/mark-all-read',
+        [NotificationController::class, 'markAllRead'])
+        ->name('carer.notifications.markAllRead');
+    Route::middleware(['auth', 'role:young_person'])->group(function () {
+        Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
+            ->name('child.dashboard');
 
     Route::get('/child/wellbeing', [WellbeingCheckController::class, 'create'])
         ->name('child.wellbeing.form');
@@ -111,6 +124,11 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::post('/child/goals', [ChildGoalsController::class, 'store'])
         ->name('child.goals.store');
 
+    Route::get('/child/diary', [DiaryEntryController::class, 'index'])->name('child.diary.index');
+
+Route::delete('/child/diary/{diaryEntry}', [DiaryEntryController::class, 'destroy'])
+    ->name('child.diary.destroy');
+
     Route::post('/support/request', [TrustedPeopleController::class, 'requestSupport'])->name('child.support.request');
 
     Route::get('/child/trusted-people', [TrustedPeopleController::class, 'index'])
@@ -127,9 +145,6 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
     
     Route::post('/child/support', [SupportRequestController::class, 'store'])
         ->name('child.support.store');
-
-    Route::get('/child/diary', [DiaryEntryController::class, 'index'])
-        ->name('child.diary.index');
 
     Route::post('/child/diary', [DiaryEntryController::class, 'store'])
         ->name('child.diary.store');

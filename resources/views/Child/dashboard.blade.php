@@ -1,766 +1,286 @@
 <x-app-layout>
 
-    @php
-
-        $theme = auth()->user()->theme ?? 'calm';
-
-        $layout = auth()->user()->dashboard_layout ?? 'standard';
-
-
-
-        $pageBgClass = match ($theme) {
-
-            'bright' => 'bg-gradient-to-br from-yellow-50 via-pink-50 to-orange-50',
-
-            'simple' => 'bg-gray-50',
-
-            'dark' => 'bg-gray-900',
-
-            default => 'bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50',
-
-        };
-
-
-
-        $headerTextClass = $theme === 'dark' ? 'text-white' : 'text-gray-800';
-
-        $subtleTextClass = $theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-
-        $smallTextClass = $theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
-
-
-
-        $cardClass = $theme === 'dark'
-
-            ? 'rounded-3xl p-6 shadow-lg bg-gray-800 border border-gray-700 text-white'
-
-            : 'rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-blue-100';
-
-
-
-        $cardClassPink = $theme === 'dark'
-
-            ? 'rounded-3xl p-6 shadow-lg bg-gray-800 border border-gray-700 text-white'
-
-            : 'rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-pink-100';
-
-
-
-        $cardClassIndigo = $theme === 'dark'
-
-            ? 'rounded-3xl p-6 shadow-lg bg-gray-800 border border-gray-700 text-white'
-
-            : 'rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100';
-
-
-
-        $cardClassYellow = $theme === 'dark'
-
-            ? 'rounded-3xl p-6 shadow-lg bg-gray-800 border border-gray-700 text-white'
-
-            : 'rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-yellow-100';
-
-
-
-        $largeCardClass = $theme === 'dark'
-
-            ? 'lg:col-span-2 rounded-3xl p-7 sm:p-8 shadow-xl bg-gray-800 border border-gray-700 text-white'
-
-            : 'lg:col-span-2 rounded-3xl p-7 sm:p-8 shadow-xl bg-white/95 backdrop-blur border border-indigo-100';
-
-
-
-        $recentCardClass = $theme === 'dark'
-
-            ? 'rounded-3xl p-6 shadow-lg bg-gray-800 border border-gray-700 text-white'
-
-            : 'rounded-3xl p-6 shadow-lg bg-white/90 backdrop-blur border border-indigo-100';
-
-
-
-        $bottomLeftCardClass = $theme === 'dark'
-
-            ? 'rounded-3xl p-6 shadow-lg bg-gray-800 border border-gray-700 text-white'
-
-            : 'rounded-3xl p-6 shadow-lg bg-gradient-to-br from-green-50 to-blue-50 border border-green-100';
-
-
-
-        $bottomRightCardClass = $theme === 'dark'
-
-            ? 'rounded-3xl p-6 shadow-lg bg-gray-800 border border-gray-700 text-white'
-
-            : 'rounded-3xl p-6 shadow-lg bg-gradient-to-br from-yellow-50 to-pink-50 border border-yellow-100';
-
-
-
-        $innerBoxClass = $theme === 'dark'
-
-            ? 'rounded-2xl border border-gray-700 bg-gray-700 px-4 py-3'
-
-            : 'rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3';
-
-
-
-        $inputClass = $theme === 'dark'
-
-            ? 'w-full rounded-2xl border-gray-600 bg-gray-700 text-white focus:border-indigo-400 focus:ring-indigo-400 px-4 py-3'
-
-            : 'w-full rounded-2xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3';
-
-
-
-        $selectClass = $theme === 'dark'
-
-            ? 'w-full rounded-2xl border-gray-600 bg-gray-700 text-white focus:border-indigo-400 focus:ring-indigo-400 px-4 py-3'
-
-            : 'w-full rounded-2xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3';
-
-
-
-        $checkboxWrapClass = $theme === 'dark'
-
-            ? 'flex items-center gap-3 rounded-2xl border border-gray-600 px-4 py-3 cursor-pointer bg-gray-700'
-
-            : 'flex items-center gap-3 rounded-2xl border border-gray-200 px-4 py-3 cursor-pointer';
-
-
-
-        $topGridClass = $layout === 'minimal'
-
-            ? 'grid grid-cols-1 md:grid-cols-3 gap-6'
-
-            : 'grid grid-cols-1 md:grid-cols-4 gap-6';
-
-    @endphp
-
-
-
-    <x-slot name="header">
-
-        <div class="flex items-center justify-between w-full">
-
-            <h2 class="font-semibold text-xl leading-tight {{ $headerTextClass }}">
-
-                @php
-
-                    $hour = now()->hour;
-
-                    $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
-
-                    $messageText = $unreadMessageCount > 0 ? ' (You have unread messages)' : '';
-
-                @endphp
-
-                {{ $greeting }}, {{ Auth::user()->name ?? 'there' }}! {{ $messageText }}
-
-            </h2>
-
-
-
-            <div class="flex items-center gap-4">
-
-                @php
-
-                    $totalNotificationCount = ($reminderCount ?? 0) + ($unreadMessageCount ?? 0);
-
-                @endphp
-
-
-
-                <div x-data="{ open: false }" class="relative">
-
-                    <button
-
-                        type="button"
-
-                        @click="open = !open"
-
-                        class="relative text-2xl rounded-full px-2 py-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-
-                        aria-label="Open reminders"
-
-                    >
-
-                        🔔
-
-
-
-                        @if($totalNotificationCount > 0)
-
-                            <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5">
-
-                                {{ $totalNotificationCount }}
-
-                            </span>
-
-                        @endif
-
-                    </button>
-
-
-
-                    <div
-
-                        x-show="open"
-
-                        @click.outside="open = false"
-
-                        x-transition
-
-                        class="absolute right-0 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden z-50"
-
-                    >
-
-                        <div class="px-4 py-3 border-b bg-gray-50">
-
-                            <div class="font-extrabold text-gray-800">Notifications</div>
-
-                            <div class="text-xs text-gray-500">Things to check today</div>
-
-                        </div>
-
-
-
-                        <div class="px-4 py-4 space-y-3">
-
-                            @if(($unreadMessageCount ?? 0) > 0)
-
-                                <div class="rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3">
-
-                                    <div class="font-bold text-indigo-800">💬 New messages</div>
-
-                                    <div class="text-sm text-indigo-900 mt-1">
-
-                                        You have {{ $unreadMessageCount }} unread {{ $unreadMessageCount === 1 ? 'message' : 'messages' }}.
-
-                                    </div>
-
-                                </div>
-
-
-
-                                <a
-
-                                    href="{{ route('child.messages.index') }}"
-
-                                    @click="open = false"
-
-                                    class="block text-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 transition"
-
-                                >
-
-                                    Open messages
-
-                                </a>
-
-                            @endif
-
-
-
-                            @if(isset($reminderCount) && $reminderCount > 0)
-
-                                <div class="rounded-xl border border-yellow-100 bg-yellow-50 px-4 py-3">
-
-                                    <div class="font-bold text-yellow-800">📖 Diary reminder</div>
-
-                                    <div class="text-sm text-yellow-900 mt-1">
-
-                                        You haven’t written a diary entry today.
-
-                                    </div>
-
-                                </div>
-
-
-
-                                <a
-
-                                    href="#diary"
-
-                                    @click="open = false"
-
-                                    class="block text-center rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 transition"
-
-                                >
-
-                                    Write diary now ✨
-
-                                </a>
-
-                            @endif
-
-
-
-                            @if(($unreadMessageCount ?? 0) === 0 && ($reminderCount ?? 0) === 0)
-
-                                <div class="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
-
-                                    <div class="font-bold text-green-800">🎉 All done!</div>
-
-                                    <div class="text-sm text-green-900 mt-1">
-
-                                        You have no notifications right now.
-
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-
-                            <button
-
-                                type="button"
-
-                                @click="open = false"
-
-                                class="w-full text-sm text-gray-600 hover:text-gray-900 underline"
-
-                            >
-
-                                Close
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-
-                <span class="text-sm {{ $smallTextClass }}">
-
-                    {{ now()->format('l, jS F') }}
-
-                </span>
-
-            </div>
-
+@php
+    $theme  = auth()->user()->theme ?? 'calm';
+    $layout = auth()->user()->dashboard_layout ?? 'standard';
+@endphp
+
+{{-- ── Notification bell (matches SW + carer pattern) ── --}}
+<x-slot name="header">
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            @php
+                $hour = now()->hour;
+                $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+            @endphp
+            <h1 class="text-xl font-semibold text-gray-900">
+                {{ $greeting }}, {{ Auth::user()->name ?? 'there' }} 👋
+            </h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ now()->format('l, jS F Y') }}</p>
         </div>
 
-    </x-slot>
-
-
-
-    <div class="min-h-screen py-10 {{ $pageBgClass }}">
-
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-
-
-
-            <div class="{{ $topGridClass }}">
-
-
-
-                <div class="{{ $cardClass }}">
-
-                    <h3 class="text-lg font-extrabold text-blue-700">🌟 Today’s Check-in</h3>
-
-                    <p class="mt-2 {{ $subtleTextClass }}">How are you feeling today?</p>
-
-
-
-                    <div class="mt-4 grid grid-cols-5 gap-2 text-xl">
-
-                        <a href="{{ route('child.mood.save', 'happy') }}" class="text-center rounded-2xl bg-yellow-100 hover:bg-yellow-200 py-3 transition">😊</a>
-
-                        <a href="{{ route('child.mood.save', 'calm') }}" class="text-center rounded-2xl bg-green-100 hover:bg-green-200 py-3 transition">😌</a>
-
-                        <a href="{{ route('child.mood.save', 'okay') }}" class="text-center rounded-2xl bg-blue-100 hover:bg-blue-200 py-3 transition">😐</a>
-
-                        <a href="{{ route('child.mood.save', 'worried') }}" class="text-center rounded-2xl bg-purple-100 hover:bg-purple-200 py-3 transition">😟</a>
-
-                        <a href="{{ route('child.mood.save', 'sad') }}" class="text-center rounded-2xl bg-red-100 hover:bg-red-200 py-3 transition">😢</a>
-
-                    </div>
-
-
-
-                    <p class="text-xs mt-3 {{ $smallTextClass }}">Pick one to start your day 🌈</p>
-
-                </div>
-
-
-
-                <div class="{{ $cardClassPink }}">
-
-                    <h3 class="text-lg font-extrabold text-pink-700">🩷 Wellbeing Check</h3>
-
-                    <p class="mt-2 {{ $subtleTextClass }}">
-
-                        Answer a few quick questions about how you're feeling.
-
-                    </p>
-
-
-
-                    <a
-
-                        href="{{ route('child.wellbeing.form') }}"
-
-                        class="mt-4 block text-center w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 shadow transition"
-
-                    >
-
-                        Start check ✨
-
-                    </a>
-
-
-
-                    <p class="text-xs mt-3 {{ $smallTextClass }}">
-
-                        Takes about 2–3 minutes
-
-                    </p>
-
-                </div>
-
-
-
-                @if($layout !== 'minimal')
-
-                    <div class="{{ $cardClassPink }}">
-
-                        <h3 class="text-lg font-extrabold text-pink-700">📌 Quick Links</h3>
-
-
-
-                        <div class="mt-4 space-y-3">
-
-                            <a href="{{ route('child.goals') }}"
-
-                               class="block rounded-2xl bg-pink-50 hover:bg-pink-100 px-4 py-3 font-semibold text-pink-700 transition">
-
-                                🧩 My Goals
-
-                            </a>
-
-                            <a href="{{ route('chatbot.index') }}"
-                            class="block rounded-2xl bg-indigo-50 hover:bg-indigo-100 px-4 py-3 font-semibold text-indigo-700 transition">
-                                💬 {{ auth()->user()->chatbot_name ?? 'CareHub Assistant' }}
-                            </a>
-
-                            <a href="{{ route('child.trusted') }}"
-
-                               class="block rounded-2xl bg-blue-50 hover:bg-blue-100 px-4 py-3 font-semibold text-blue-700 transition">
-
-                                👨‍👩‍👧 Trusted People
-
-                            </a>
-
-
-
-                            <a href="{{ route('child.week') }}"
-
-                               class="block rounded-2xl bg-yellow-50 hover:bg-yellow-100 px-4 py-3 font-semibold text-yellow-700 transition">
-
-                                📅 My Week
-
-                            </a>
-
-
-
-                            <a href="{{ route('child.support.map') }}"
-
-                               class="block rounded-2xl bg-green-50 hover:bg-green-100 px-4 py-3 font-semibold text-green-700 transition">
-
-                                🗺️ Find Help Nearby
-
-                            </a>
-
-                        </div>
-
-                    </div>
-
+        {{-- Bell — same structure as SW/carer --}}
+        <div x-data="{ open: false }" class="relative shrink-0">
+            <button @click="open = !open" @click.outside="open = false"
+                    class="relative p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                @php $totalBell = ($unreadMessageCount ?? 0) + ($reminderCount ?? 0); @endphp
+                @if($totalBell > 0)
+                    <span class="absolute top-1 right-1 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                        {{ $totalBell > 9 ? '9+' : $totalBell }}
+                    </span>
                 @endif
+            </button>
 
-                <div class="{{ $cardClassYellow }}">
+            <div x-show="open"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-end="opacity-0 translate-y-1"
+                 class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
 
-                    <h3 class="text-lg font-extrabold text-yellow-700">🆘 Need Help?</h3>
-
-                    <p class="mt-2 {{ $subtleTextClass }}">
-
-                        If you feel unsafe or worried, press the button.
-
-                    </p>
-
-
-
-                    <a href="{{ route('child.support') }}"
-
-                       class="mt-4 block text-center w-full rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 shadow transition">
-
-                        I need support now
-
-                    </a>
-
-
-
-                    <p class="text-xs mt-3 {{ $smallTextClass }}">
-
-                        This can alert a trusted adult.
-
-                    </p>
-
+                <div class="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+                    <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notifications</p>
                 </div>
 
+                <div class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
+                    @if(($unreadMessageCount ?? 0) > 0)
+                        <a href="{{ route('child.messages.index') }}"
+                           class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition">
+                            <span class="shrink-0 mt-0.5" style="font-size:15px">💬</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-800">{{ $unreadMessageCount }} unread {{ $unreadMessageCount === 1 ? 'message' : 'messages' }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Tap to open messages</p>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-indigo-400 shrink-0 mt-2"></span>
+                        </a>
+                    @endif
+                    @if(($reminderCount ?? 0) > 0)
+                        <a href="#diary"
+                           class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition">
+                            <span class="shrink-0 mt-0.5" style="font-size:15px">📖</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-800">Diary reminder</p>
+                                <p class="text-xs text-gray-400 mt-0.5">You haven't written today</p>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0 mt-2"></span>
+                        </a>
+                    @endif
+                    @if($totalBell === 0)
+                        <div class="px-4 py-8 text-center text-sm text-gray-400">All caught up! 🎉</div>
+                    @endif
+                </div>
             </div>
+        </div>
+    </div>
+</x-slot>
 
+{{-- ── Today's mood strip ──────────────────────────────────────── --}}
+<div class="bg-white border border-gray-100 rounded-xl px-5 py-4 mb-5 flex items-center gap-4 flex-wrap">
+    <div class="shrink-0">
+        <p class="text-sm font-semibold text-gray-900">Today I feel...</p>
+        <p class="text-xs text-gray-400 mt-0.5">Tap a mood</p>
+    </div>
+    <div class="flex gap-2 flex-1 justify-end flex-wrap">
+        @foreach(['happy' => '😊', 'calm' => '😌', 'okay' => '😐', 'worried' => '😟', 'sad' => '😢'] as $mood => $emoji)
+            <a href="{{ route('child.mood.save', $mood) }}"
+               class="w-11 h-11 flex items-center justify-center rounded-xl text-xl hover:scale-110 transition-transform
+                      {{ isset($todayMood) && $todayMood === $mood ? 'ring-2 ring-indigo-400 bg-indigo-50' : 'bg-gray-50 hover:bg-gray-100' }}">
+                {{ $emoji }}
+            </a>
+        @endforeach
+    </div>
+</div>
 
+{{-- ── Main grid ──────────────────────────────────────────────── --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {{-- ── LEFT: Wellbeing check + Quick links ── --}}
+    <div class="space-y-5">
 
-                <div id="diary" class="{{ $largeCardClass }}">
+        {{-- Wellbeing check card --}}
+        <div class="bg-white border border-indigo-100 rounded-xl p-5">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm font-semibold text-gray-900">Check in</p>
+                    <p class="text-xs text-gray-400 mt-0.5">How are you feeling this week?</p>
+                </div>
+                <span class="text-2xl">🩷</span>
+            </div>
+            <a href="{{ route('child.wellbeing.form') }}"
+               class="block text-center w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2.5 transition">
+                Start ✨
+            </a>
+        </div>
 
-                    <div class="flex items-start justify-between gap-4">
-
-                        <div>
-
-                            <h3 class="text-2xl font-extrabold text-indigo-700">📖 My Diary</h3>
-
-                            <p class="mt-1 {{ $subtleTextClass }}">Write anything you want, this is your space.</p>
-
-                        </div>
-
-                        <span class="text-xs sm:text-sm px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">
-
-                            New Entry
-
+        {{-- Quick links --}}
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+            <p class="text-sm font-semibold text-gray-900 mb-3">Quick links</p>
+            <div class="space-y-2">
+                <a href="{{ route('child.trusted') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium transition">
+                    <span>👨‍👩‍👧</span> Trusted people
+                </a>
+                <a href="{{ route('child.week') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-medium transition">
+                    <span>📅</span> My week
+                </a>
+                <a href="{{ route('child.support.map') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 text-sm font-medium transition">
+                    <span>🗺️</span> Find help nearby
+                </a>
+                <a href="{{ route('child.messages.index') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-medium transition">
+                    <span>💬</span> Messages
+                    @if(($unreadMessageCount ?? 0) > 0)
+                        <span class="ml-auto bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                            {{ $unreadMessageCount }}
                         </span>
-
-                    </div>
-
-
-
-                    @if (session('success'))
-
-                        <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-green-800 font-semibold">
-
-                            ✅ {{ session('success') }}
-
-                        </div>
-
                     @endif
-
-
-
-                    @if ($errors->any())
-
-                        <div class="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-
-                            <div class="font-bold mb-1">Please fix:</div>
-
-                            <ul class="list-disc list-inside text-sm">
-
-                                @foreach ($errors->all() as $error)
-
-                                    <li>{{ $error }}</li>
-
-                                @endforeach
-
-                            </ul>
-
-                        </div>
-
-                    @endif
-
-
-
-                    <form method="POST" action="{{ route('child.diary.store') }}" class="mt-6 space-y-5">
-
-                        @csrf
-
-
-
-                        <div>
-
-                            <label class="block font-semibold mb-2 {{ $theme === 'dark' ? 'text-gray-200' : 'text-gray-700' }}">Title</label>
-
-                            <input
-
-                                type="text"
-
-                                name="title"
-
-                                value="{{ old('title') }}"
-
-                                placeholder="e.g. Today was a good day!"
-
-                                class="{{ $inputClass }}"
-
-                            />
-
-                        </div>
-
-
-
-                        <div>
-
-                            <label class="block font-semibold mb-2 {{ $theme === 'dark' ? 'text-gray-200' : 'text-gray-700' }}">What happened today?</label>
-
-                            <textarea
-
-                                name="content"
-
-                                rows="6"
-
-                                placeholder="Write here..."
-
-                                class="{{ $inputClass }}"
-
-                            >{{ old('content') }}</textarea>
-
-                        </div>
-
-
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                            <div>
-
-                                <label class="block font-semibold mb-2 {{ $theme === 'dark' ? 'text-gray-200' : 'text-gray-700' }}">Mood</label>
-
-                                <select
-
-                                    name="mood"
-
-                                    class="{{ $selectClass }}"
-
-                                >
-
-                                    <option value="happy" @selected(old('mood') === 'happy')>😊 Happy</option>
-
-                                    <option value="calm" @selected(old('mood') === 'calm')>😌 Calm</option>
-
-                                    <option value="okay" @selected(old('mood') === 'okay')>😐 Okay</option>
-
-                                    <option value="worried" @selected(old('mood') === 'worried')>😟 Worried</option>
-
-                                    <option value="sad" @selected(old('mood') === 'sad')>😢 Sad</option>
-
-                                </select>
-
-                            </div>
-
-
-                        </div>
-
-
-
-                        <button
-
-                            type="submit"
-
-                            class="w-full rounded-2xl px-6 py-3 font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition focus:outline-none focus:ring-2 focus:ring-indigo-200">
-
-                            Save
-
-                        </button>
-
-                    </form>
-
-                </div>
-
-
-
-                <div class="{{ $recentCardClass }}">
-
-                    <h3 class="text-lg font-extrabold text-indigo-700">🗂️ Recent Entries</h3>
-
-                    <p class="text-sm mt-1 {{ $subtleTextClass }}">Your latest diary entries.</p>
-
-
-
-                    @php
-
-                        $moodEmoji = [
-
-                            'happy' => '😊',
-
-                            'calm' => '😌',
-
-                            'okay' => '😐',
-
-                            'worried' => '😟',
-
-                            'sad' => '😢',
-
-                        ];
-
-                    @endphp
-
-
-
-                    <div class="mt-4 space-y-3">
-
-                        @if(isset($recentEntries) && $recentEntries->count())
-
-                            @foreach($recentEntries as $entry)
-
-                                <div class="{{ $innerBoxClass }}">
-
-                                    <div class="font-semibold {{ $theme === 'dark' ? 'text-white' : 'text-gray-800' }}">
-
-                                        {{ $entry->title ?: 'Untitled entry' }}
-
-                                    </div>
-
-
-
-                                    <div class="text-xs mt-1 {{ $smallTextClass }}">
-
-                                        Mood:
-
-                                        <span class="mr-1">{{ $moodEmoji[$entry->mood] ?? '✅' }}</span>
-
-                                        {{ ucfirst($entry->mood ?? 'unknown') }}
-
-                                        •
-
-                                        {{ \Carbon\Carbon::parse($entry->created_at)->diffForHumans() }}
-
-                                    </div>
-
-                                </div>
-
-                            @endforeach
-
-                        @else
-
-                            <div class="{{ $innerBoxClass }} {{ $subtleTextClass }}">
-
-                                No entries yet, write your first one on the left
-
-                            </div>
-
-                        @endif
-
-                    </div>
-
-
-
-                    <div class="text-xs pt-3 {{ $smallTextClass }}">
-
-                        Tip: Your newest entries will show here automatically.
-
-                    </div>
-
-                </div>
+                </a>
             </div>
-        {{-- Floating chatbot button --}}
-        <a href="{{ route('chatbot.index') }}"
-        class="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full
-                bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white shadow-2xl
-                hover:scale-105 transition-transform"
-        aria-label="Open {{ auth()->user()->chatbot_name ?? 'CareHub Assistant' }}">
-            <span class="text-xl">💬</span>
-            <span class="text-sm font-bold hidden sm:inline">
-                {{ auth()->user()->chatbot_name ?? 'Chat' }}
-            </span>
-        </a>
+        </div>
+
+    </div>
+
+    {{-- ── MIDDLE: My Journey (Goals) ── --}}
+    <div class="bg-white border border-gray-100 rounded-xl overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-gray-900">My journey 🌱</p>
+            </div>
+            <a href="{{ route('child.goals') }}"
+               class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                View all →
+            </a>
+        </div>
+
+        <div class="flex-1 divide-y divide-gray-50 overflow-y-auto max-h-96">
+            @forelse(isset($activeGoals) ? $activeGoals->take(4) : [] as $goal)
+            @php
+                $tasks = isset($tasksByGoal) ? ($tasksByGoal[$goal->case_goal_id] ?? collect()) : collect();
+                $done  = $tasks->filter(fn($t) => $t->completed_at !== null)->count();
+                $total = $tasks->count();
+                $pct   = $total > 0 ? round(($done / $total) * 100) : 0;
+            @endphp
+            <div class="px-5 py-3.5 flex items-center gap-3">
+                {{-- Mini ring --}}
+                <div class="shrink-0 w-9 h-9 relative flex items-center justify-center">
+                    <svg class="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" stroke-width="4"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none"
+                            stroke="{{ $pct === 100 ? '#22c55e' : '#818cf8' }}" stroke-width="4"
+                            stroke-dasharray="{{ $pct }},100" stroke-linecap="round"/>
+                    </svg>
+                    <span class="absolute text-[8px] font-bold {{ $pct === 100 ? 'text-green-600' : 'text-indigo-500' }}">
+                        {{ $pct }}%
+                    </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ $goal->title }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ $done }}/{{ $total }} tasks done</p>
+                </div>
+                @if($pct === 100)
+                    <span class="text-green-500 text-lg shrink-0">✓</span>
+                @endif
+            </div>
+            @empty
+            <div class="px-5 py-10 text-center">
+                <p class="text-2xl mb-2">🌱</p>
+                <p class="text-sm text-gray-500">No goals yet.</p>
+                <p class="text-xs text-gray-400 mt-1">Your social worker will add some soon.</p>
+            </div>
+            @endforelse
+        </div>
+
+        @if(isset($activeGoals) && $activeGoals->count() > 4)
+        <div class="px-5 py-3 border-t border-gray-100 text-center">
+            <a href="{{ route('child.goals') }}" class="text-xs text-indigo-600 font-medium hover:text-indigo-800">
+                + {{ $activeGoals->count() - 4 }} more goals
+            </a>
+        </div>
+        @endif
+    </div>
+
+    {{-- ── RIGHT: Diary ── --}}
+    <div id="diary" class="bg-white border border-gray-100 rounded-xl overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-gray-900">📖 My diary</p>
+                <p class="text-xs text-gray-400 mt-0.5">Your private space</p>
+            </div>
+        </div>
+
+        @if(session('success'))
+            <div class="mx-5 mt-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
+                ✅ {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="flex-1 px-5 py-4">
+            <form method="POST" action="{{ route('child.diary.store') }}" class="space-y-3">
+                @csrf
+                <div>
+                    <input type="text" name="title" value="{{ old('title') }}"
+                           placeholder="Title — e.g. Today was good!"
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                </div>
+                <div>
+                    <textarea name="content" rows="4"
+                              placeholder="Write anything you want..."
+                              class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none">{{ old('content') }}</textarea>
+                </div>
+                <div>
+                    <select name="mood"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="happy"   @selected(old('mood') === 'happy')>😊 Happy</option>
+                        <option value="calm"    @selected(old('mood') === 'calm')>😌 Calm</option>
+                        <option value="okay"    @selected(old('mood') === 'okay')>😐 Okay</option>
+                        <option value="worried" @selected(old('mood') === 'worried')>😟 Worried</option>
+                        <option value="sad"     @selected(old('mood') === 'sad')>😢 Sad</option>
+                    </select>
+                </div>
+                <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl py-2.5 transition">
+                    Save entry
+                </button>
+            </form>
+        </div>
+
+        {{-- Recent entries --}}
+        @if(isset($recentEntries) && $recentEntries->count())
+        <div class="border-t border-gray-100 px-5 py-3">
+            <p class="text-xs font-medium text-gray-500 mb-2">Recent entries</p>
+            <div class="space-y-2">
+                @php $moodEmoji = ['happy'=>'😊','calm'=>'😌','okay'=>'😐','worried'=>'😟','sad'=>'😢']; @endphp
+                @foreach($recentEntries->take(3) as $entry)
+                <div class="flex items-center gap-2 text-xs text-gray-600">
+                    <span>{{ $moodEmoji[$entry->mood] ?? '📝' }}</span>
+                    <span class="flex-1 truncate font-medium">{{ $entry->title ?: 'Untitled' }}</span>
+                    <span class="text-gray-400 shrink-0">{{ \Carbon\Carbon::parse($entry->created_at)->format('d M') }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+
+</div>
+
+{{-- Floating chatbot button --}}
+<a href="{{ route('chatbot.index') }}"
+   class="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full
+          bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white shadow-2xl
+          hover:scale-105 transition-transform"
+   aria-label="Open {{ auth()->user()->chatbot_name ?? 'CareHub Assistant' }}">
+    <span class="text-xl">💬</span>
+    <span class="text-sm font-bold hidden sm:inline">
+        {{ auth()->user()->chatbot_name ?? 'Chat' }}
+    </span>
+</a>
+
 </x-app-layout>

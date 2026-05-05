@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\TrustedPerson;
 use App\Models\User;
-
+use App\Notifications\CareHubNotification;
 
 class TrustedPeopleController extends Controller
 {
@@ -19,7 +19,7 @@ class TrustedPeopleController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        $carer = $this->getAssignedUser($userId, 'carer');
+        $carer        = $this->getAssignedUser($userId, 'carer');
         $socialWorker = $this->getAssignedUser($userId, 'social_worker');
 
         return view('child.trusted-people', compact('people', 'carer', 'socialWorker'));
@@ -55,9 +55,16 @@ class TrustedPeopleController extends Controller
 
         $message = $data['message'] ?? 'I need support.';
 
-        // Resolve assigned carer and social worker from the open case
         $carer        = $this->getAssignedUser($child->id, 'carer');
         $socialWorker = $this->getAssignedUser($child->id, 'social_worker');
+
+        // Resolve the open case file
+        $caseFile = DB::table('case_files')
+            ->where('young_person_id', $child->id)
+            ->where('status', 'open')
+            ->first();
+
+        $caseFileId = $caseFile?->id;
 
         // Persist the support request
         DB::table('support_requests')->insert([
@@ -70,32 +77,54 @@ class TrustedPeopleController extends Controller
             'updated_at' => now(),
         ]);
 
-        // Notify whoever is assigned — notify() handles missing gracefully
+        // ── Create an Alert row so it appears in the SW alert panel ──────────
+        // This creates a high-severity alert that shows in the red alert dropdown
+        // on the SW dashboard, not buried in the notification bell.
+        if ($caseFileId) {
+            // We need a wellbeing_check_id for the alerts FK — use the most recent check
+            $latestCheckId = DB::table('wellbeing_checks')
+                ->where('case_file_id', $caseFileId)
+                ->orderByDesc('created_at')
+                ->value('id');
+
+            if ($latestCheckId) {
+                DB::table('alerts')->insert([
+                    'wellbeing_check_id' => $latestCheckId,
+                    'young_person_id'    => $child->id,
+                    'alert_type'         => 'tag_override',
+                    'severity'           => 'high',
+                    'message'            => $child->name . ' has requested support: "' . $message . '"',
+                    'acknowledged_at'    => null,
+                    'acknowledged_by'    => null,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ]);
+            }
+        }
+
+        // ── Also send a notification to carer (bell) ──────────────────────────
+        // SW sees it in the alert panel; carer gets a notification bell item
         $notification = new CareHubNotification(
-            type: 'support_request',
+            type:    'support_request',
             summary: $child->name . ' has requested support.',
-            data: [
+            data:    [
                 'child_id'     => $child->id,
-                'case_file_id' => $caseFile?->id,
+                'case_file_id' => $caseFileId,
                 'message'      => $message,
             ],
         );
-
-        if ($socialWorker) {
-            User::find($socialWorker->id)?->notify($notification);
-        }
 
         if ($carer) {
             User::find($carer->id)?->notify($notification);
         }
 
+        if ($socialWorker && !$caseFileId) {
+            User::find($socialWorker->id)?->notify($notification);
+        }
+
         return back()->with('support_sent', true);
     }
 
-    /**
-     * Returns the assigned user of the given role for the child's open case.
-     * Returns null if no open case or no user of that role is assigned.
-     */
     private function getAssignedUser(int $childId, string $role): ?object
     {
         return DB::table('case_user')
