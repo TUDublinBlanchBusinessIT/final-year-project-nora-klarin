@@ -190,92 +190,6 @@
     </div>
 </x-slot>
 
-{{-- ── Alert panel ──────────────────────────────────────────────────────────── --}}
-@if($totalAlerts > 0)
-<div x-data="{ open: true }" class="mb-5">
-    <div class="flex items-center gap-3 bg-red-600 rounded-xl px-5 py-3.5 cursor-pointer select-none" @click="open = !open">
-        <span class="relative flex h-3 w-3 shrink-0">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-        </span>
-        <p class="text-sm font-semibold text-white flex-1">
-            {{ $totalAlerts }} active {{ Str::plural('alert', $totalAlerts) }} — immediate attention required
-        </p>
-        <a href="{{ route('socialworker.wellbeing.alerts') }}" class="text-xs text-red-200 hover:text-white font-medium shrink-0 mr-3" @click.stop>View all →</a>
-        <svg class="w-4 h-4 text-red-200 transition-transform duration-200 shrink-0" :class="{ 'rotate-180': open }"
-             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-        </svg>
-    </div>
-
-    <div x-show="open"
-         x-transition:enter="transition ease-out duration-150"
-         x-transition:enter-start="opacity-0 -translate-y-1"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-100"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0 -translate-y-1"
-         class="border border-red-200 rounded-b-xl -mt-2 pt-2 bg-white overflow-hidden divide-y divide-red-100">
-
-        @foreach($highRiskCases as $hrCase)
-            <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-red-50 transition">
-                <div class="shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-900">{{ $hrCase->youngPerson->name ?? ('Case #'.$hrCase->id) }}</p>
-                    <p class="text-xs text-red-600 font-medium mt-0.5">
-                        High risk — not reviewed today
-                        @if($hrCase->last_reviewed_at)
-                            · Last reviewed {{ \Carbon\Carbon::parse($hrCase->last_reviewed_at)->diffForHumans() }}
-                        @endif
-                    </p>
-                </div>
-                <a href="{{ route('socialworker.cases.show', $hrCase) }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium shrink-0 mr-2">View case →</a>
-                <form method="POST" action="{{ route('socialworker.cases.markReviewed', $hrCase) }}" class="shrink-0">
-                    @csrf @method('PATCH')
-                    <button type="submit" class="text-xs text-gray-400 hover:text-green-600 border border-gray-200 hover:border-green-300 rounded-lg px-2.5 py-1 transition font-medium">
-                        Mark reviewed ✓
-                    </button>
-                </form>
-            </div>
-        @endforeach
-
-        @foreach($alertsCollection as $alert)
-            @php
-                $aSev   = $alert['severity'] ?? 'high';
-                $isCrit = $aSev === 'critical';
-                $aLabel = $alert['type'] === 'tag_override' ? 'Safeguarding alert' : 'Critical response';
-            @endphp
-            <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-red-50 transition {{ $isCrit ? 'bg-red-50' : '' }}">
-                <div class="shrink-0 w-8 h-8 rounded-full {{ $isCrit ? 'bg-red-200' : 'bg-orange-100' }} flex items-center justify-center">
-                    <span class="w-2.5 h-2.5 rounded-full {{ $isCrit ? 'bg-red-600' : 'bg-orange-400' }}"></span>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-900">{{ $aLabel }}</p>
-                    <p class="text-xs text-gray-500 mt-0.5 truncate">{{ $alert['message'] }}</p>
-                </div>
-                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 {{ $isCrit ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700' }}">
-                    {{ ucfirst($aSev) }}
-                </span>
-                <a href="{{ $alert['route'] }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium shrink-0 mr-2">View →</a>
-                <form method="POST" action="{{ route('socialworker.alerts.acknowledge', $alert['id']) }}" class="shrink-0">
-                    @csrf @method('PATCH')
-                    <button type="submit" class="text-xs text-gray-400 hover:text-green-600 border border-gray-200 hover:border-green-300 rounded-lg px-2.5 py-1 transition font-medium">
-                        Acknowledge ✓
-                    </button>
-                </form>
-            </div>
-        @endforeach
-
-        <div class="px-5 py-2.5 bg-red-50 flex items-center justify-between">
-            <p class="text-[11px] text-red-400">Acknowledge to dismiss · Critical alerts require immediate action</p>
-            <a href="{{ route('socialworker.wellbeing.alerts') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">All alerts →</a>
-        </div>
-    </div>
-</div>
-@endif
-
 {{-- ── Stat cards ───────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
     <a href="{{ route('socialworker.cases.index') }}"
@@ -416,61 +330,131 @@
     {{-- Wellbeing tab --}}
     <div x-show="tab==='wellbeing'" class="space-y-4">
 
-        {{-- Latest checks --}}
-        <div class="bg-white border border-gray-100 rounded-xl divide-y divide-gray-100">
-            <div class="px-5 py-3">
-                <p class="text-sm font-medium text-gray-700">Latest wellbeing checks</p>
+        {{-- ── Wellbeing summary: priority cases + score ring grid ── --}}
+        @php
+            // Sort by risk severity then score ascending (worst first)
+            $riskOrder = ['critical' => 0, 'high' => 1, 'moderate' => 2, 'medium' => 2, 'low' => 3];
+            $sortedWellbeing = collect($wellbeingData)->sortBy([
+                fn($e) => $riskOrder[strtolower($e['check']->risk_level ?? 'low')] ?? 3,
+                fn($e) => $e['check']->overall_score ?? 100,
+            ]);
+            $needsAttention = $sortedWellbeing->filter(fn($e) => in_array(strtolower($e['check']->risk_level ?? ''), ['high','critical']));
+            $others         = $sortedWellbeing->filter(fn($e) => !in_array(strtolower($e['check']->risk_level ?? ''), ['high','critical']));
+        @endphp
+
+        {{-- Needs attention banner --}}
+        @if($needsAttention->isNotEmpty())
+        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+            <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <p class="text-sm font-medium text-gray-900">Needs attention</p>
+                <span class="ml-auto text-xs text-gray-400">{{ $needsAttention->count() }} {{ Str::plural('case', $needsAttention->count()) }}</span>
             </div>
-            @forelse($wellbeingData as $entry)
+            @foreach($needsAttention as $entry)
                 @php
-                    $child    = $entry['child'];
-                    $check    = $entry['check'];
-                    $caseId   = $check->case_file_id ?? 0;
-                    $score    = round($check->overall_score ?? 0);
-                    $wRisk    = $check->risk_level ?? 'low';
-                    $badgeCls = in_array($wRisk, ['high','critical'])
-                        ? 'bg-red-100 text-red-700'
-                        : ($wRisk === 'medium' || $wRisk === 'moderate'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-green-100 text-green-700');
+                    $child  = $entry['child'];
+                    $check  = $entry['check'];
+                    $caseId = $check->case_file_id ?? 0;
+                    $score  = round($check->overall_score ?? 0);
+                    $wRisk  = strtolower($check->risk_level ?? 'low');
+                    $isCrit = $wRisk === 'critical';
+                    // Only show domains that scored below 45 — the problem areas
+                    $lowDomains = $entry['domainScores']->filter(fn($s) => $s < 45)->sortBy(fn($s) => $s)->take(3);
                 @endphp
-                <div class="px-5 py-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <a href="{{ route('socialworker.cases.show', $caseId) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600">
-                            {{ $child->name ?? ('Case #'.$caseId) }}
-                        </a>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs {{ $badgeCls }} px-2 py-0.5 rounded-full font-medium">{{ ucfirst($wRisk) }}</span>
-                            <span class="text-xs text-gray-500">{{ $score }}/100</span>
-                            <span class="text-xs text-gray-300">{{ $check->completed_at?->diffForHumans() }}</span>
-                        </div>
+                <div class="flex items-center gap-4 px-5 py-3.5 border-b border-gray-50 last:border-0 {{ $isCrit ? 'bg-red-50' : '' }} hover:bg-gray-50 transition">
+                    {{-- Score ring --}}
+                    <div class="shrink-0 w-12 h-12 relative flex items-center justify-center">
+                        <svg class="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" stroke-width="3"/>
+                            <circle cx="18" cy="18" r="15.9" fill="none"
+                                stroke="{{ $isCrit ? '#ef4444' : '#f97316' }}" stroke-width="3"
+                                stroke-dasharray="{{ $score }},100" stroke-linecap="round"/>
+                        </svg>
+                        <span class="absolute text-[10px] font-bold {{ $isCrit ? 'text-red-600' : 'text-orange-600' }}">{{ $score }}</span>
                     </div>
-                    @if($entry['domainScores']->count() > 0)
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-1.5">
-                            @foreach($entry['domainScores'] as $domain => $ds)
-                                @php
-                                    $pct  = round($ds);
-                                    $barC = $pct < 35 ? 'bg-red-300' : ($pct < 60 ? 'bg-yellow-300' : 'bg-green-300');
-                                @endphp
-                                <div>
-                                    <div class="flex items-center justify-between mb-0.5">
-                                        <span class="text-[10px] text-gray-500 truncate">{{ $domain }}</span>
-                                        <span class="text-[10px] text-gray-400 ml-1 shrink-0">{{ $pct }}</span>
-                                    </div>
-                                    <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full {{ $barC }}" style="width:{{ $pct }}%"></div>
-                                    </div>
-                                </div>
-                            @endforeach
+                    {{-- Name + risk + low domains --}}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <a href="{{ route('socialworker.cases.show', $caseId) }}"
+                               class="text-sm font-semibold text-gray-900 hover:text-indigo-600 truncate">
+                                {{ $child->name ?? ('Case #'.$caseId) }}
+                            </a>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0
+                                {{ $isCrit ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700' }}">
+                                {{ ucfirst($wRisk) }}
+                            </span>
                         </div>
-                    @else
-                        <p class="text-xs text-gray-400">No domain scores recorded.</p>
-                    @endif
+                        @if($lowDomains->isNotEmpty())
+                            <div class="flex items-center gap-3 flex-wrap">
+                                @foreach($lowDomains as $domain => $score)
+                                    <span class="text-[11px] text-red-600 font-medium">
+                                        {{ $domain }} {{ round($score) }}
+                                    </span>
+                                @endforeach
+                                @if($entry['domainScores']->filter(fn($s) => $s < 45)->count() > 3)
+                                    <span class="text-[11px] text-gray-400">+{{ $entry['domainScores']->filter(fn($s) => $s < 45)->count() - 3 }} more</span>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                    <div class="shrink-0 flex flex-col items-end gap-1">
+                        <span class="text-xs text-gray-400">{{ $check->completed_at?->diffForHumans() }}</span>
+                        <a href="{{ route('socialworker.cases.show', $caseId) }}"
+                           class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                            View case →
+                        </a>
+                    </div>
                 </div>
-            @empty
-                <div class="px-5 py-8 text-center text-sm text-gray-400">No wellbeing checks completed yet.</div>
-            @endforelse
+            @endforeach
         </div>
+        @endif
+
+        {{-- All other cases — compact score grid --}}
+        @if($others->isNotEmpty())
+        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+            <div class="px-5 py-3 border-b border-gray-100">
+                <p class="text-sm font-medium text-gray-700">All cases</p>
+                <p class="text-xs text-gray-400 mt-0.5">Sorted by score — tap any case to view details</p>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-gray-100">
+                @foreach($others as $entry)
+                    @php
+                        $child  = $entry['child'];
+                        $check  = $entry['check'];
+                        $caseId = $check->case_file_id ?? 0;
+                        $score  = round($check->overall_score ?? 0);
+                        $wRisk  = strtolower($check->risk_level ?? 'low');
+                        $ringColor = $wRisk === 'moderate' || $wRisk === 'medium' ? '#eab308' : '#22c55e';
+                    @endphp
+                    <a href="{{ route('socialworker.cases.show', $caseId) }}"
+                       class="bg-white px-4 py-4 hover:bg-indigo-50 transition group flex flex-col items-center gap-2 text-center">
+                        {{-- Mini ring --}}
+                        <div class="w-10 h-10 relative flex items-center justify-center shrink-0">
+                            <svg class="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+                                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" stroke-width="3.5"/>
+                                <circle cx="18" cy="18" r="15.9" fill="none"
+                                    stroke="{{ $ringColor }}" stroke-width="3.5"
+                                    stroke-dasharray="{{ $score }},100" stroke-linecap="round"/>
+                            </svg>
+                            <span class="absolute text-[9px] font-bold text-gray-700">{{ $score }}</span>
+                        </div>
+                        <div class="min-w-0 w-full">
+                            <p class="text-xs font-medium text-gray-800 truncate group-hover:text-indigo-600">
+                                {{ $child->name ?? ('Case #'.$caseId) }}
+                            </p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">{{ $check->completed_at?->diffForHumans(null, true) }}</p>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        @if(empty($wellbeingData))
+            <div class="bg-white border border-gray-100 rounded-xl px-5 py-12 text-center text-sm text-gray-400">
+                No wellbeing checks completed yet.
+            </div>
+        @endif
 
         {{-- Charts side by side --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -13,34 +13,79 @@
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
-            {{-- Reminders bell --}}
-            <div x-data="{ open: false }" class="relative">
-                <button type="button" @click="open = !open"
-                        class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 hover:bg-slate-50 transition">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
-                    </svg>
-                    @if(isset($reminderCount) && $reminderCount > 0)
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                            {{ $reminderCount }}
-                        </span>
-                    @endif
-                </button>
-                <div x-show="open" @click.outside="open = false" x-transition
-                     class="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-[14px] shadow-xl z-50 overflow-hidden">
-                    <div class="px-4 py-3 border-b border-gray-100">
-                        <p class="text-sm font-semibold text-gray-700">Reminders</p>
-                        <p class="text-xs text-gray-400 mt-0.5">Things to check</p>
+ <div x-data="{ open: false }" class="relative">
+    <button type="button" @click="open = !open" @click.outside="open = false"
+            class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 hover:bg-slate-50 transition">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+        </svg>
+        @php $carerNotifCount = $notificationCount ?? 0; @endphp
+        @if($carerNotifCount > 0)
+            <span class="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                {{ $carerNotifCount > 9 ? '9+' : $carerNotifCount }}
+            </span>
+        @endif
+    </button>
+
+    <div x-show="open" x-transition
+         class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-[14px] shadow-xl z-50 overflow-hidden">
+
+        <div class="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notifications</p>
+            @if($carerNotifCount > 0)
+                <form method="POST" action="{{ route('carer.notifications.markAllRead') }}">
+                    @csrf
+                    <button class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Mark all read</button>
+                </form>
+            @endif
+        </div>
+
+        <div class="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+            @forelse($notifications ?? [] as $notif)
+                @php
+                    $nData    = $notif->data;
+                    $nType    = $nData['type'] ?? '';
+                    $nSummary = $nData['summary'] ?? 'Notification';
+                    $nCase    = $nData['case_file_id'] ?? null;
+                    $nHref    = $nCase ? route('carer.cases.show', $nCase) : '#';
+                    $nIcon    = match($nType) {
+                        'appointment_created'   => '📅',
+                        'appointment_cancelled' => '❌',
+                        'case_updated'          => '📋',
+                        'document_uploaded'     => '📎',
+                        'message_received'      => '💬',
+                        default                 => '🔔',
+                    };
+                @endphp
+                <a href="{{ $nHref }}"
+                   class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition"
+                   onclick="markCarerNotifRead('{{ $notif->id }}', event)">
+                    <span class="shrink-0 mt-0.5" style="font-size:15px">{{ $nIcon }}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-800 truncate">{{ $nSummary }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ $notif->created_at->diffForHumans() }}</p>
                     </div>
-                    <div class="px-4 py-4">
-                        <div class="bg-slate-50 border border-gray-100 rounded-xl p-3 text-center">
-                            <p class="text-sm text-gray-500">No reminders at the moment.</p>
-                        </div>
-                        <button type="button" @click="open = false"
-                                class="w-full text-xs text-gray-400 hover:text-gray-600 mt-3 underline">Close</button>
-                    </div>
-                </div>
-            </div>
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 shrink-0 mt-2"></span>
+                </a>
+            @empty
+                <div class="px-4 py-8 text-center text-sm text-gray-400">No new notifications.</div>
+            @endforelse
+        </div>
+    </div>
+</div>
+
+<form id="markCarerNotifForm" method="POST" action="" style="display:none">@csrf @method('PATCH')</form>
+<script>
+function markCarerNotifRead(id, e) {
+    e.preventDefault();
+    const form = document.getElementById('markCarerNotifForm');
+    const href = e.currentTarget.href;
+    form.action = '{{ url("/carer/notifications") }}/' + id + '/read';
+    form.onsubmit = () => { setTimeout(() => { window.location = href; }, 50); return true; };
+    form.submit();
+}
+</script>
         </div>
     </div>
 </x-slot>

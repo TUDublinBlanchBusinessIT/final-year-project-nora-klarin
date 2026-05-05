@@ -49,29 +49,15 @@ class CarerDocumentController extends Controller
         $user = $this->ensureCarer($request);
 
 
-
-        // Documents uploaded by this carer
-
         $sentDocs = Document::where('uploaded_by', $user->id)
-
             ->latest()
-
             ->get();
-
-
-
-        // Documents uploaded by social worker
 
         $receivedDocs = Document::where('uploaded_by', '!=', $user->id)
-
             ->latest()
-
             ->get();
 
-
-
         $caseFiles = CaseFile::latest()->get();
-
         $case = CaseFile::first();
 
 
@@ -114,7 +100,7 @@ class CarerDocumentController extends Controller
 
         $file = $data['file'];
 
-        $path = $file->store("documents/{$user->id}", 'local');
+        $path = $file->store('documents', 'public');
 
 
 

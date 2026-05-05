@@ -263,14 +263,27 @@
 
         <h2 class="font-semibold">Documents</h2>
 
-        @forelse($case->documents as $d)
-            <a href="{{ asset('storage/'.$d->file_path) }}"
-               class="text-indigo-600 text-sm block">
-                {{ $d->title ?? 'Document' }}
-            </a>
-        @empty
-            <p class="text-sm text-gray-500">No documents uploaded.</p>
-        @endforelse
+@forelse($case->documents as $d)
+    <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-sky-50 rounded-lg flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-900">{{ $d->name ?? $d->title ?? 'Document' }}</p>
+                <p class="text-xs text-gray-400">Uploaded {{ $d->created_at?->diffForHumans() }}</p>
+            </div>
+        </div>
+        <a href="{{ \Illuminate\Support\Facades\Storage::url($d->file_path) }}" target="_blank"
+           class="text-xs text-indigo-600 hover:text-indigo-800 font-medium shrink-0">
+            View →
+        </a>
+    </div>
+@empty
+    <p class="text-sm text-gray-500">No documents uploaded.</p>
+@endforelse
 
         @if(auth()->user()->role === 'social_worker')
         <div x-data="{ open: false }">
@@ -425,65 +438,114 @@
         <canvas id="wellbeingTrend"></canvas>
     </div>
 
-    {{-- Recent Checks Table --}}
-    @if($case->wellbeingChecks->isNotEmpty())
-    <div class="mt-6">
-        <h3 class="font-medium text-gray-900 mb-3">Wellbeing Check History</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead class="text-left text-gray-500 border-b">
-                    <tr>
-                        <th class="py-2">Date</th>
-                        <th class="py-2 text-center">Overall</th>
-                        <th class="py-2 text-center">Risk</th>
-                        <th class="py-2 text-center">Emotional</th>
-                        <th class="py-2 text-center">Behavioural</th>
-                        <th class="py-2 text-center">Social</th>
-                        <th class="py-2 text-center">Physical</th>
-                        <th class="py-2 text-center">Education</th>
-                        <th class="py-2 text-center">Safety</th>
-                        <th class="py-2 text-center">Life Sat.</th>
-                        <th class="py-2 text-center">Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($case->wellbeingChecks->sortByDesc('created_at') as $check)
-                    <tr class="border-b hover:bg-gray-50 {{ $loop->first ? 'bg-blue-50' : '' }}">
-                        <td class="py-2 font-medium">
-                            {{ $check->created_at->format('d M Y') }}
-                            @if($loop->first) <span class="text-blue-600 text-xs">(Latest)</span> @endif
-                        </td>
-                        <td class="py-2 text-center font-medium">{{ round($check->overall_score, 1) }}</td>
-                        <td class="py-2 text-center">
-                            <span class="px-2 py-1 text-xs rounded-full
-                                @if($check->risk_level === 'high') bg-red-100 text-red-700
-                                @elseif($check->risk_level === 'medium') bg-yellow-100 text-yellow-700
-                                @else bg-green-100 text-green-700 @endif">
-                                {{ ucfirst($check->risk_level) }}
-                            </span>
-                        </td>
-                        <td class="py-2 text-center">{{ $check->emotional_score ?? '—' }}</td>
-                        <td class="py-2 text-center">{{ $check->behavioural_score ?? '—' }}</td>
-                        <td class="py-2 text-center">{{ $check->social_score ?? '—' }}</td>
-                        <td class="py-2 text-center">{{ $check->physical_score ?? '—' }}</td>
-                        <td class="py-2 text-center">{{ $check->education_score ?? '—' }}</td>
-                        <td class="py-2 text-center">{{ $check->safety_score ?? '—' }}</td>
-                        <td class="py-2 text-center">{{ $check->life_satisfaction_score ?? '—' }}</td>
-                        <td class="py-2 text-center">
-                            <button
-                                @click="showCheckDetails({{ $check->id }})"
-                                class="text-indigo-600 hover:text-indigo-800 text-sm underline"
-                            >
-                                View
-                            </button>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+@if($case->wellbeingChecks->isNotEmpty())
+<div class="mt-6">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium text-gray-900">Wellbeing check history</h3>
+        <div class="flex items-center gap-3 text-xs text-gray-400">
+            <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 inline-block"></span> Self-report
+            </span>
+            <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> Carer proxy
+            </span>
         </div>
     </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="text-left text-gray-500 border-b">
+                <tr>
+                    <th class="py-2 pr-3">Date</th>
+                    <th class="py-2 pr-3">Type</th>
+                    <th class="py-2 pr-3">Submitted by</th>
+                    <th class="py-2 text-center">Overall</th>
+                    <th class="py-2 text-center">Risk</th>
+                    <th class="py-2 text-center">Emotional</th>
+                    <th class="py-2 text-center">Behavioural</th>
+                    <th class="py-2 text-center">Social</th>
+                    <th class="py-2 text-center">Physical</th>
+                    <th class="py-2 text-center">Education</th>
+                    <th class="py-2 text-center">Safety</th>
+                    <th class="py-2 text-center">Life Sat.</th>
+                    <th class="py-2 text-center">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($case->wellbeingChecks->sortByDesc('created_at') as $check)
+                @php
+                    $isProxy  = $check->check_type === 'carer_proxy';
+                    $rowBg    = $loop->first ? 'bg-blue-50' : ($isProxy ? 'bg-amber-50/40' : '');
+                    $typeBadge = $isProxy
+                        ? 'bg-amber-100 text-amber-700'
+                        : ($check->check_type === 'intake'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-indigo-50 text-indigo-600');
+                    $typeLabel = $isProxy ? 'Carer proxy' : ucfirst($check->check_type ?? 'Scheduled');
+                    $submitter = $check->submittedBy?->name
+                        ?? ($isProxy ? 'Carer' : 'Young person');
+                @endphp
+                <tr class="border-b hover:bg-gray-50 {{ $rowBg }}">
+                    <td class="py-2 pr-3 font-medium whitespace-nowrap">
+                        {{ $check->created_at->format('d M Y') }}
+                        @if($loop->first)
+                            <span class="text-blue-600 text-xs ml-1">(Latest)</span>
+                        @endif
+                    </td>
+                    <td class="py-2 pr-3">
+                        <span class="text-xs font-medium px-2 py-0.5 rounded-full {{ $typeBadge }}">
+                            {{ $typeLabel }}
+                        </span>
+                    </td>
+                    <td class="py-2 pr-3 text-xs text-gray-500 whitespace-nowrap">
+                        {{ $submitter }}
+                    </td>
+                    <td class="py-2 text-center font-medium">
+                        {{ $check->overall_score !== null ? round($check->overall_score, 1) : '—' }}
+                    </td>
+                    <td class="py-2 text-center">
+                        @php $rl = strtolower($check->risk_level ?? ''); @endphp
+                        <span class="px-2 py-0.5 text-xs rounded-full
+                            @if(in_array($rl, ['high','critical'])) bg-red-100 text-red-700
+                            @elseif(in_array($rl, ['medium','moderate'])) bg-yellow-100 text-yellow-700
+                            @else bg-green-100 text-green-700 @endif">
+                            {{ ucfirst($rl) ?: '—' }}
+                        </span>
+                    </td>
+                    <td class="py-2 text-center text-gray-600">{{ $check->emotional_score ?? '—' }}</td>
+                    <td class="py-2 text-center text-gray-600">{{ $check->behavioural_score ?? '—' }}</td>
+                    <td class="py-2 text-center text-gray-600">{{ $check->social_score ?? '—' }}</td>
+                    <td class="py-2 text-center text-gray-600">{{ $check->physical_score ?? '—' }}</td>
+                    <td class="py-2 text-center text-gray-600">{{ $check->education_score ?? '—' }}</td>
+                    <td class="py-2 text-center text-gray-600">{{ $check->safety_score ?? '—' }}</td>
+                    <td class="py-2 text-center text-gray-600">{{ $check->life_satisfaction_score ?? '—' }}</td>
+                    <td class="py-2 text-center">
+                        <button
+                            @click="showCheckDetails({{ $check->id }})"
+                            class="text-indigo-600 hover:text-indigo-800 text-xs underline">
+                            View
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    @php
+        $selfReportCount = $case->wellbeingChecks->whereIn('check_type', ['intake', 'scheduled'])->count();
+        $proxyCount      = $case->wellbeingChecks->where('check_type', 'carer_proxy')->count();
+    @endphp
+    @if($proxyCount > 0)
+    <div class="mt-3 flex items-center gap-4 text-xs text-gray-400 border-t border-gray-100 pt-3">
+        <span>{{ $selfReportCount }} self-report {{ Str::plural('check', $selfReportCount) }}</span>
+        <span>·</span>
+        <span>{{ $proxyCount }} carer {{ Str::plural('proxy', $proxyCount) }}</span>
+        <span>·</span>
+        <span class="text-gray-500">Risk level reflects the most recent check regardless of type</span>
+    </div>
     @endif
+</div>
+@endif
 
     {{-- Check Details Modal --}}
     <div
@@ -506,64 +568,49 @@
                 <div class="space-y-4">
                     {{-- Check Info --}}
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                                <p class="text-gray-500">Date</p>
-                                <p class="font-medium" x-text="checkDetails.created_at_formatted"></p>
-                            </div>
-                            <div>
-                                <p class="text-gray-500">Overall Score</p>
-                                <p class="font-medium" x-text="checkDetails.overall_score"></p>
-                            </div>
-                            <div>
-                                <p class="text-gray-500">Risk Level</p>
-                                <span class="px-2 py-1 text-xs rounded-full"
-                                      :class="checkDetails.risk_level === 'high' ? 'bg-red-100 text-red-700' :
-                                             checkDetails.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                             'bg-green-100 text-green-700'"
-                                      x-text="checkDetails.risk_level_capitalized"></span>
-                            </div>
-                            <div>
-                                <p class="text-gray-500">Submitted By</p>
-                                <p class="font-medium" x-text="checkDetails.submitted_by_name || '—'"></p>
-                            </div>
-                        </div>
-                    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div>
+            <p class="text-gray-500">Date</p>
+            <p class="font-medium" x-text="checkDetails.created_at_formatted"></p>
+        </div>
+        <div>
+            <p class="text-gray-500">Overall Score</p>
+            <p class="font-medium" x-text="checkDetails.overall_score"></p>
+        </div>
+        <div>
+            <p class="text-gray-500">Risk Level</p>
+            <span class="px-2 py-1 text-xs rounded-full"
+                  :class="checkDetails.risk_level === 'high' || checkDetails.risk_level === 'critical'
+                      ? 'bg-red-100 text-red-700'
+                      : checkDetails.risk_level === 'medium' || checkDetails.risk_level === 'moderate'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-green-100 text-green-700'"
+                  x-text="checkDetails.risk_level_capitalized"></span>
+        </div>
+        <div>
+            <p class="text-gray-500">Submitted By</p>
+            <div class="flex items-center gap-2 mt-0.5">
+                <p class="font-medium" x-text="checkDetails.submitted_by_name || '—'"></p>
+                <span x-show="checkDetails.is_proxy"
+                      class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                    Carer proxy
+                </span>
+            </div>
+        </div>
+    </div>
 
-                    {{-- Domain Scores --}}
-                    <div>
-                        <h4 class="font-medium mb-2">Domain Scores</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-white border p-3 rounded text-center">
-                                <p class="text-gray-500 text-sm">Emotional</p>
-                                <p class="font-semibold" x-text="checkDetails.emotional_score || '—'"></p>
-                            </div>
-                            <div class="bg-white border p-3 rounded text-center">
-                                <p class="text-gray-500 text-sm">Behavioural</p>
-                                <p class="font-semibold" x-text="checkDetails.behavioural_score || '—'"></p>
-                            </div>
-                            <div class="bg-white border p-3 rounded text-center">
-                                <p class="text-gray-500 text-sm">Social</p>
-                                <p class="font-semibold" x-text="checkDetails.social_score || '—'"></p>
-                            </div>
-                            <div class="bg-white border p-3 rounded text-center">
-                                <p class="text-gray-500 text-sm">Physical</p>
-                                <p class="font-semibold" x-text="checkDetails.physical_score || '—'"></p>
-                            </div>
-                            <div class="bg-white border p-3 rounded text-center">
-                                <p class="text-gray-500 text-sm">Education</p>
-                                <p class="font-semibold" x-text="checkDetails.education_score || '—'"></p>
-                            </div>
-                            <div class="bg-white border p-3 rounded text-center">
-                                <p class="text-gray-500 text-sm">Safety</p>
-                                <p class="font-semibold" x-text="checkDetails.safety_score || '—'"></p>
-                            </div>
-                            <div class="bg-white border p-3 rounded text-center">
-                                <p class="text-gray-500 text-sm">Life Satisfaction</p>
-                                <p class="font-semibold" x-text="checkDetails.life_satisfaction_score || '—'"></p>
-                            </div>
-                        </div>
-                    </div>
+    {{-- Proxy notice --}}
+    <div x-show="checkDetails.is_proxy"
+         class="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+        <svg class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+        </svg>
+        <p class="text-xs text-amber-700">
+            This check was submitted by a carer using the HBSC proxy-report observation methodology.
+            Scores reflect carer observations rather than young person self-report.
+        </p>
+    </div>
+</div>
 
                     {{-- Domain Changes --}}
                     <div x-show="checkDetails.domain_changes && checkDetails.domain_changes.length > 0">

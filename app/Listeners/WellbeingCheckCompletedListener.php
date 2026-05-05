@@ -18,24 +18,9 @@ class WellbeingCheckCompletedListener
         $summary = $event->summary;
         $child   = $check->youngPerson;
 
-        // 1. Generate safeguarding alerts (tag_override, critical_response)
         $this->alertService->evaluate($check, $summary);
 
-        // 2. Domain concerns → notification (not alert)
-        $this->alertService->notifyDomainConcerns($check, $summary['domain_scores']);
 
-        // 3. Notify social workers the check was completed
-        foreach ($this->getAssignedUsers($check->young_person_id, 'social_worker') as $worker) {
-            $worker->notify(new CareHubNotification(
-                type: 'wellbeing_completed',
-                summary: ($child->name ?? 'A young person') . ' completed a wellbeing check.',
-                data: [
-                    'check_id'     => $check->id,
-                    'case_file_id' => $check->case_file_id,
-                    'risk_level'   => $check->risk_level,
-                ],
-            ));
-        }
     }
 
     private function getAssignedUsers(int $youngPersonId, string $role)

@@ -23,6 +23,7 @@ use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\WellbeingCheckController;
 use App\Http\Controllers\ChildWellbeingController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
 
@@ -201,6 +202,7 @@ Route::prefix('demo')->name('demo.')->group(function () {
     })->name('login-as');
 
 });
+
 
 require __DIR__.'/auth.php';
 require __DIR__.'/carer.php';

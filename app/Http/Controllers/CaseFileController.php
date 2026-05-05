@@ -37,6 +37,7 @@ public function show(CaseFile $case)
         'educationInfos',
         'documents',
         'wellbeingChecks.domainScores.domain',
+        'wellbeingChecks.submittedBy', 
     ]);
 
     $case->wellbeingChecks->each(function ($check) {
@@ -154,13 +155,17 @@ public function show(CaseFile $case)
             'carers.*'        => 'exists:users,id',
         ]);
 
+        // Capture old values before update for change detection
+        $oldStatus    = $case->status;
+        $oldRiskLevel = $case->risk_level;
+
         $case->update([
             'young_person_id' => $validated['young_person_id'] ?? null,
             'status'          => $validated['status'],
             'risk_level'      => $validated['risk_level'],
         ]);
 
-        if (! empty($validated['carers'])) {
+        if (!empty($validated['carers'])) {
             $case->users()->syncWithPivotValues(
                 $validated['carers'],
                 ['role' => 'carer', 'assigned_at' => now()],
@@ -168,9 +173,39 @@ public function show(CaseFile $case)
             );
         }
 
+        // Notify carers of meaningful changes
+        if ($oldRiskLevel !== $validated['risk_level']) {
+            $this->notifyCarersOfCaseChange($case, 'risk_level', $oldRiskLevel, $validated['risk_level']);
+        }
+        if ($oldStatus !== $validated['status']) {
+            $this->notifyCarersOfCaseChange($case, 'status', $oldStatus, $validated['status']);
+        }
+
         return redirect()
             ->route('socialworker.cases.show', $case)
             ->with('success', 'Case updated successfully.');
+    }
+
+    private function notifyCarersOfCaseChange(CaseFile $case, string $field, string $oldVal, string $newVal): void
+    {
+        $summary = match($field) {
+            'risk_level' => 'Case risk level changed from ' . ucfirst($oldVal) . ' to ' . ucfirst($newVal),
+            'status'     => 'Case status changed from ' . ucfirst($oldVal) . ' to ' . ucfirst($newVal),
+            default      => 'Case updated',
+        };
+
+        \App\Models\User::whereIn('id',
+            \Illuminate\Support\Facades\DB::table('case_user')
+                ->where('case_file_id', $case->id)
+                ->where('role', 'carer')
+                ->pluck('user_id')
+        )->get()->each(fn($carer) => $carer->notify(
+            new \App\Notifications\CareHubNotification(
+                type:    'case_updated',
+                summary: $summary,
+                data:    ['case_file_id' => $case->id],
+            )
+        ));
     }
 
 
