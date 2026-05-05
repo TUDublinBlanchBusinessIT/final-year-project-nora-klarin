@@ -2,14 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Placement;
+use Illuminate\Support\Facades\DB;
 
 class PlacementController extends Controller
 {
-      public function index()
+    /**
+     * List view — capacity overview, filters, expiry warnings.
+     * Also passes placements to the map tab so one page covers both views.
+     */
+    public function map()
     {
-        return view('socialworker.placements.map');
+        $placements = Placement::with('carer')
+            ->orderByRaw("FIELD(status, 'active', 'under_review', 'inactive')")
+            ->orderBy('location')
+            ->get();
+
+        $active     = $placements->where('status', 'active');
+        $totalCap   = $active->sum('capacity');
+        $totalOcc   = $active->sum('current_occupancy');
+        $available  = max(0, $totalCap - $totalOcc);
+
+        $expiringSoon = $placements->filter(
+            fn($p) => $p->end_date && $p->end_date->diffInDays(now(), false) >= -30 && $p->end_date->isFuture()
+        )->pluck('id')->flip();
+
+        $mappable = $placements
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->values();
+
+        return view('socialworker.placements.map', compact(
+            'placements',
+            'mappable',
+            'totalCap',
+            'totalOcc',
+            'available',
+            'expiringSoon',
+        ));
     }
 
     public function apiPlacements()
@@ -34,18 +64,9 @@ class PlacementController extends Controller
 
         return response()->json($placements);
     }
-    public function map()
-{
-$placements = Placement::select(
-    'id',
-    'location',
-    'capacity',
-    'current_occupancy',
-    'status',
-    'latitude',
-    'longitude'
-)->get();
 
-    return view('socialworker.placements.map', compact('placements'));
-}
+    public function index()
+    {
+        return $this->map();
+    }
 }

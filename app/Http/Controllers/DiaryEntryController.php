@@ -8,6 +8,14 @@ use Illuminate\Support\Facades\Auth;
 
 class DiaryEntryController extends Controller
 {
+    public function index()
+    {
+        $entries = DiaryEntry::where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return view('diary.index', compact('entries'));
+    }
     public function store(Request $request)
     {
         $data = $request->validate([

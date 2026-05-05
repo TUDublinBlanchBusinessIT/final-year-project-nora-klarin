@@ -10,11 +10,6 @@
                     <div class="font-extrabold">
                         {{ $selectedUser ? 'Chat with ' . $selectedUser->name : 'Messages' }}
                     </div>
-                    <div class="text-xs opacity-70 flex items-center gap-2">
-                        <span>Secure chat</span>
-                        <span>•</span>
-                        <span>Messages stay saved here</span>
-                    </div>
                 </div>
             </div>
 

@@ -1,389 +1,275 @@
 ﻿<x-app-layout>
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between w-full">
-            
-            <div class="flex items-center gap-3">
-                <img src="{{ asset('images/CareHub.png') }}"
-                     alt="CareHub Logo"
-                     class="h-10 w-10 object-contain">
+<x-slot name="header">
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-semibold text-gray-900">
+                Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 18 ? 'afternoon' : 'evening') }},
+                {{ $user->name ?? Auth::user()->name ?? 'Carer' }}
+            </h1>
+            <p class="text-sm text-gray-500 mt-0.5">
+                {{ now()->format('l, jS F Y') }}
+            </p>
+        </div>
 
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Hi, {{ Auth::user()->name ?? ($user->name ?? 'there') }}
-                </h2>
-            </div>
-
-            <div class="flex items-center gap-4">
-                <div x-data="{ open: false }" class="relative">
-                    <button
-                        type="button"
-                        @click="open = !open"
-                        class="relative text-2xl rounded-full px-2 py-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                        aria-label="Open reminders"
-                    >
-                        🔔
-
-                        @if(isset($reminderCount) && $reminderCount > 0)
-                            <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5">
-                                {{ $reminderCount }}
-                            </span>
-                        @endif
-                    </button>
-
-                    <div
-                        x-show="open"
-                        @click.outside="open = false"
-                        x-transition
-                        class="absolute right-0 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden z-50"
-                    >
-                        <div class="px-4 py-3 border-b bg-gray-50">
-                            <div class="font-extrabold text-gray-800">Reminders</div>
-                            <div class="text-xs text-gray-500">Things to check</div>
+        <div class="flex items-center gap-2 shrink-0">
+            {{-- Reminders bell --}}
+            <div x-data="{ open: false }" class="relative">
+                <button type="button" @click="open = !open"
+                        class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 hover:bg-slate-50 transition">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+                    </svg>
+                    @if(isset($reminderCount) && $reminderCount > 0)
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                            {{ $reminderCount }}
+                        </span>
+                    @endif
+                </button>
+                <div x-show="open" @click.outside="open = false" x-transition
+                     class="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-[14px] shadow-xl z-50 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-100">
+                        <p class="text-sm font-semibold text-gray-700">Reminders</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Things to check</p>
+                    </div>
+                    <div class="px-4 py-4">
+                        <div class="bg-slate-50 border border-gray-100 rounded-xl p-3 text-center">
+                            <p class="text-sm text-gray-500">No reminders at the moment.</p>
                         </div>
-
-                        <div class="px-4 py-4 space-y-3">
-                            <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-                                <div class="font-bold text-gray-800">No reminders</div>
-                                <div class="text-sm text-gray-600 mt-1">You have no reminders at the moment.</div>
-                            </div>
-
-                            <button
-                                type="button"
-                                @click="open = false"
-                                class="w-full text-sm text-gray-600 hover:text-gray-900 underline"
-                            >
-                                Close
-                            </button>
-                        </div>
+                        <button type="button" @click="open = false"
+                                class="w-full text-xs text-gray-400 hover:text-gray-600 mt-3 underline">Close</button>
                     </div>
                 </div>
-
-                <span class="text-sm text-gray-500">
-                    {{ now()->format('l, jS F') }}
-                </span>
             </div>
         </div>
-    </x-slot>
+    </div>
+</x-slot>
 
-    <div class="min-h-screen pt-6 pb-10 bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+@php
+    $latestCheck  = isset($wellbeingChecks) ? $wellbeingChecks->sortByDesc('created_at')->first() : null;
+    $latestScore  = $latestCheck ? round($latestCheck->overall_score) : null;
+    $wRisk        = $latestCheck->risk_level ?? 'low';
+    $nextAppt     = $appointments->sortBy('start_time')->first();
+    $scoreColor   = match(true) {
+        $latestScore === null   => 'text-gray-300',
+        $latestScore >= 70      => 'text-green-600',
+        $latestScore >= 45      => 'text-amber-600',
+        default                 => 'text-red-600',
+    };
+    $scoreBorder  = match(true) {
+        $latestScore === null   => 'border-gray-200',
+        $latestScore >= 70      => 'border-green-200',
+        $latestScore >= 45      => 'border-amber-200',
+        default                 => 'border-red-200',
+    };
+@endphp
 
-            {{-- Welcome --}}
-            <div class="rounded-3xl p-6 shadow-sm bg-white border border-gray-100">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">
-                            Welcome back, {{ $user->name ?? Auth::user()->name ?? 'Carer' }}
-                        </h1>
-                        <p class="text-sm text-gray-600 mt-1">
-                            Here is an overview of your care information and recent activity.
+{{-- ── Stat cards ─────────────────────────────────────────────────────────── --}}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <a href="{{ route('carer.calendar') }}"
+       class="bg-white border border-gray-200 rounded-[14px] p-5 hover:border-indigo-300 hover:shadow-md transition group">
+        <p class="text-xs font-medium text-gray-500 mb-1 group-hover:text-indigo-600 transition">Upcoming appointments</p>
+        <p class="text-3xl font-bold text-gray-900 tabular-nums">{{ $appointments->count() }}</p>
+        <p class="text-xs text-gray-400 mt-1 group-hover:text-indigo-400 transition">View calendar →</p>
+    </a>
+
+    <a href="{{ route('carer.messages.index') }}"
+       class="bg-white border border-indigo-200 rounded-[14px] p-5 hover:border-indigo-400 hover:shadow-md transition group">
+        <p class="text-xs font-medium text-indigo-500 mb-1">Unread messages</p>
+        <p class="text-3xl font-bold text-gray-900 tabular-nums">{{ $unreadCount ?? 0 }}</p>
+        <p class="text-xs text-indigo-300 mt-1 group-hover:text-indigo-400 transition">Go to messages →</p>
+    </a>
+
+
+    <div class="bg-white border border-gray-200 rounded-[14px] p-5">
+        <p class="text-xs font-medium text-gray-500 mb-1">Next appointment</p>
+        @if($nextAppt)
+            <p class="text-xl font-bold text-gray-900 mt-1">{{ \Carbon\Carbon::parse($nextAppt->start_time)->format('d M') }}</p>
+            <p class="text-xs text-gray-500 mt-1 truncate">{{ \Carbon\Carbon::parse($nextAppt->start_time)->format('g:i A') }} · {{ $nextAppt->title ?? 'Appointment' }}</p>
+        @else
+            <p class="text-xl font-bold text-gray-300 mt-1">None</p>
+            <p class="text-xs text-gray-400 mt-1">Contact your social worker</p>
+        @endif
+    </div>
+</div>
+
+{{-- ── Tabs ──────────────────────────────────────────────────────────────── --}}
+<div x-data="{ tab: 'appointments' }">
+
+    <div class="flex border-b border-gray-200 mb-5">
+        @foreach(['appointments' => 'Appointments', 'services' => 'Nearby services'] as $key => $label)
+        <button @click="tab='{{ $key }}'"
+                :class="tab==='{{ $key }}' ? 'border-indigo-500 text-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-700'"
+                class="py-2.5 px-4 text-sm font-medium border-b-2 transition whitespace-nowrap">
+            {{ $label }}
+        </button>
+        @endforeach
+    </div>
+
+
+    {{-- ── APPOINTMENTS ──────────────────────────────────────────────────── --}}
+    <div x-show="tab==='appointments'">
+        <div class="bg-white border border-gray-200 rounded-[14px]">
+            <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+                <p class="text-sm font-semibold text-gray-700">Upcoming appointments</p>
+                <a href="{{ route('carer.calendar') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">View calendar →</a>
+            </div>
+            @forelse($appointments as $appt)
+                <div class="flex items-center gap-4 px-5 py-3.5 border-b border-gray-100 last:border-0 hover:bg-slate-50 transition">
+                    <div class="text-center shrink-0 w-10">
+                        <p class="text-[10px] text-gray-400 uppercase leading-none">{{ \Carbon\Carbon::parse($appt->start_time)->format('M') }}</p>
+                        <p class="text-xl font-bold text-gray-900 leading-tight">{{ \Carbon\Carbon::parse($appt->start_time)->format('d') }}</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ $appt->title ?? 'Appointment' }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            {{ \Carbon\Carbon::parse($appt->start_time)->format('g:i A') }}
+                            @if(!empty($appt->end_time)) – {{ \Carbon\Carbon::parse($appt->end_time)->format('g:i A') }} @endif
+                            @if(!empty($appt->location)) · 📍 {{ $appt->location }} @endif
                         </p>
+                        @if(!empty($appt->notes))<p class="text-xs text-gray-400 mt-0.5">{{ $appt->notes }}</p>@endif
                     </div>
-
-                    <div class="flex gap-2 flex-wrap">
-                        <a href="{{ route('carer.messages.index') }}"
-                           class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm hover:bg-indigo-700 shadow">
-                            Messages
-                        </a>
-
-                        <a href="{{ route('carer.documents.index') }}"
-                           class="px-4 py-2 rounded-xl bg-gray-100 text-gray-800 text-sm hover:bg-gray-200">
-                            Wellbeing & Documents
-                        </a>
-
-                        @if($case)
-                            <a href="{{ route('carer.case-file.show', $case->case_reference ?? $case->id) }}"
-                               class="px-4 py-2 rounded-xl bg-gray-100 text-gray-800 text-sm hover:bg-gray-200">
-                                Case File
-                            </a>
-                        @endif
-                    </div>
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 ring-1 ring-green-200 shrink-0">Scheduled</span>
                 </div>
-            </div>
-
-            {{-- Summary cards --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div class="rounded-3xl p-6 shadow-sm bg-white border border-blue-100">
-                    <h3 class="text-lg font-semibold text-blue-700">Upcoming appointments</h3>
-                    <p class="text-gray-600 mt-1 text-sm">Next 5 scheduled</p>
-                    <div class="mt-4 text-3xl font-bold text-gray-900">
-                        {{ $appointments->count() ?? 0 }}
-                    </div>
+            @empty
+                <div class="px-5 py-12 text-center">
+                    <svg class="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"/>
+                    </svg>
+                    <p class="text-sm text-gray-400">No upcoming appointments.</p>
                 </div>
-
-                <div class="rounded-3xl p-6 shadow-sm bg-white border border-indigo-100">
-                    <h3 class="text-lg font-semibold text-indigo-700">Unread messages</h3>
-                    <p class="text-gray-600 mt-1 text-sm">From your social worker</p>
-                    <div class="mt-4 text-3xl font-bold text-gray-900">
-                        {{ $unreadCount ?? 0 }}
-                    </div>
-                </div>
-
-            </div>
-
-            {{-- Upcoming appointments --}}
-            <div class="rounded-3xl p-7 sm:p-8 shadow-sm bg-white border border-indigo-100">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold text-indigo-700">Upcoming Appointments</h3>
-                    <a href="{{ route('carer.calendar') }}" class="text-sm text-indigo-600 hover:underline">View all →</a>
-                </div>
-
-                <div class="mt-6 space-y-3">
-                    @forelse($appointments as $appt)
-                        <div class="rounded-xl border p-4 hover:bg-gray-50">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <div class="font-medium text-gray-900">
-                                        {{ \Carbon\Carbon::parse($appt->start_time)->format('D d M Y, H:i') }}
-                                        @if(!empty($appt->end_time))
-                                            - {{ \Carbon\Carbon::parse($appt->end_time)->format('H:i') }}
-                                        @endif
-                                    </div>
-
-                                    @if(!empty($appt->title))
-                                        <div class="text-sm font-semibold text-gray-700 mt-1">
-                                            {{ $appt->title }}
-                                        </div>
-                                    @endif
-
-                                    <div class="text-sm text-gray-600 mt-1">
-                                        {{ $appt->notes ?? 'No notes provided' }}
-                                    </div>
-
-                                    @if(!empty($appt->location))
-                                        <div class="text-sm text-gray-500 mt-2">
-                                            📍 {{ $appt->location }}
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                    Scheduled
-                                </span>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="rounded-xl border border-dashed p-8 text-center text-gray-600">
-                            No upcoming appointments.
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-
-            {{-- Support Services Map --}}
-            <div class="rounded-3xl p-6 shadow-sm bg-white border border-green-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-green-700">Nearby Support Services</h3>
-                        <p class="text-sm text-gray-600 mt-1">Find counselling, Tusla, and child support agencies near you</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button type="button" onclick="searchServices('Tusla')"
-                        class="px-4 py-2 rounded-xl bg-blue-100 text-blue-700 text-sm font-semibold hover:bg-blue-200">
-                        Tusla
-                    </button>
-
-                    <button type="button" onclick="searchServices('counselling')"
-                        class="px-4 py-2 rounded-xl bg-pink-100 text-pink-700 text-sm font-semibold hover:bg-pink-200">
-                        Counselling
-                    </button>
-
-                    <button type="button" onclick="searchServices('child support agency')"
-                        class="px-4 py-2 rounded-xl bg-yellow-100 text-yellow-700 text-sm font-semibold hover:bg-yellow-200">
-                        Child Agencies
-                    </button>
-
-                    <button type="button" onclick="searchServices('family support service')"
-                        class="px-4 py-2 rounded-xl bg-green-100 text-green-700 text-sm font-semibold hover:bg-green-200">
-                        Family Support
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div class="lg:col-span-2">
-                        <div id="map" style="height: 420px; width: 100%; border-radius: 16px;"></div>
-                    </div>
-
-                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                        <h4 class="font-bold text-gray-800">Service Details</h4>
-                        <div id="serviceDetails" class="mt-3 text-sm text-gray-600">
-                            Click a marker or search button to view service details.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            @endforelse
         </div>
     </div>
 
-    <script>
-        let map;
-        let infoWindow;
-        let placesService;
-        let currentLocation = { lat: 53.3498, lng: -6.2603 };
-        let markers = [];
 
-        function initMap() {
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 13,
-                center: currentLocation,
-            });
-
-            infoWindow = new google.maps.InfoWindow();
-            placesService = new google.maps.places.PlacesService(map);
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        currentLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-
-                        map.setCenter(currentLocation);
-
-                        const userMarker = new google.maps.Marker({
-                            position: currentLocation,
-                            map: map,
-                            title: "Your Location",
-                        });
-
-                        userMarker.addListener("click", () => {
-                            infoWindow.setContent("You are here");
-                            infoWindow.open(map, userMarker);
-                        });
-
-                        searchServices('Tusla');
-                    },
-                    (error) => {
-                        handleLocationError(error);
-                        searchServices('Tusla');
-                    }
-                );
-            } else {
-                showLocationMessage("Geolocation is not supported by this browser. Showing services near Dublin city centre.");
-                searchServices('Tusla');
-            }
-        }
-
-        function handleLocationError(error) {
-            let message = "Location access was denied. Showing services near Dublin city centre.";
-
-            if (error.code === error.PERMISSION_DENIED) {
-                message = "Location access was denied. Showing services near Dublin city centre.";
-            } else if (error.code === error.POSITION_UNAVAILABLE) {
-                message = "Your location could not be determined. Showing services near Dublin city centre.";
-            } else if (error.code === error.TIMEOUT) {
-                message = "Location request timed out. Showing services near Dublin city centre.";
-            }
-
-            showLocationMessage(message);
-        }
-
-        function showLocationMessage(message) {
-            const detailsDiv = document.getElementById('serviceDetails');
-            detailsDiv.innerHTML = `
-                <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                    ${message}
+    {{-- ── NEARBY SERVICES ───────────────────────────────────────────────── --}}
+    <div x-show="tab==='services'">
+        <div class="bg-white border border-gray-200 rounded-[14px] p-5">
+            <div class="mb-4">
+                <p class="text-sm font-semibold text-gray-700">Nearby support services</p>
+                <p class="text-xs text-gray-400 mt-0.5">Find counselling, Tusla, and child support agencies near you</p>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-4">
+                @foreach(['Tusla' => 'indigo', 'counselling' => 'pink', 'child support agency' => 'amber', 'family support service' => 'green'] as $kw => $clr)
+                    <button type="button" onclick="searchServices('{{ $kw }}')"
+                        class="px-3 py-1.5 rounded-lg text-xs font-medium bg-{{ $clr }}-50 text-{{ $clr }}-700 border border-{{ $clr }}-200 hover:bg-{{ $clr }}-100 transition">
+                        {{ ucfirst($kw) }}
+                    </button>
+                @endforeach
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="lg:col-span-2">
+                    <div id="map" class="h-96 w-full rounded-xl border border-gray-100"></div>
                 </div>
-            `;
-        }
+                <div class="bg-slate-50 border border-gray-100 rounded-xl p-4">
+                    <p class="text-sm font-semibold text-gray-700 mb-3">Service details</p>
+                    <div id="serviceDetails" class="text-sm text-gray-500">Click a search button or map marker to see details.</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function clearMarkers() {
-            markers.forEach(marker => marker.setMap(null));
-            markers = [];
-        }
+</div>
 
-        function searchServices(keyword) {
-            clearMarkers();
-
-            const request = {
-                location: currentLocation,
-                radius: 5000,
-                keyword: keyword
-            };
-
-            placesService.nearbySearch(request, (results, status) => {
-                if (status !== google.maps.places.PlacesServiceStatus.OK || !results.length) {
-                    document.getElementById('serviceDetails').innerHTML = `
-                        <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                            No ${keyword} services found nearby.
-                        </div>
-                    `;
-                    return;
+@if(isset($wellbeingChecks) && $wellbeingChecks->isNotEmpty())
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const sorted = @json($wellbeingChecks->sortBy('created_at')->values());
+    const ctx = document.getElementById('carerWellbeingChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sorted.map(c => new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })),
+                datasets: [{
+                    label: 'Overall wellbeing',
+                    data: sorted.map(c => c.overall_score),
+                    borderColor: '#4F46E5',
+                    backgroundColor: '#4F46E510',
+                    borderWidth: 2.5,
+                    tension: 0.3,
+                    pointBackgroundColor: '#4F46E5',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 0, max: 100, grid: { color: '#f1f5f9' }, border: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } }
                 }
+            }
+        });
+    }
+</script>
+@endpush
+@endif
 
-                results.forEach((place, index) => {
-                    if (!place.geometry || !place.geometry.location) return;
+<script>
+    let map, infoWindow, placesService;
+    let currentLocation = { lat: 53.3498, lng: -6.2603 };
+    let markers = [];
 
-                    const marker = new google.maps.Marker({
-                        position: place.geometry.location,
-                        map: map,
-                        title: place.name
-                    });
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), { zoom: 13, center: currentLocation });
+        infoWindow = new google.maps.InfoWindow();
+        placesService = new google.maps.places.PlacesService(map);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                map.setCenter(currentLocation);
+                new google.maps.Marker({ position: currentLocation, map, title: "You" });
+                searchServices('Tusla');
+            }, () => searchServices('Tusla'));
+        } else { searchServices('Tusla'); }
+    }
 
-                    markers.push(marker);
+    function clearMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
 
-                    marker.addListener("click", () => {
-                        showServiceDetails(place);
-                        infoWindow.setContent(`
-                            <div style="min-width:180px">
-                                <strong>${place.name}</strong><br>
-                                ${place.vicinity ?? 'Address not available'}
-                            </div>
-                        `);
-                        infoWindow.open(map, marker);
-                    });
-
-                    if (index === 0) {
-                        showServiceDetails(place);
-                    }
+    function searchServices(keyword) {
+        clearMarkers();
+        placesService.nearbySearch({ location: currentLocation, radius: 5000, keyword }, (results, status) => {
+            if (status !== google.maps.places.PlacesServiceStatus.OK || !results.length) {
+                document.getElementById('serviceDetails').innerHTML = `<p class="text-red-500 text-xs">No ${keyword} services found nearby.</p>`;
+                return;
+            }
+            results.forEach((place, i) => {
+                if (!place.geometry) return;
+                const marker = new google.maps.Marker({ position: place.geometry.location, map, title: place.name });
+                markers.push(marker);
+                marker.addListener("click", () => {
+                    showServiceDetails(place);
+                    infoWindow.setContent(`<strong>${place.name}</strong><br>${place.vicinity ?? ''}`);
+                    infoWindow.open(map, marker);
                 });
+                if (i === 0) showServiceDetails(place);
             });
-        }
+        });
+    }
 
-        function getNiceType(types) {
-            if (!types || !types.length) return 'Support service';
-
-            if (types.includes('local_government_office')) return 'Government office';
-            if (types.includes('hospital')) return 'Hospital';
-            if (types.includes('doctor')) return 'Healthcare service';
-            if (types.includes('school')) return 'School';
-            if (types.includes('health')) return 'Health service';
-            if (types.includes('social_service')) return 'Social service';
-            if (types.includes('establishment')) return 'Support service';
-            if (types.includes('point_of_interest')) return 'Support service';
-
-            return types[0].replaceAll('_', ' ');
-        }
-
-        function showServiceDetails(place) {
-            const detailsDiv = document.getElementById('serviceDetails');
-            const niceType = getNiceType(place.types);
-
-            const mapsUrl = place.geometry && place.geometry.location
-                ? `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}`
-                : '#';
-
-            detailsDiv.innerHTML = `
-                <div class="space-y-2">
-                    <div class="font-semibold text-gray-900">${place.name ?? 'Unknown service'}</div>
-                    <div><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</div>
-                    <div><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not available'}</div>
-                    <div><span class="font-medium text-gray-700">Type:</span> ${niceType}</div>
-
-                    <a href="${mapsUrl}" target="_blank"
-                       class="inline-block mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
-                        Open in Google Maps
-                    </a>
-                </div>
-            `;
-        }
-    </script>
-
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" async defer></script>
+    function showServiceDetails(place) {
+        const types = place.types ?? [];
+        let type = 'Support service';
+        if (types.includes('local_government_office')) type = 'Government office';
+        else if (types.includes('hospital')) type = 'Hospital';
+        else if (types.includes('health')) type = 'Health service';
+        const mapsUrl = place.geometry ? `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}` : '#';
+        document.getElementById('serviceDetails').innerHTML = `
+            <div class="space-y-2">
+                <p class="font-semibold text-gray-900 text-sm">${place.name ?? 'Unknown'}</p>
+                <p class="text-xs text-gray-500"><span class="font-medium text-gray-700">Address:</span> ${place.vicinity ?? 'Not available'}</p>
+                <p class="text-xs text-gray-500"><span class="font-medium text-gray-700">Rating:</span> ${place.rating ?? 'Not rated'}</p>
+                <p class="text-xs text-gray-500"><span class="font-medium text-gray-700">Type:</span> ${type}</p>
+                <a href="${mapsUrl}" target="_blank" class="inline-flex mt-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition">Open in Maps →</a>
+            </div>`;
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" async defer></script>
 
 </x-app-layout>

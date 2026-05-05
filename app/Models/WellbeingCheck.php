@@ -14,6 +14,9 @@ class WellbeingCheck extends Model
     protected $fillable = [
         'young_person_id',
         'case_file_id',
+        // overall_score is the single wellbeing score column in the schema.
+        // overall_risk_score is not stored here — it is derived on demand
+        // by summing wellbeing_domain_scores.risk_score for this check.
         'overall_score',
         'completed_at',
         'check_type',
@@ -24,8 +27,8 @@ class WellbeingCheck extends Model
 
     protected $casts = [
         'completed_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'created_at'   => 'datetime',
+        'updated_at'   => 'datetime',
     ];
 
     public function caseFile()
@@ -57,5 +60,4 @@ class WellbeingCheck extends Model
     {
         return $this->hasMany(Alert::class, 'wellbeing_check_id');
     }
-
 }

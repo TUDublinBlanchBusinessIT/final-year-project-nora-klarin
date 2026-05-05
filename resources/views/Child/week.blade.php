@@ -29,14 +29,13 @@
             {{-- Week Range --}}
             <div class="theme-card rounded-3xl p-6 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <h3 class="text-2xl font-extrabold">This Week Overview ✨</h3>
                     <span class="text-sm opacity-70">
                         {{ \Carbon\Carbon::parse($start)->format('j M') }} → {{ \Carbon\Carbon::parse($end)->format('j M') }}
                     </span>
                 </div>
 
                 <div class="mt-5 rounded-2xl border border-purple-100 bg-purple-50 px-5 py-4 text-gray-800">
-                    <div class="font-bold text-purple-800">🎯 Weekly Goal</div>
+                    <div class="font-bold text-purple-800"> Weekly Goal</div>
 
                     @if($weeklyGoal)
                         <div class="mt-1">
@@ -59,8 +58,7 @@
 
             {{-- Mood Timeline --}}
             <div class="theme-card rounded-3xl p-6 shadow-xl">
-                <h3 class="text-xl font-extrabold">🌟 Mood Check-ins</h3>
-                <p class="opacity-70 mt-1">Here’s how your week has been going.</p>
+                <h3 class="text-xl font-extrabold">Mood</h3>
 
                 @php
                     $moodEmoji = [
@@ -102,16 +100,13 @@
                     @endforeach
                 </div>
 
-                <div class="mt-6 text-sm opacity-70">
-                    Tip: Tap a mood on your dashboard to fill missing days.
-                </div>
             </div>
 
             {{-- Appointments --}}
             <div class="theme-card rounded-3xl p-6 shadow-xl">
                 <div class="flex items-center justify-between gap-3 flex-wrap">
                     <div>
-                        <h3 class="text-xl font-extrabold">🗓️ Appointments</h3>
+                        <h3 class="text-xl font-extrabold"> Appointments</h3>
                         <p class="opacity-70 mt-1">Here are your appointments for the next 30 days.</p>
                     </div>
 
@@ -231,7 +226,7 @@
 
             <div>
                 <a href="{{ route('child.dashboard') }}" class="underline opacity-75 hover:opacity-100">
-                    ← Back to Child Dashboard
+                    ← Back
                 </a>
             </div>
 

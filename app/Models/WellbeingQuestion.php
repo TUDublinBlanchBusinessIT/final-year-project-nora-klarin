@@ -7,6 +7,6 @@ class WellbeingQuestion extends Model
 
     public function responses()
     {
-        return $this->hasMany(WellbeingResponse::class, 'questionid');
+        return $this->hasMany(WellbeingResponse::class, 'question_id');
     }
 }

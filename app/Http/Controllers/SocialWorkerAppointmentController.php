@@ -12,6 +12,11 @@ class SocialWorkerAppointmentController extends Controller
 {
     public function index()
     {
+        $cases = auth()->user()
+        ->cases()
+        ->with('youngPerson')
+        ->get();
+
         $user = auth()->user();
 
         $appointments = $user->socialWorkerAppointments()->with([
@@ -20,7 +25,7 @@ class SocialWorkerAppointmentController extends Controller
             
             ])->orderBy('start_time')->get();
 
-        return view('socialworker.appointments.index', compact('appointments'));
+        return view('socialworker.appointments.index', compact('appointments', 'cases'));
     }
     public function create(CaseFile $case)
     {
@@ -47,9 +52,8 @@ public function store(Request $request)
 
     $data = $request->validate([
         'case_file_id' => 'required|exists:case_files,id',
-        'date' => 'required|date',
-        'time' => 'required|date_format:H:i',
-        'end_time' => 'nullable|date_format:H:i',
+        'start_time' => 'required|date',
+        'end_time' => 'nullable|date|after:start_time',
         'location' => 'nullable|string',
         'title' => 'required|string',
         'description' => 'nullable|string',
@@ -60,10 +64,10 @@ public function store(Request $request)
 
     $case = CaseFile::findOrFail($data['case_file_id']);
 
-    $startTime = Carbon::parse($data['date'] . ' ' . $data['time']);
+    $startTime = Carbon::parse($data['start_time']);
 
     $endTime = $request->filled('end_time')
-        ? Carbon::parse($data['date'] . ' ' . $data['end_time'])
+        ? Carbon::parse($data['end_time'])
         : $startTime->copy()->addMinutes(30);
 
     $appointment = Appointment::create([
@@ -76,9 +80,11 @@ public function store(Request $request)
         'description'  => $data['description'] ?? null,
     ]);
 
-    // Attach attendees via pivot
     $attendees = [];
-    if ($data['invite_child']) {
+
+    $inviteChild = $data['invite_child'] ?? false;
+
+    if ($inviteChild) {
         $attendees[] = $case->young_person_id;
     }
     if (!empty($data['carers'])) {

@@ -9,13 +9,11 @@ use Illuminate\Support\Facades\Log;
 
 class WellbeingScoringService
 {
-
     private const RISK_THRESHOLD_CRITICAL = 250;
     private const RISK_THRESHOLD_HIGH     = 150;
     private const RISK_THRESHOLD_MODERATE = 80;
 
-    public const DOMAIN_ALERT_THRESHOLD = 35;
-
+    public const DOMAIN_ALERT_THRESHOLD   = 35;
     public const DOMAIN_DECLINE_THRESHOLD = 20;
 
     private const RISK_WEIGHTS = [
@@ -27,17 +25,14 @@ class WellbeingScoringService
 
     /**
      * Main entry point. Processes a completed check through the full pipeline.
-     * Returns a summary array consumed by WellbeingAlertService.
      *
-     * @param  WellbeingCheck $check  A check with responses already stored
-     * @return array{
-     *   overall_wb_score: float,
-     *   overall_risk_score: float,
-     *   risk_classification: string,
-     *   domain_scores: Collection,
-     *   tag_patterns: array,
-     *   safeguarding_triggered: bool
-     * }
+     * Returns a summary array with the following keys:
+     *   overall_score          float   — average domain wellbeing score (0–100)
+     *   overall_risk_score     float   — cumulative risk score
+     *   risk_classification    string  — low | moderate | high | critical
+     *   domain_scores          Collection
+     *   tag_patterns           array
+     *   safeguarding_triggered bool
      */
     public function process(WellbeingCheck $check): array
     {
@@ -50,7 +45,7 @@ class WellbeingScoringService
         [$tagPatterns, $safeguardingTriggered] = $this->analyseTagPatterns($check);
 
         return [
-            'overall_wb_score'       => $overallWb,
+            'overall_score'          => $overallWb,
             'overall_risk_score'     => $overallRisk,
             'risk_classification'    => $this->classifyRisk($overallRisk),
             'domain_scores'          => $domainScores,
@@ -59,6 +54,10 @@ class WellbeingScoringService
         ];
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 1 — Score individual responses
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function scoreResponses(WellbeingCheck $check): void
     {
         $responses = $check->responses()->with('question')->get();
@@ -66,7 +65,7 @@ class WellbeingScoringService
         foreach ($responses as $response) {
             $question = $response->question;
 
-            $wbScore         = $this->normalise(
+            $wbScore = $this->normalise(
                 $response->raw_value,
                 $question->min_value,
                 $question->max_value,
@@ -91,12 +90,10 @@ class WellbeingScoringService
 
     /**
      * Groups scored responses by domain and writes/updates domain score rows.
-     * Uses updateOrCreate to be safe against re-processing the same check.
+     * Uses updateOrCreate to be idempotent against re-processing.
      *
-     * Domain wb score  = average of question wb scores within the domain
+     * Domain wb score   = average of question wb scores within the domain
      * Domain risk score = sum of risk contributions within the domain
-     *
-     * @return Collection<int, \App\Models\WellbeingDomainScore>
      */
     public function calculateDomainScores(WellbeingCheck $check): Collection
     {
@@ -107,8 +104,8 @@ class WellbeingScoringService
         $grouped = $responses->groupBy(fn($r) => $r->question->domain_id);
 
         foreach ($grouped as $domainId => $items) {
-            $avgWbScore  = round($items->avg('normalised_score'), 2);
-            $riskScore   = round($items->sum('risk_contribution'), 2);
+            $avgWbScore = round($items->avg('normalised_score'), 2);
+            $riskScore  = round($items->sum('risk_contribution'), 2);
 
             $check->domainScores()->updateOrCreate(
                 ['domain_id' => $domainId],
@@ -122,15 +119,31 @@ class WellbeingScoringService
         return $check->domainScores()->with('domain')->get();
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 3 — Overall scores
+    // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Computes and persists overall wellbeing and risk scores for the check.
+     * Computes and persists overall wellbeing and risk scores.
      *
      * Overall wb score   = average of domain wb scores (equal domain weighting,
-     *                      consistent with OECD framework — each domain is an
-     *                      independent wellbeing dimension, not a subscale)
+     *                      consistent with OECD framework)
      * Overall risk score = sum of all domain risk scores (cumulative — multiple
-     *                      concerns across domains should compound, not cancel)
+     *                      concerns across domains compound, not cancel)
+     *
+     * Writes to wellbeing_checks.overall_score and .overall_risk_score.
+     * Both columns are in WellbeingCheck::$fillable.
+     *
+     * @return array{float, float} [overall_wb_score, overall_risk_score]
+     */
+    /**
+     * Computes overall wellbeing and risk scores from the domain scores collection.
+     *
+     * overall_score (wellbeing) is persisted on wellbeing_checks.
+     *
+     * overall_risk_score is NOT stored on the check — the domain scores table
+     * already holds each domain's risk_score, so the total is always derivable
+     * as their sum. The classification is stored as risk_level for coarse filtering.
      *
      * @return array{float, float} [overall_wb_score, overall_risk_score]
      */
@@ -140,33 +153,28 @@ class WellbeingScoringService
         $overallRisk = round($domainScores->sum('risk_score'), 2);
 
         $check->update([
-            'overall_wb_score'   => $overallWb,
-            'overall_risk_score' => $overallRisk,
+            'overall_score' => $overallWb,
         ]);
 
         return [$overallWb, $overallRisk];
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 4 — Tag pattern analysis
+    // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Analyses tag patterns across all responses in a check.
      *
-     * For each tag associated with a question, records:
-     *   - how many responses in this check touched the tag
-     *   - the average wb_score across those responses
-     *   - whether the score was below the tag's alert_threshold
+     * Safeguarding detection fires when ALL of these are true:
+     *   1. tag.alert_override = true
+     *   2. tag.alert_threshold is set
+     *   3. the response wb_score < tag.alert_threshold
      *
-     * Safeguarding detection:
-     *   A tag fires a safeguarding concern when ALL of these are true:
-     *     1. tag.alert_override = true
-     *     2. tag.alert_threshold is set
-     *     3. the response wb_score < tag.alert_threshold
-     *
-     *   This replaces the old is_safeguarding boolean + hardcoded < 40 check,
-     *   using the per-tag alert_threshold from the updated schema.
-     *
-     * Returns the tag pattern array and a boolean indicating whether any
-     * safeguarding tag was triggered. The alert service consumes both.
+     * The fired tag IDs are NOT written back to wellbeing_responses because the
+     * schema has no tags_fired column. Safeguarding state is carried exclusively
+     * in the return value and subsequently recorded in the alerts table by
+     * WellbeingAlertService (triggered via the WellbeingCheckCompleted event).
      *
      * @return array{array, bool}
      */
@@ -176,14 +184,13 @@ class WellbeingScoringService
             ->with('question.tags')
             ->get();
 
-        $tagAccumulator      = [];
+        $tagAccumulator        = [];
         $safeguardingTriggered = false;
-        $firedTagIds         = [];
 
         foreach ($responses as $response) {
             foreach ($response->question->tags as $tag) {
 
-                if (!isset($tagAccumulator[$tag->name])) {
+                if (! isset($tagAccumulator[$tag->name])) {
                     $tagAccumulator[$tag->name] = [
                         'tag_id'       => $tag->id,
                         'category'     => $tag->category,
@@ -206,7 +213,6 @@ class WellbeingScoringService
                 ) {
                     $safeguardingTriggered = true;
                     $tagAccumulator[$tag->name]['alert_fired'] = true;
-                    $firedTagIds[] = $tag->id;
 
                     Log::warning('Safeguarding tag fired', [
                         'check_id'    => $check->id,
@@ -214,17 +220,6 @@ class WellbeingScoringService
                         'wb_score'    => $response->normalised_score,
                         'threshold'   => $threshold,
                         'response_id' => $response->id,
-                    ]);
-                }
-
-                if ($tag->alert_override && $tagAccumulator[$tag->name]['alert_fired']) {
-                    $response->update([
-                        'tags_fired' => array_unique(
-                            array_merge(
-                                (array) json_decode($response->tags_fired ?? '[]'),
-                                [$tag->id]
-                            )
-                        ),
                     ]);
                 }
             }
@@ -241,18 +236,17 @@ class WellbeingScoringService
         return [$tagPatterns, $safeguardingTriggered];
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Pure calculation helpers
+    // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Normalises a raw response value to a 0–100 wellbeing score.
      *
      * Formula:
      *   normalised = (raw − min) / (max − min)
-     *   wb_score   = normalised × 100              (positive framing)
-     *   wb_score   = (1 − normalised) × 100        (negative framing)
-     *
-     * Negative framing (reverse coding) ensures that high scores always
-     * represent stronger wellbeing regardless of how the question was worded,
-     * consistent with established psychometric practice (Tennant et al., 2007).
+     *   wb_score   = normalised × 100               (positive framing)
+     *   wb_score   = (1 − normalised) × 100         (negative framing / reverse-coded)
      */
     public function normalise(int $raw, int $min, int $max, bool $isPositive): float
     {
@@ -262,13 +256,12 @@ class WellbeingScoringService
 
         $normalised = ($raw - $min) / ($max - $min);
 
-        if (!$isPositive) {
+        if (! $isPositive) {
             $normalised = 1 - $normalised;
         }
 
         return round($normalised * 100, 2);
     }
-
 
     public function riskContribution(float $wbScore, float $weight): float
     {
@@ -277,7 +270,7 @@ class WellbeingScoringService
 
     public function classifyRisk(float $riskScore): string
     {
-        return match(true) {
+        return match (true) {
             $riskScore >= self::RISK_THRESHOLD_CRITICAL => 'critical',
             $riskScore >= self::RISK_THRESHOLD_HIGH     => 'high',
             $riskScore >= self::RISK_THRESHOLD_MODERATE => 'moderate',

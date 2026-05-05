@@ -1,561 +1,254 @@
 <x-app-layout>
 
-    <x-slot name="header">
+@php
+    $isSW       = request()->routeIs('socialworker.*');
+    $indexRoute = $isSW ? 'socialworker.messages.index'  : 'carer.messages.index';
+    $createRoute= $isSW ? 'socialworker.messages.create' : 'carer.messages.create';
+    $storeRoute = $isSW ? 'socialworker.messages.store'  : 'carer.messages.store';
+    $backRoute  = $isSW ? 'socialworker.dashboard'       : 'carer.dashboard';
+@endphp
 
-        <div class="flex items-center justify-between">
+<x-slot name="header">
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-semibold text-gray-900">Messages</h1>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+            <a href="{{ route($backRoute) }}"
+               class="bg-white border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition">
+                ← Back
+            </a>
+            <a href="{{ route($createRoute) }}"
+               class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+                + New message
+            </a>
+        </div>
+    </div>
+</x-slot>
 
-            <div>
+{{-- Stat bar --}}
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
+    <div class="bg-white border border-gray-200 rounded-[14px] p-4">
+        <p class="text-xs font-medium text-gray-400 mb-1">Conversations</p>
+        <p class="text-2xl font-bold text-gray-900 tabular-nums">{{ $conversations->count() }}</p>
+    </div>
+    <div class="bg-white border border-indigo-200 rounded-[14px] p-4">
+        <p class="text-xs font-medium text-indigo-400 mb-1">Unread</p>
+        <p class="text-2xl font-bold text-gray-900 tabular-nums">
+            {{ $conversations->sum(fn($c) => $c->unread_count ?? 0) }}
+        </p>
+    </div>
+</div>
 
-                <h2 class="font-semibold text-2xl text-gray-800 leading-tight">Messages</h2>
+{{-- Main chat layout --}}
+<div class="bg-white border border-gray-200 rounded-[14px] overflow-hidden flex" style="min-height: 600px;">
 
-                <p class="text-sm text-gray-500 mt-1">Chat securely</p>
-
-            </div>
-
-
-
-            <div class="flex gap-2">
-
-                <a href="{{ route('socialworker.dashboard') }}"
-
-                   class="px-4 py-2 rounded-2xl bg-white border border-gray-200 text-sm font-medium hover:bg-gray-50 shadow-sm">
-
-                    Back
-
-                </a>
-
-
-
-                <a href="{{ route('socialworker.messages.create') }}"
-
-                   class="px-4 py-2 rounded-2xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm">
-
-                    New Message
-
-                </a>
-
-            </div>
-
+    {{-- Left: conversation list --}}
+    <aside class="w-80 shrink-0 border-r border-gray-100 flex flex-col">
+        <div class="px-4 py-3.5 border-b border-gray-100">
+            <p class="text-sm font-semibold text-gray-700 mb-2.5">Conversations</p>
+            <input id="convSearch" type="text"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-gray-400"
+                   placeholder="Search…">
         </div>
 
-    </x-slot>
-
-
-
-    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-pink-50 to-yellow-50 py-10">
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-
-
-            {{-- top mini cards --}}
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-
-                <div class="rounded-3xl bg-white/90 backdrop-blur shadow-sm border border-indigo-100 p-5">
-
-                    <div class="text-sm text-gray-500">Conversations</div>
-
-                    <div class="text-2xl font-bold text-indigo-700 mt-2">{{ $conversations->count() }}</div>
-
-                </div>
-
-
-
-                <div class="rounded-3xl bg-white/90 backdrop-blur shadow-sm border border-pink-100 p-5">
-
-                    <div class="text-sm text-gray-500">Unread</div>
-
-                    <div class="text-2xl font-bold text-pink-600 mt-2">
-
-                        {{ $conversations->sum(fn($c) => $c->unread_count ?? 0) }}
-
+        @if($conversations->isEmpty())
+            <div class="flex-1 flex items-center justify-center p-6">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>
+                        </svg>
                     </div>
-
+                    <p class="text-sm font-medium text-gray-700">No conversations yet</p>
+                    <p class="text-xs text-gray-400 mt-1 mb-4">Start a new chat to get going</p>
+                    <a href="{{ route($createRoute) }}"
+                       class="inline-flex bg-indigo-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition">
+                        Start chat
+                    </a>
                 </div>
-
             </div>
+        @else
+            <div id="convList" class="flex-1 overflow-y-auto divide-y divide-gray-100">
+                @foreach($conversations as $c)
+                    @php
+                        $isActive = $selectedUser && $selectedUser->id === $c->id;
+                        $initials = collect(explode(' ', trim($c->name)))->filter()->take(2)
+                            ->map(fn($w) => strtoupper(substr($w,0,1)))->join('');
+                        $preview = $c->last_body ? \Illuminate\Support\Str::limit($c->last_body, 45) : 'No messages yet';
+                        $time = $c->last_at ? \Carbon\Carbon::parse($c->last_at)->format('D H:i') : '';
+                    @endphp
+                    <a href="{{ route($indexRoute, ['with' => $c->id]) }}"
+                       data-name="{{ strtolower($c->name . ' ' . $c->email) }}"
+                       class="flex items-start gap-3 px-4 py-3.5 hover:bg-slate-50 transition {{ $isActive ? 'bg-indigo-50 border-l-2 border-indigo-500' : '' }}">
 
-
-
-            {{-- main chat area --}}
-
-            <div class="rounded-[28px] overflow-hidden shadow-xl border border-white/70 bg-white/80 backdrop-blur">
-
-                <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[720px]">
-
-
-
-                    {{-- left panel --}}
-
-                    <aside class="lg:col-span-4 border-r border-gray-100 bg-white/80">
-
-                        <div class="p-5 border-b border-gray-100">
-
-                            <div class="flex items-center justify-between">
-
-                                <div>
-
-                                    <h3 class="font-bold text-gray-900">Conversations</h3>
-
-                                    <p class="text-xs text-gray-500 mt-1">Pick a chat to open</p>
-
-                                </div>
-
-
-
-                                <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold">
-
-                                    Inbox
-
-                                </span>
-
-                            </div>
-
-
-
-                            <div class="mt-4">
-
-                                <input id="convSearch" type="text"
-
-                                       class="w-full rounded-2xl border-gray-200 text-sm focus:border-indigo-400 focus:ring-indigo-400"
-
-                                       placeholder="Search conversations...">
-
-                            </div>
-
+                        <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                            {{ $initials ?: 'U' }}
+                            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                         </div>
 
-
-
-                        @if($conversations->isEmpty())
-
-                            <div class="p-6">
-
-                                <div class="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-
-                                    <div class="text-4xl mb-3">💬</div>
-
-                                    <div class="font-semibold text-gray-900">No conversations yet</div>
-
-                                    <div class="text-sm text-gray-500 mt-1">Start a chat.</div>
-
-
-
-                                    <div class="mt-5">
-
-                                        <a href="{{ route('socialworker.messages.create') }}"
-
-                                           class="inline-flex px-4 py-2 rounded-2xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm">
-
-                                            Start chat
-
-                                        </a>
-
-                                    </div>
-
-                                </div>
-
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2 mb-0.5">
+                                <p class="text-sm font-semibold text-gray-900 truncate">{{ $c->name }}</p>
+                                <p class="text-[11px] text-gray-400 shrink-0">{{ $time }}</p>
                             </div>
-
-                        @else
-
-                            <div id="convList" class="max-h-[620px] overflow-y-auto">
-
-                                @foreach($conversations as $c)
-
-                                    @php
-
-                                        $isActive = $selectedUser && $selectedUser->id === $c->id;
-
-
-
-                                        $initials = collect(explode(' ', trim($c->name)))
-
-                                            ->filter()->take(2)
-
-                                            ->map(fn($w) => strtoupper(substr($w, 0, 1)))
-
-                                            ->join('');
-
-
-
-                                        $preview = $c->last_body
-
-                                            ? \Illuminate\Support\Str::limit($c->last_body, 40)
-
-                                            : 'No messages yet';
-
-
-
-                                        $time = $c->last_at
-
-                                            ? \Carbon\Carbon::parse($c->last_at)->format('D H:i')
-
-                                            : '';
-
-                                    @endphp
-
-
-
-                                    <a href="{{ route('socialworker.messages.index', ['with' => $c->id]) }}"
-
-                                       data-name="{{ strtolower($c->name . ' ' . $c->email) }}"
-
-                                       class="block px-4 py-4 border-b border-gray-100 transition hover:bg-indigo-50/50 {{ $isActive ? 'bg-indigo-50' : '' }}">
-
-                                        <div class="flex items-start gap-3">
-
-                                            <div class="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
-
-                                                {{ $initials ?: 'U' }}
-
-                                                <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
-
-                                            </div>
-
-
-
-                                            <div class="min-w-0 flex-1">
-
-                                                <div class="flex items-start justify-between gap-2">
-
-                                                    <div class="min-w-0">
-
-                                                        <div class="font-semibold text-gray-900 truncate">{{ $c->name }}</div>
-
-                                                        <div class="text-xs text-gray-500 truncate mt-1">{{ $preview }}</div>
-
-                                                    </div>
-
-
-
-                                                    <div class="text-right shrink-0">
-
-                                                        <div class="text-[11px] text-gray-400">{{ $time }}</div>
-
-
-
-                                                        @if(($c->unread_count ?? 0) > 0)
-
-                                                            <div class="mt-1 inline-flex min-w-6 h-6 px-2 items-center justify-center rounded-full bg-pink-500 text-white text-[11px] font-bold">
-
-                                                                {{ $c->unread_count }}
-
-                                                            </div>
-
-                                                        @endif
-
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-                                    </a>
-
-                                @endforeach
-
-                            </div>
-
-                        @endif
-
-                    </aside>
-
-
-
-                    {{-- right panel --}}
-
-                    <main class="lg:col-span-8 flex flex-col bg-gradient-to-b from-white to-indigo-50/30">
-
-                        @if(!$selectedUser)
-
-                            <div class="flex-1 flex items-center justify-center p-10">
-
-                                <div class="text-center max-w-md">
-
-                                    <div class="text-5xl mb-4">💭</div>
-
-                                    <h3 class="text-xl font-bold text-gray-900">Choose a conversation</h3>
-
-
-                                </div>
-
-                            </div>
-
-                        @else
-
-                            @php
-
-                                $initials = collect(explode(' ', trim($selectedUser->name)))
-
-                                    ->filter()->take(2)
-
-                                    ->map(fn($w) => strtoupper(substr($w, 0, 1)))
-
-                                    ->join('');
-
-                            @endphp
-
-
-
-                            {{-- chat header --}}
-
-                            <div class="p-5 border-b border-gray-100 bg-white/90">
-
-                                <div class="flex items-center justify-between">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <div class="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-500 text-white flex items-center justify-center font-bold shadow-sm">
-
-                                            {{ $initials ?: 'U' }}
-
-                                            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
-
-                                        </div>
-
-
-
-                                        <div>
-
-                                            <div class="font-bold text-gray-900">{{ $selectedUser->name }}</div>
-
-                                            <div class="text-xs text-gray-500">{{ $selectedUser->role }} • Available</div>
-
-                                        </div>
-
-                                    </div>
-
-
-
-                                    <span class="px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold">
-
-                                        Secure chat
-
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="text-xs text-gray-500 truncate">{{ $preview }}</p>
+                                @if(($c->unread_count ?? 0) > 0)
+                                    <span class="inline-flex min-w-5 h-5 px-1.5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold shrink-0">
+                                        {{ $c->unread_count }}
                                     </span>
-
-                                </div>
-
+                                @endif
                             </div>
-
-
-
-                            {{-- messages --}}
-
-                            <div id="chatScroll" class="flex-1 overflow-y-auto px-5 py-6 space-y-4">
-
-                                @php $lastLabel = null; @endphp
-
-
-
-                                @forelse($messages as $m)
-
-                                    @php
-
-                                        $isMe = $m->sender_id === auth()->id();
-
-                                        $label = $m->created_at->isToday() ? 'Today' : 'Earlier';
-
-                                    @endphp
-
-
-
-                                    @if($label !== $lastLabel)
-
-                                        <div class="flex justify-center py-2">
-
-                                            <span class="px-4 py-1 rounded-full bg-white border border-gray-200 text-xs text-gray-500 shadow-sm">
-
-                                                {{ $label }}
-
-                                            </span>
-
-                                        </div>
-
-                                        @php $lastLabel = $label; @endphp
-
-                                    @endif
-
-
-
-                                    <div class="flex {{ $isMe ? 'justify-end' : 'justify-start' }}">
-
-                                        <div class="max-w-[75%] rounded-[22px] px-4 py-3 shadow-sm
-
-                                            {{ $isMe
-
-                                                ? 'bg-gradient-to-r from-indigo-600 to-sky-500 text-white'
-
-                                                : 'bg-white text-gray-900 border border-gray-100' }}">
-
-                                            <div class="text-sm leading-relaxed whitespace-pre-wrap">{{ $m->body }}</div>
-
-
-
-                                            <div class="mt-2 text-[11px] {{ $isMe ? 'text-indigo-100' : 'text-gray-400' }}">
-
-                                                {{ $m->created_at->format($m->created_at->isToday() ? 'H:i' : 'D H:i') }}
-
-                                                @if($isMe && $m->read_at)
-
-                                                    • Seen
-
-                                                @endif
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                @empty
-
-                                    <div class="text-center py-16">
-
-
-                                        <div class="font-semibold text-gray-900">No messages yet</div>
-
-                                        <div class="text-sm text-gray-500 mt-1">Start the conversation below.</div>
-
-                                    </div>
-
-                                @endforelse
-
-                            </div>
-
-
-
-                            {{-- composer --}}
-
-                            <div class="border-t border-gray-100 bg-white/90 p-4">
-
-                                <form id="composerForm" method="POST" action="{{ route('socialworker.messages.store') }}" class="flex items-end gap-3">
-
-                                    @csrf
-
-                                    <input type="hidden" name="recipient_id" value="{{ $selectedUser->id }}">
-
-
-
-                                    <textarea id="composerBody" name="body" rows="1"
-
-                                              class="flex-1 resize-none rounded-2xl border-gray-200 focus:border-indigo-400 focus:ring-indigo-400"
-
-                                              placeholder="Write a message..."></textarea>
-
-
-
-                                    <button type="submit"
-
-                                            class="px-5 py-3 rounded-2xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm">
-
-                                        Send
-
-                                    </button>
-
-                                </form>
-
-
-
-                                <div class="mt-3 flex flex-wrap gap-2">
-
-                                    @foreach(['Thanks!', 'Noted ✅', 'Can we reschedule?', 'I’ll confirm soon'] as $chip)
-
-                                        <button type="button"
-
-                                                class="px-3 py-2 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100 hover:bg-indigo-100"
-
-                                                onclick="document.getElementById('composerBody').value='{{ $chip }}'; document.getElementById('composerBody').focus();">
-
-                                            {{ $chip }}
-
-                                        </button>
-
-                                    @endforeach
-
-                                </div>
-
-
-
-                                @error('body')
-
-                                    <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
-
-                                @enderror
-
-                            </div>
-
-                        @endif
-
-                    </main>
-
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        @endif
+    </aside>
+
+    {{-- Right: message thread --}}
+    <main class="flex-1 flex flex-col min-w-0">
+        @if(!$selectedUser)
+            <div class="flex-1 flex items-center justify-center p-10">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold text-gray-700">Select a conversation</p>
+                    <p class="text-sm text-gray-400 mt-1">Choose a chat from the list on the left.</p>
                 </div>
+            </div>
+        @else
+            @php
+                $initials = collect(explode(' ', trim($selectedUser->name)))->filter()->take(2)
+                    ->map(fn($w) => strtoupper(substr($w,0,1)))->join('');
+            @endphp
 
+            {{-- Chat header --}}
+            <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 text-white flex items-center justify-center text-sm font-bold">
+                        {{ $initials ?: 'U' }}
+                        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">{{ $selectedUser->name }}</p>
+                        <p class="text-xs text-gray-400">{{ ucfirst(str_replace('_', ' ', $selectedUser->role)) }} · Available</p>
+                    </div>
+                </div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium ring-1 ring-green-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    Secure
+                </span>
             </div>
 
-        </div>
+            {{-- Messages --}}
+            <div id="chatScroll" class="flex-1 overflow-y-auto px-5 py-5 space-y-3">
+                @php $lastLabel = null; @endphp
+                @forelse($messages as $m)
+                    @php
+                        $isMe = $m->sender_id === auth()->id();
+                        $label = $m->created_at->isToday() ? 'Today' : ($m->created_at->isYesterday() ? 'Yesterday' : $m->created_at->format('d M Y'));
+                    @endphp
 
-    </div>
+                    @if($label !== $lastLabel)
+                        <div class="flex items-center gap-3 py-1">
+                            <div class="flex-1 h-px bg-gray-100"></div>
+                            <span class="text-[11px] text-gray-400 shrink-0">{{ $label }}</span>
+                            <div class="flex-1 h-px bg-gray-100"></div>
+                        </div>
+                        @php $lastLabel = $label; @endphp
+                    @endif
 
+                    <div class="flex {{ $isMe ? 'justify-end' : 'justify-start' }}">
+                        <div class="max-w-[72%] {{ $isMe
+                            ? 'bg-indigo-600 text-white rounded-2xl rounded-br-sm'
+                            : 'bg-slate-100 text-gray-900 rounded-2xl rounded-bl-sm' }} px-4 py-2.5">
+                            <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $m->body }}</p>
+                            <p class="text-[11px] mt-1.5 {{ $isMe ? 'text-indigo-200' : 'text-gray-400' }}">
+                                {{ $m->created_at->format($m->created_at->isToday() ? 'H:i' : 'D H:i') }}
+                                @if($isMe && $m->read_at) · Seen @endif
+                            </p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="flex items-center justify-center h-full py-16">
+                        <div class="text-center">
+                            <p class="text-sm font-medium text-gray-600">No messages yet</p>
+                            <p class="text-xs text-gray-400 mt-1">Start the conversation below.</p>
+                        </div>
+                    </div>
+                @endforelse
+            </div>
 
+            {{-- Composer --}}
+            <div class="px-4 py-3.5 border-t border-gray-100 shrink-0">
+                {{-- Quick chips --}}
+                <div class="flex flex-wrap gap-1.5 mb-2.5">
+                    @foreach(['Thanks!', 'Noted ✅', 'Can we reschedule?', 'I\'ll confirm soon'] as $chip)
+                        <button type="button"
+                                class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200 transition"
+                                onclick="document.getElementById('composerBody').value='{{ $chip }}'; document.getElementById('composerBody').focus();">
+                            {{ $chip }}
+                        </button>
+                    @endforeach
+                </div>
 
-    <script>
+                <form id="composerForm" method="POST" action="{{ route($storeRoute) }}" class="flex items-end gap-2">
+                    @csrf
+                    <input type="hidden" name="recipient_id" value="{{ $selectedUser->id }}">
+                    <textarea id="composerBody" name="body" rows="2"
+                              class="flex-1 border border-gray-200 rounded-xl px-3.5 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-gray-400"
+                              placeholder="Write a message…"></textarea>
+                    <button type="submit"
+                            class="bg-indigo-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition shrink-0">
+                        Send
+                    </button>
+                </form>
 
-        window.addEventListener('load', () => {
+                @error('body')
+                    <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
+                @enderror
+            </div>
+        @endif
+    </main>
+</div>
 
-            const el = document.getElementById('chatScroll');
+<script>
+    window.addEventListener('load', () => {
+        const el = document.getElementById('chatScroll');
+        if (el) el.scrollTop = el.scrollHeight;
+    });
 
-            if (el) el.scrollTop = el.scrollHeight;
-
+    const search = document.getElementById('convSearch');
+    const list = document.getElementById('convList');
+    if (search && list) {
+        search.addEventListener('input', () => {
+            const q = search.value.toLowerCase();
+            list.querySelectorAll('[data-name]').forEach(a => {
+                a.style.display = a.getAttribute('data-name').includes(q) ? '' : 'none';
+            });
         });
+    }
 
-
-
-        const search = document.getElementById('convSearch');
-
-        const list = document.getElementById('convList');
-
-        if (search && list) {
-
-            search.addEventListener('input', () => {
-
-                const q = search.value.toLowerCase();
-
-                list.querySelectorAll('[data-name]').forEach(a => {
-
-                    a.style.display = a.getAttribute('data-name').includes(q) ? '' : 'none';
-
-                });
-
-            });
-
-        }
-
-
-
-        const body = document.getElementById('composerBody');
-
-        const form = document.getElementById('composerForm');
-
-        if (body && form) {
-
-            body.addEventListener('keydown', (e) => {
-
-                if (e.key === 'Enter' && !e.shiftKey) {
-
-                    e.preventDefault();
-
-                    if (body.value.trim().length > 0) form.submit();
-
-                }
-
-            });
-
-        }
-
-    </script>
+    const body = document.getElementById('composerBody');
+    const form = document.getElementById('composerForm');
+    if (body && form) {
+        body.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (body.value.trim()) form.submit();
+            }
+        });
+        // Auto-resize
+        body.addEventListener('input', () => {
+            body.style.height = 'auto';
+            body.style.height = Math.min(body.scrollHeight, 120) + 'px';
+        });
+    }
+</script>
 
 </x-app-layout>

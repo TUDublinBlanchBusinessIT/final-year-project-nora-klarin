@@ -10,6 +10,15 @@ class TrustedPerson extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'name', 'relationship', 'phone', 'email',
+        'child_id',
+        'name',
+        'relationship',
+        'phone',
+        'email',
     ];
+
+    public function child()
+    {
+        return $this->belongsTo(User::class, 'child_id');
+    }
 }

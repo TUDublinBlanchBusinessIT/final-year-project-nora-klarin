@@ -440,7 +440,10 @@
 
                             </a>
 
-
+                            <a href="{{ route('chatbot.index') }}"
+                            class="block rounded-2xl bg-indigo-50 hover:bg-indigo-100 px-4 py-3 font-semibold text-indigo-700 transition">
+                                💬 {{ auth()->user()->chatbot_name ?? 'CareHub Assistant' }}
+                            </a>
 
                             <a href="{{ route('child.trusted') }}"
 
@@ -748,15 +751,16 @@
                     </div>
 
                 </div>
-                    <a href="{{ route('chatbot.index') }}"
-
-       class="fixed bottom-6 right-6 z-50 flex items-center justify-center w-16 h-16 rounded-full bg-blue-700 hover:bg-blue-800 text-white shadow-2xl transition transform hover:scale-105"
-
-       aria-label="Open {{ auth()->user()->chatbot_name ?? 'CareHub Assistant' }}">
-
-        <span class="text-2xl">💬</span>
-
-    </a>
             </div>
-
+        {{-- Floating chatbot button --}}
+        <a href="{{ route('chatbot.index') }}"
+        class="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full
+                bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white shadow-2xl
+                hover:scale-105 transition-transform"
+        aria-label="Open {{ auth()->user()->chatbot_name ?? 'CareHub Assistant' }}">
+            <span class="text-xl">💬</span>
+            <span class="text-sm font-bold hidden sm:inline">
+                {{ auth()->user()->chatbot_name ?? 'Chat' }}
+            </span>
+        </a>
 </x-app-layout>

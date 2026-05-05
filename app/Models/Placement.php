@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Placement extends Model
 {
@@ -11,7 +10,7 @@ class Placement extends Model
         'case_file_id',
         'carer_id',
         'type',
-        'address',
+        'location',      // schema column is 'location', not 'address'
         'notes',
         'start_date',
         'end_date',
@@ -21,7 +20,8 @@ class Placement extends Model
         'latitude',
         'longitude',
     ];
-      protected $casts = [
+
+    protected $casts = [
         'latitude'   => 'float',
         'longitude'  => 'float',
         'start_date' => 'date',

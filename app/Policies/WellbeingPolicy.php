@@ -113,7 +113,6 @@ class WellbeingPolicy
             ->join('case_files', 'case_user.case_file_id', '=', 'case_files.id')
             ->where('case_user.user_id', $user->id)
             ->where('case_files.young_person_id', $youngPerson->id)
-            ->where('case_files.status', 'open')
             ->exists();
     }
 }

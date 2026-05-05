@@ -15,7 +15,8 @@ class CaseFileController extends Controller
 
         $cases = $user->socialWorkerCases()->with([
             'youngPerson',
-            'wellbeingChecks',
+            'wellbeingChecks' => fn($q) => $q->whereNotNull('completed_at')
+                                             ->orderByDesc('completed_at'),
         ])->get();
 
         return view('socialworker.cases.index', compact('cases'));
@@ -208,14 +209,53 @@ public function show(CaseFile $case)
             'notes'      => 'nullable|string',
         ]);
 
-        $case->placements()->create(array_merge($validated, [
+        // Attempt to geocode the location string via Nominatim.
+        // Nominatim requires a descriptive User-Agent per usage policy.
+        $lat = null;
+        $lng = null;
+
+        try {
+            $encoded  = urlencode($validated['location']);
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'User-Agent' => 'CareHub/1.0 (carehub@localhost)',
+            ])->get("https://nominatim.openstreetmap.org/search", [
+                'q'              => $validated['location'],
+                'format'         => 'json',
+                'limit'          => 1,
+                'addressdetails' => 0,
+            ]);
+
+            if ($response->successful()) {
+                $results = $response->json();
+                if (! empty($results)) {
+                    $lat = (float) $results[0]['lat'];
+                    $lng = (float) $results[0]['lon'];
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Placement geocoding failed', [
+                'location' => $validated['location'],
+                'error'    => $e->getMessage(),
+            ]);
+        }
+
+        $case->placements()->create([
+            'type'              => $validated['type'],
+            'location'          => $validated['location'],
+            'start_date'        => $validated['start_date'],
+            'end_date'          => $validated['end_date'] ?? null,
+            'carer_id'          => $validated['carer_id'] ?? null,
             'capacity'          => $validated['capacity'] ?? 1,
             'current_occupancy' => 0,
             'status'            => 'active',
-        ]));
+            'notes'             => $validated['notes'] ?? null,
+            'latitude'          => $lat,
+            'longitude'         => $lng,
+        ]);
 
         return back()->with('success', 'Placement added successfully.');
     }
+
 
     public function storeMedical(Request $request, CaseFile $case)
     {

@@ -66,7 +66,8 @@ class CaseFile extends Model
 
     public function youngPerson()
     {
-        return $this->belongsTo(User::class, 'young_person_id', 'id');
+        return $this->belongsTo(User::class, 'young_person_id', 'id')
+        ->where('role', 'young_person');
     }
 
     public function appointments()

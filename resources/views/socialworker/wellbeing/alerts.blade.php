@@ -14,7 +14,7 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-semibold text-gray-700">
-                            {{ $latestCheck->child->name }}
+                        {{ $latestCheck->youngPerson->name }}                        
                         </h3>
                         <p class="text-sm text-gray-500">
                             Last Check: {{ \Carbon\Carbon::parse($latestCheck->week_start)->format('d M Y') }}

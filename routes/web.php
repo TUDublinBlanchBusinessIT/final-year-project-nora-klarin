@@ -22,10 +22,6 @@ use App\Http\Controllers\SocialWorkerMessagesController;
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\WellbeingCheckController;
 use App\Http\Controllers\ChildWellbeingController;
-
-
-
-// Chatbot controller
 use App\Http\Controllers\ChatController;
 
 Route::get('/', function () {
@@ -78,7 +74,8 @@ Route::middleware('auth')->group(function () {
 
 });
 
-
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('socialworker.notifications.markRead');
+Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('socialworker.notifications.markAllRead');
 Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::get('/child/dashboard', [ChildDashboardController::class, 'index'])
         ->name('child.dashboard');
@@ -113,6 +110,8 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
     Route::post('/child/goals', [ChildGoalsController::class, 'store'])
         ->name('child.goals.store');
 
+    Route::post('/support/request', [TrustedPeopleController::class, 'requestSupport'])->name('child.support.request');
+
     Route::get('/child/trusted-people', [TrustedPeopleController::class, 'index'])
         ->name('child.trusted');
 
@@ -124,7 +123,7 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
     Route::get('/child/support', [SupportRequestController::class, 'index'])
         ->name('child.support');
-
+    
     Route::post('/child/support', [SupportRequestController::class, 'store'])
         ->name('child.support.store');
 
@@ -163,6 +162,9 @@ Route::middleware(['auth', 'role:young_person'])->group(function () {
 
     Route::post('/chatbot/send', [ChatController::class, 'send'])
         ->name('chatbot.send');
+
+    Route::post('/goals/tasks/{task}/complete',   [ChildGoalsController::class, 'completeTask'])->name('child.goals.tasks.complete');
+Route::post('/goals/tasks/{task}/uncomplete', [ChildGoalsController::class, 'uncompleteTask'])->name('child.goals.tasks.uncomplete');
 
 });
 

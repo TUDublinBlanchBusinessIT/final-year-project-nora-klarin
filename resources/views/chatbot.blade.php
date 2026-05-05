@@ -1,162 +1,299 @@
 <x-app-layout>
     @php
         $chatbotName = auth()->user()->chatbot_name ?? 'CareHub Assistant';
+        $userName    = explode(' ', auth()->user()->name ?? 'there')[0];
     @endphp
 
-    <div class="theme-page min-h-screen py-8">
-        <div class="max-w-md mx-auto px-4">
-            <div class="theme-card rounded-3xl shadow-xl overflow-hidden">
+    <div class="theme-page min-h-screen flex flex-col">
 
-                <div class="bg-blue-700 text-white px-6 py-5 text-center">
-                    <div class="text-2xl font-bold">{{ $chatbotName }}</div>
-                    <div class="text-sm text-blue-100 mt-1">How can we help?</div>
+        {{-- Header --}}
+        <div class="bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-sky-500 text-white px-5 py-4 flex items-center gap-3 shadow-lg">
+            <div class="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-xl flex-shrink-0">
+                💬
+            </div>
+            <div class="flex-1">
+                <div class="font-bold text-base">{{ $chatbotName }}</div>
+                <div class="text-xs text-white/70 flex items-center gap-1">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400 inline-block"></span>
+                    Always here for you
                 </div>
+            </div>
+            <a href="{{ route('child.dashboard') }}"
+               class="text-white/70 hover:text-white text-sm transition">
+                ✕ Close
+            </a>
+        </div>
 
-                <div id="chatBox" class="h-[420px] overflow-y-auto p-4 space-y-4 theme-page">
-                    <div class="flex">
-                        <div class="theme-card max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm shadow-sm">
-                            Hi, I’m {{ $chatbotName }}. I can help with housing, money, wellbeing, education, and support.
+        {{-- Emergency banner --}}
+        <div id="emergencyBanner" class="hidden bg-red-600 text-white px-5 py-3 text-sm font-semibold flex items-center gap-2">
+            🚨 If you're in danger right now, call <a href="tel:999" class="underline font-bold">999</a>
+            or Childline <a href="tel:116111" class="underline font-bold">116 111</a> (free, 24/7)
+        </div>
+
+        {{-- Chat area --}}
+        <div id="chatBox"
+             class="flex-1 overflow-y-auto px-4 py-5 space-y-4"
+             style="min-height: 0; max-height: calc(100vh - 280px)">
+
+            {{-- Welcome message --}}
+            <div class="flex items-end gap-2 bot-message">
+                <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm flex-shrink-0 mb-1">
+                    💬
+                </div>
+                <div class="max-w-[80%]">
+                    <div class="theme-card rounded-2xl rounded-bl-sm px-4 py-3 text-sm shadow-sm">
+                        Hey {{ $userName }}! 👋 I'm {{ $chatbotName }}. I'm here to help with anything on your mind — whether that's school, how you're feeling, your rights, or just having someone to talk to.
+                    </div>
+                    <div class="text-xs opacity-40 mt-1 ml-1">Just now</div>
+                </div>
+            </div>
+
+            {{-- Restore history --}}
+            @foreach($history as $msg)
+                <div class="flex justify-end user-message">
+                    <div class="max-w-[80%]">
+                        <div class="bg-indigo-600 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm shadow-sm">
+                            {{ $msg->user_message }}
+                        </div>
+                        <div class="text-xs opacity-40 mt-1 text-right mr-1">
+                            {{ $msg->created_at->diffForHumans() }}
                         </div>
                     </div>
                 </div>
-
-                <div id="suggestions" class="px-4 pt-3 pb-2 theme-card border-t flex flex-wrap gap-2">
-                    <button type="button" onclick="sendQuickMessage('Housing help')" class="px-3 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">Housing</button>
-                    <button type="button" onclick="sendQuickMessage('Money advice')" class="px-3 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">Money</button>
-                    <button type="button" onclick="sendQuickMessage('Wellbeing support')" class="px-3 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">Wellbeing</button>
-                    <button type="button" onclick="sendQuickMessage('Education support')" class="px-3 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">Education</button>
-                    <button type="button" onclick="sendQuickMessage('Emergency help')" class="px-3 py-2 rounded-full bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100">Emergency</button>
-                </div>
-
-                <div class="p-4 border-t theme-card">
-                    <div class="flex gap-2">
-                        <input
-                            type="text"
-                            id="messageInput"
-                            placeholder="Type a message"
-                            class="theme-input flex-1 rounded-2xl focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
-                            onkeydown="if(event.key === 'Enter') sendMessage()"
-                        >
-                        <button
-                            type="button"
-                            onclick="sendMessage()"
-                            class="px-5 py-3 rounded-2xl bg-blue-700 hover:bg-blue-800 text-white font-semibold"
-                        >
-                            Send
-                        </button>
+                <div class="flex items-end gap-2 bot-message">
+                    <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm flex-shrink-0 mb-1">
+                        💬
                     </div>
+                    <div class="max-w-[80%]">
+                        <div class="theme-card rounded-2xl rounded-bl-sm px-4 py-3 text-sm shadow-sm
+                                    {{ $msg->is_emergency ? 'bg-red-50 border border-red-200 text-red-800' : '' }}">
+                            {{ $msg->bot_reply }}
+                        </div>
+                        <div class="text-xs opacity-40 mt-1 ml-1">
+                            {{ $msg->created_at->diffForHumans() }}
+                        </div>
+                    </div>
+                </div>
+            @endforeach
 
-                    <div class="mt-4 text-center">
-                        <a href="{{ route('child.dashboard') }}"
-                           class="inline-block px-6 py-3 rounded-2xl border border-blue-700 text-blue-700 font-semibold hover:bg-blue-50">
-                            End chat
-                        </a>
+            {{-- Typing indicator (hidden by default) --}}
+            <div id="typingIndicator" class="hidden flex items-end gap-2">
+                <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm flex-shrink-0">
+                    💬
+                </div>
+                <div class="theme-card rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                    <div class="flex gap-1 items-center">
+                        <span class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce" style="animation-delay:0ms"></span>
+                        <span class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce" style="animation-delay:150ms"></span>
+                        <span class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce" style="animation-delay:300ms"></span>
                     </div>
                 </div>
             </div>
         </div>
+
+        {{-- Quick suggestions --}}
+        <div id="suggestions"
+             class="px-4 py-2 flex gap-2 overflow-x-auto border-t theme-card"
+             style="scrollbar-width:none">
+            @foreach(['How are you feeling?','School support','My rights in care','Talk to someone','Money help','Housing'] as $s)
+                <button type="button"
+                        onclick="sendQuickMessage('{{ $s }}')"
+                        class="flex-shrink-0 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium hover:bg-indigo-100 transition border border-indigo-100">
+                    {{ $s }}
+                </button>
+            @endforeach
+        </div>
+
+        {{-- Input bar --}}
+        <div class="px-4 py-3 border-t theme-card">
+            <div class="flex gap-2 items-end">
+                <div class="flex-1 theme-card border rounded-2xl px-4 py-2.5 flex items-center">
+                    <textarea
+                        id="messageInput"
+                        placeholder="Type a message…"
+                        rows="1"
+                        class="flex-1 bg-transparent border-none outline-none resize-none text-sm leading-relaxed max-h-24"
+                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+                    ></textarea>
+                </div>
+                <button
+                    id="sendBtn"
+                    type="button"
+                    onclick="sendMessage()"
+                    class="h-11 w-11 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition active:scale-95 flex-shrink-0">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="text-center mt-2">
+                <span class="text-xs opacity-40">Need urgent help? Call Childline free on </span>
+                <a href="tel:116111" class="text-xs text-indigo-500 font-semibold">116 111</a>
+            </div>
+        </div>
     </div>
 
+    @push('scripts')
     <script>
-        function appendMessage(message, sender, isEmergency = false, linkLabel = null, linkUrl = null) {
-            const chatBox = document.getElementById('chatBox');
-            const wrapper = document.createElement('div');
-            wrapper.className = sender === 'user' ? 'flex justify-end' : 'flex';
+    // Conversation history kept in memory for Gemini context
+    const conversationHistory = @json(
+        $history->map(fn($m) => ['user' => $m->user_message, 'bot' => $m->bot_reply])->values()
+    );
 
-            const container = document.createElement('div');
-            container.className = 'max-w-[85%]';
+    const chatBox     = document.getElementById('chatBox');
+    const input       = document.getElementById('messageInput');
+    const sendBtn     = document.getElementById('sendBtn');
+    const typing      = document.getElementById('typingIndicator');
+    const suggestions = document.getElementById('suggestions');
+    const emergency   = document.getElementById('emergencyBanner');
 
-            const bubble = document.createElement('div');
-            bubble.className = sender === 'user'
-                ? 'bg-blue-700 text-white rounded-2xl rounded-br-md px-4 py-3 text-sm shadow-sm'
-                : 'theme-card rounded-2xl rounded-bl-md px-4 py-3 text-sm shadow-sm';
+    chatBox.scrollTop = chatBox.scrollHeight;
 
-            if (isEmergency && sender === 'bot') {
-                bubble.className = 'bg-red-50 border border-red-200 rounded-2xl rounded-bl-md px-4 py-3 text-sm text-red-800 shadow-sm';
-            }
+    function timeAgo() {
+        return 'Just now';
+    }
 
-            bubble.textContent = message;
-            container.appendChild(bubble);
+    function appendUser(message) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flex justify-end user-message';
+        wrapper.innerHTML = `
+            <div class="max-w-[80%]">
+                <div class="bg-indigo-600 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm shadow-sm">
+                    ${escapeHtml(message)}
+                </div>
+                <div class="text-xs opacity-40 mt-1 text-right mr-1">Just now</div>
+            </div>`;
+        chatBox.insertBefore(wrapper, typing);
+        scrollBottom();
+    }
 
-            if (sender === 'bot' && linkLabel && linkUrl) {
-                const link = document.createElement('a');
-                link.href = linkUrl;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                link.className = 'inline-block mt-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100';
-                link.textContent = linkLabel;
-                container.appendChild(link);
-            }
+    function appendBot(reply, isEmergency, linkLabel, linkUrl) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flex items-end gap-2 bot-message';
 
-            wrapper.appendChild(container);
-            chatBox.appendChild(wrapper);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        const bubbleCls = isEmergency
+            ? 'bg-red-50 border border-red-200 text-red-800 rounded-2xl rounded-bl-sm px-4 py-3 text-sm shadow-sm'
+            : 'theme-card rounded-2xl rounded-bl-sm px-4 py-3 text-sm shadow-sm';
+
+        let linkHtml = '';
+        if (linkLabel && linkUrl) {
+            linkHtml = `<a href="${linkUrl}" target="_blank" rel="noopener"
+                class="inline-block mt-2 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100">
+                ${escapeHtml(linkLabel)} →
+            </a>`;
         }
 
-        function renderSuggestions(items = []) {
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = '';
+        wrapper.innerHTML = `
+            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm flex-shrink-0 mb-1">💬</div>
+            <div class="max-w-[80%]">
+                <div class="${bubbleCls}">
+                    ${escapeHtml(reply)}
+                    ${linkHtml}
+                </div>
+                <div class="text-xs opacity-40 mt-1 ml-1">Just now</div>
+            </div>`;
 
-            items.forEach(item => {
-                const button = document.createElement('button');
-                button.type = 'button';
+        chatBox.insertBefore(wrapper, typing);
+        scrollBottom();
 
-                const isEmergency = item.toLowerCase().includes('emergency');
+        // Animate in
+        wrapper.style.opacity = '0';
+        wrapper.style.transform = 'translateY(8px)';
+        requestAnimationFrame(() => {
+            wrapper.style.transition = 'opacity 0.3s, transform 0.3s';
+            wrapper.style.opacity = '1';
+            wrapper.style.transform = 'translateY(0)';
+        });
+    }
 
-                button.className = isEmergency
-                    ? 'px-3 py-2 rounded-full bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100'
-                    : 'px-3 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100';
+    function renderSuggestions(items = []) {
+        suggestions.innerHTML = '';
+        items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const isEmerg = item.toLowerCase().includes('emergency') || item.toLowerCase().includes('999');
+            btn.className = isEmerg
+                ? 'flex-shrink-0 px-3 py-1.5 rounded-full bg-red-50 text-red-700 text-xs font-medium hover:bg-red-100 transition border border-red-100'
+                : 'flex-shrink-0 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium hover:bg-indigo-100 transition border border-indigo-100';
+            btn.textContent = item;
+            btn.onclick = () => sendQuickMessage(item);
+            suggestions.appendChild(btn);
+        });
+    }
 
-                button.textContent = item;
-                button.onclick = () => sendQuickMessage(item);
-                suggestions.appendChild(button);
+    function scrollBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/\n/g, '<br>');
+    }
+
+    function sendQuickMessage(text) {
+        input.value = text;
+        sendMessage();
+    }
+
+    async function sendMessage() {
+        const message = input.value.trim();
+        if (!message) return;
+
+        input.value = '';
+        input.style.height = 'auto';
+        sendBtn.disabled = true;
+
+        appendUser(message);
+
+        // Show typing indicator
+        typing.classList.remove('hidden');
+        scrollBottom();
+
+        try {
+            const response = await fetch("{{ route('chatbot.send') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    message,
+                    history: conversationHistory.slice(-6),
+                }),
             });
-        }
 
-        function sendQuickMessage(text) {
-            document.getElementById('messageInput').value = text;
-            sendMessage();
-        }
+            const data = await response.json();
 
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
+            typing.classList.add('hidden');
 
-            if (!message) return;
-
-            appendMessage(message, 'user');
-            input.value = '';
-
-            try {
-                const response = await fetch("{{ route('chatbot.send') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ message })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    appendMessage('Something went wrong. Please try again.', 'bot', false);
-                    return;
-                }
-
-                appendMessage(
-                    data.reply,
-                    'bot',
-                    data.is_emergency ?? false,
-                    data.link_label ?? null,
-                    data.link_url ?? null
-                );
-
-                renderSuggestions(data.suggestions ?? []);
-            } catch (error) {
-                appendMessage('I could not connect right now. Please try again.', 'bot', false);
+            if (!response.ok) {
+                appendBot("Something went wrong — please try again.", false, null, null);
+                return;
             }
+
+            conversationHistory.push({ user: message, bot: data.reply });
+
+            appendBot(data.reply, data.is_emergency ?? false, data.link_label ?? null, data.link_url ?? null);
+            renderSuggestions(data.suggestions ?? []);
+
+            if (data.is_emergency) {
+                emergency.classList.remove('hidden');
+            }
+
+        } catch (e) {
+            typing.classList.add('hidden');
+            appendBot("I couldn't connect just now — please try again.", false, null, null);
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
         }
+    }
     </script>
+    @endpush
 </x-app-layout>
