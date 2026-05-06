@@ -54,7 +54,6 @@
             'upload'   => 'Upload document',
             'received' => 'Shared with me',
             'sent'     => 'Sent by me',
-            'wellbeing'=> 'Wellbeing update',
         ] as $key => $label)
             <button @click="tab='{{ $key }}'"
                     :class="tab==='{{ $key }}' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-slate-50'"
@@ -215,65 +214,6 @@
         @endif
     </div>
 
-    {{-- Wellbeing tab --}}
-    <div x-show="tab==='wellbeing'" x-transition class="bg-white border border-gray-200 rounded-[14px] p-6 space-y-5">
-        <div>
-            <p class="text-sm font-semibold text-gray-700">Wellbeing update</p>
-            <p class="text-xs text-gray-400 mt-0.5">Complete this update based on the young person's recent wellbeing</p>
-        </div>
-
-        <form method="POST" action="{{ route('carer.wellbeing.store') }}" class="space-y-4">
-            @csrf
-
-            <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1.5">Case file <span class="text-red-500">*</span></label>
-                <select name="case_file_id" required
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    <option value="">Select case file</option>
-                    @foreach($caseFiles as $caseFile)
-                        <option value="{{ $caseFile->id }}" @selected(old('case_file_id', $case->id ?? null) == $caseFile->id)>
-                            {{ $caseFile->case_reference ?? ('Case #' . $caseFile->id) }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                @foreach([
-                    'overall_score'      => 'Overall wellbeing',
-                    'emotional_score'    => 'Emotional wellbeing',
-                    'behavioural_score'  => 'Behaviour at home',
-                    'physical_score'     => 'Physical health',
-                    'safety_score'       => 'Feeling safe',
-                    'school_score'       => 'School / daily routine',
-                    'relationship_score' => 'Relationships / social',
-                ] as $field => $label)
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5">{{ $label }} (1–10) <span class="text-red-500">*</span></label>
-                        <input type="number" name="{{ $field }}" min="1" max="10" required
-                               value="{{ old($field) }}"
-                               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    </div>
-                @endforeach
-            </div>
-
-            <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1.5">Carer notes / observations</label>
-                <textarea name="journal_notes" rows="5"
-                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                          placeholder="e.g. Settled well this week, attended school regularly, seemed anxious on Tuesday, responded well to reassurance.">{{ old('journal_notes') }}</textarea>
-            </div>
-
-            <div class="flex justify-end pt-1 border-t border-gray-100">
-                <button type="submit"
-                        class="bg-indigo-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-indigo-700 transition">
-                    Send update to social worker
-                </button>
-            </div>
-        </form>
-    </div>
-
-</div>
 
 <script>
     function initSearch(inputId, listId) {
